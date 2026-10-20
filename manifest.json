@@ -1,0 +1,10 @@
+{
+  "name": "Farm Run 3D",
+  "short_name": "Farm Run",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#9fd4f0",
+  "background_color": "#9fd4f0"
+}

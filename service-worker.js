@@ -1,0 +1,49 @@
+// Bump CACHE on each release so clients pick up new files.
+const CACHE = 'farmrun3d-v1';
+const SHELL = [
+  './',
+  'index.html',
+  'manifest.json',
+  'css/style.css',
+  'lib/three.module.min.js',
+  'js/main.js',
+  'js/render/renderer.js',
+  'js/render/camera.js',
+  'js/render/materials.js',
+  'js/render/models.js',
+  'js/render/instancing.js',
+  'js/game/collision.js',
+  'js/game/map.js',
+  'js/game/player.js',
+  'js/game/truck.js',
+  'js/game/chickens.js',
+  'js/systems/input.js',
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then((hit) => {
+      if (hit) return hit;
+      return fetch(e.request).then((res) => {
+        if (res.ok && new URL(e.request.url).origin === location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      });
+    })
+  );
+});
