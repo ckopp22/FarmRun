@@ -35,8 +35,7 @@ document.getElementById('busted-btn').addEventListener('click', () => {
 });
 
 function paintHud() {
-  const value = haul.reduce((s, a) => s + a.value, 0);
-  hud.textContent = `🎒 ${haul.length}/${capacity} · $${value.toLocaleString()}`;
+  hud.textContent = `🎒 ${haul.length}/${capacity}`;
 }
 
 // Bank the haul into the inventory and unlock colors. Selling happens on the farm.

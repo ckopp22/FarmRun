@@ -4,15 +4,14 @@ import { PLAYER_LIMIT } from './map.js';
 
 const RADIUS = 0.35;
 const PICKUP = 0.45 + 0.5;   // farmer radius + animal reach
-// Rarer tiers spawn farther from the truck; Rare and up flee the player.
+// Rarer tiers spawn farther from the truck; Uncommon and up flee the player, harder the rarer they are.
 const TIERS = {
   Common:    { weight: 5,   min: 8,  max: 50, speed: 1.7, flee: 0 },
-  Uncommon:  { weight: 3,   min: 36, max: 70, speed: 1.8, flee: 0 },
-  Rare:      { weight: 2,   min: 56, max: 84, speed: 2.0, flee: 3.5 },
-  Epic:      { weight: 1,   min: 72, max: 92, speed: 2.2, flee: 4.2 },
-  Legendary: { weight: 0.5, min: 80, max: 92, speed: 2.4, flee: 4.8 },
+  Uncommon:  { weight: 3,   min: 36, max: 70, speed: 1.8, flee: 2.4, range: 7 },    // walks away
+  Rare:      { weight: 2,   min: 56, max: 84, speed: 2.0, flee: 4.2, range: 9 },    // runs
+  Epic:      { weight: 1,   min: 72, max: 92, speed: 2.2, flee: 5.0, range: 11 },
+  Legendary: { weight: 0.5, min: 80, max: 92, speed: 2.4, flee: 5.6, range: 13 },   // nearly as fast as the player
 };
-const FLEE_RANGE = 6;
 const FOG_CULL = 66;   // past the fog's far plane (62) they are invisible, so skip drawing them
 
 function pickAnimal(pool, total) {
@@ -29,7 +28,6 @@ const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
   const list = [];
   const total = pool.reduce((s, a) => s + TIERS[a.tier].weight, 0);
-  const fleeRange = FLEE_RANGE;
   for (let i = 0; i < count; i++) {
     const a = pickAnimal(pool, total);
     const t = TIERS[a.tier];
@@ -53,10 +51,13 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
       const px = player.x - c.x, pz = player.z - c.z;
       const pd2 = px * px + pz * pz;
 
-      if (c.t.flee && pd2 < fleeRange * fleeRange) {
+      if (c.t.flee && pd2 < c.t.range * c.t.range) {
         const d = Math.sqrt(pd2) || 0.001;
         c.x = clampLimit(c.x - px / d * c.t.flee * dt);
         c.z = clampLimit(c.z - pz / d * c.t.flee * dt);
+        // Against the map edge, slide along it instead of stopping (only a corner traps them).
+        if (Math.abs(c.x) >= PLAYER_LIMIT) c.z = clampLimit(c.z - Math.sign(pz) * c.t.flee * dt);
+        if (Math.abs(c.z) >= PLAYER_LIMIT) c.x = clampLimit(c.x - Math.sign(px) * c.t.flee * dt);
         c.heading = Math.atan2(-px, -pz);
         c.tx = c.x; c.tz = c.z; c.wait = 0.4;
         moving = true;
