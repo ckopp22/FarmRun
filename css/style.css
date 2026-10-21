@@ -26,6 +26,18 @@ button { touch-action: manipulation; }
   touch-action: none;
 }
 
+/* Solid strip at the bottom edge: iOS extends the color of fixed edge elements into the unsafe area. */
+#edge-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: #618d3f;
+  pointer-events: none;
+  z-index: 1;
+}
+
 #hud {
   position: fixed;
   inset: 0;
