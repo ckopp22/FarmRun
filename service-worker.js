@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v1';
+const CACHE = 'farmrun3d-v2';
 const SHELL = [
   './',
   'index.html',
@@ -8,6 +8,9 @@ const SHELL = [
   'lib/three.module.min.js',
   'js/main.js',
   'js/render/renderer.js',
+  'js/render/quality.js',
+  'js/screens/manager.js',
+  'js/screens/woods.js',
   'js/render/camera.js',
   'js/render/materials.js',
   'js/render/models.js',

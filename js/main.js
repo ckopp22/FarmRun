@@ -1,30 +1,17 @@
-import { createRenderer, createScene, watchResize, watchContext } from './render/renderer.js';
-import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from './render/camera.js';
-import { createGrid } from './game/collision.js';
-import { buildForest } from './game/map.js';
-import { createTruck } from './game/truck.js';
-import { createPlayer, updatePlayer } from './game/player.js';
-import { createChickens } from './game/chickens.js';
+import { createRenderer, watchResize, watchContext } from './render/renderer.js';
 import { createInput } from './systems/input.js';
+import { createScreenManager } from './screens/manager.js';
+import { woodsScreen } from './screens/woods.js';
 
 const canvas = document.getElementById('game');
 const fpsEl = document.getElementById('fps');
-const countEl = document.getElementById('chicken-count');
 
 const renderer = createRenderer(canvas);
-const scene = createScene();
-const camera = createChaseCamera(window.innerWidth / window.innerHeight);
-const grid = createGrid();
-const input = createInput();
+const ctx = { renderer, input: createInput() };
+const screens = createScreenManager(renderer, ctx);
+screens.register('woods', woodsScreen);
+watchResize(renderer, screens.camera);
 
-createTruck(scene, grid, 0, 0);
-buildForest(scene, grid, 200, 10);
-const player = createPlayer(scene, 3.5, 3);
-const chickens = createChickens(scene, grid, 6, player);
-snapCamera(camera, player.x, player.z);
-watchResize(renderer, camera);
-
-let collected = 0;
 let running = true;
 let last = performance.now();
 let raf = 0;
@@ -37,12 +24,8 @@ function frame(now) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
 
-  input.update();
-  updatePlayer(player, input, grid, dt, CAMERA_YAW);
-  const got = chickens.update(dt);
-  if (got) { collected += got; countEl.textContent = collected; }
-  updateChaseCamera(camera, player.x, player.z, dt);
-  renderer.render(scene, camera);
+  screens.update(dt);
+  screens.render();
 
   frames++;
   fpsTime += dt;
@@ -66,6 +49,7 @@ document.addEventListener('visibilitychange', () => {
   else if (!running) start();
 });
 
+screens.go('woods');
 start();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

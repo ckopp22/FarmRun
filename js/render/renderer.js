@@ -1,10 +1,11 @@
 import * as THREE from '../../lib/three.module.min.js';
+import { pixelRatio } from './quality.js';
 
 const SKY = 0x9fd4f0;
 
 export function createRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(pixelRatio());
   return renderer;
 }
 
@@ -28,17 +29,18 @@ export function createScene() {
 
 // Size the drawing buffer to the canvas' CSS size (full screen, 100dvh).
 export function fitRenderer(renderer, camera) {
+  if (!camera) return;
   const canvas = renderer.domElement;
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(pixelRatio());
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
 
-export function watchResize(renderer, camera) {
-  const fit = () => fitRenderer(renderer, camera);
+export function watchResize(renderer, getCamera) {
+  const fit = () => fitRenderer(renderer, getCamera());
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', () => {
     fit();
@@ -48,6 +50,15 @@ export function watchResize(renderer, camera) {
   });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
   fit();
+}
+
+// Free GPU resources of a scene that is being left.
+export function disposeScene(scene) {
+  scene.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose());
+    if (o.dispose && o.isInstancedMesh) o.dispose();
+  });
 }
 
 export function watchContext(canvas, onLost, onRestored) {
