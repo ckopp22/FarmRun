@@ -15,8 +15,21 @@
 <body>
 <canvas id="game"></canvas>
 <div id="hud">
-  <div id="chickens">🐔 <span id="chicken-count">0</span></div>
+  <div id="chickens" style="display:none">🐔 <span id="chicken-count">0</span></div>
   <div id="fps">-- fps</div>
+</div>
+<div id="sound">
+  <button id="sound-btn" aria-label="Sound">🔊</button>
+  <button id="music-btn" aria-label="Music">🎵</button>
+</div>
+<div id="menu" class="overlay">
+  <h1 class="title">FARM RUN</h1>
+  <button id="play-btn" class="big-btn">PLAY</button>
+</div>
+<div id="slots" class="overlay" style="display:none">
+  <h2 class="subtitle">Choose a Farm</h2>
+  <div id="slot-list"></div>
+  <button id="slots-back" class="back-btn">Back</button>
 </div>
 <div id="stick-base"><div id="stick-knob"></div></div>
 <script type="module" src="js/main.js"></script>

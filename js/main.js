@@ -2,6 +2,8 @@ import { createRenderer, watchResize, watchContext } from './render/renderer.js'
 import { createInput } from './systems/input.js';
 import { createScreenManager } from './screens/manager.js';
 import { woodsScreen } from './screens/woods.js';
+import { menuScreen } from './screens/menu.js';
+import { audioSettings, toggle, unlockAudio, tapSound } from './systems/audio.js';
 
 const canvas = document.getElementById('game');
 const fpsEl = document.getElementById('fps');
@@ -9,6 +11,7 @@ const fpsEl = document.getElementById('fps');
 const renderer = createRenderer(canvas);
 const ctx = { renderer, input: createInput() };
 const screens = createScreenManager(renderer, ctx);
+screens.register('menu', menuScreen);
 screens.register('woods', woodsScreen);
 watchResize(renderer, screens.camera);
 
@@ -49,7 +52,18 @@ document.addEventListener('visibilitychange', () => {
   else if (!running) start();
 });
 
-screens.go('woods');
+for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music']]) {
+  const btn = document.getElementById(id);
+  const paint = () => {
+    const on = audioSettings()[kind];
+    btn.classList.toggle('off', !on);
+    if (kind === 'sound') btn.textContent = on ? '🔊' : '🔇';
+  };
+  btn.addEventListener('click', () => { unlockAudio(); toggle(kind); paint(); tapSound(); });
+  paint();
+}
+
+screens.go('menu');
 start();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

@@ -68,3 +68,16 @@ export function makeTruck() {
   g.add(makeBlobShadow(2.4));
   return g;
 }
+
+export function makeBarn() {
+  const g = new THREE.Group();
+  box(g, 6, 3.4, 5, 0xb83a2e, 0, 1.7, 0);               // walls
+  box(g, 1.8, 2.4, 0.12, 0xf4efe4, 0, 1.2, 2.53);       // door
+  box(g, 0.14, 2.4, 0.14, 0x8e2b20, 0, 1.2, 2.6);       // door divider
+  for (const s of [-1, 1]) {
+    const r = box(g, 3.9, 0.3, 5.6, 0x6b4a2b, s * 1.56, 3.4 + 0.9, 0);
+    r.rotation.z = s * Math.PI / 6;
+  }
+  g.add(makeBlobShadow(4.2));
+  return g;
+}
