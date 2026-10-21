@@ -44,6 +44,7 @@ function frame(now) {
   fpsTime += dt;
   if (fpsTime >= 0.5) {
     fpsEl.textContent = Math.round(frames / fpsTime) + ' fps';
+    fpsEl.textContent += ` DBG inner ${innerWidth}x${innerHeight} scr ${screen.width}x${screen.height} cv ${canvas.clientHeight} vv ${Math.round(visualViewport ? visualViewport.height : 0)} sa ${getComputedStyle(fpsEl).bottom} top ${fpsEl.getBoundingClientRect().bottom | 0}`;
     window.__fps = frames / fpsTime;
     // Adaptive quality: after ~4s of sustained low fps, step the setting down one level.
     slowTime = window.__fps < 40 ? slowTime + 0.5 : Math.max(0, slowTime - 0.5);
