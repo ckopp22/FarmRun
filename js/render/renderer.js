@@ -31,6 +31,11 @@ export function createScene() {
 export function fitRenderer(renderer, camera) {
   if (!camera) return;
   const canvas = renderer.domElement;
+  // iOS standalone portrait can report a layout height short of the home-indicator area; cover the largest height reported.
+  const portrait = window.innerHeight > window.innerWidth;
+  const vv = window.visualViewport ? window.visualViewport.height : 0;
+  const scr = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  if (navigator.standalone) canvas.style.height = Math.max(window.innerHeight, vv, scr) + 'px';
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
   renderer.setPixelRatio(pixelRatio());
