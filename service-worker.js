@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v10';
+const CACHE = 'farmrun3d-v11';
 const SHELL = [
   './',
   'index.html',
@@ -23,6 +23,8 @@ const SHELL = [
   'js/game/followers.js',
   'js/game/rivals.js',
   'js/game/confetti.js',
+  'js/render/particles.js',
+  'js/screens/drive.js',
   'js/systems/input.js',
   'js/systems/save.js',
   'js/systems/audio.js',

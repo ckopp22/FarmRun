@@ -4,7 +4,7 @@ import { makeBarn, makeTruck } from '../render/models.js';
 import { createTrees } from '../render/instancing.js';
 import { renderSlots } from './slots.js';
 import { startSlot } from '../systems/save.js';
-import { unlockAudio, tapSound } from '../systems/audio.js';
+import { unlockAudio, tapSound, setMusic } from '../systems/audio.js';
 
 const menuEl = document.getElementById('menu');
 const slotsEl = document.getElementById('slots');
@@ -43,6 +43,7 @@ export const menuScreen = {
     ]);
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 150);
     angle = 0.6;
+    setMusic('farm');
     show(menuEl, true);
     show(slotsEl, false);
     return { scene, camera };

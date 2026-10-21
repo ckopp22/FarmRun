@@ -7,6 +7,8 @@ import { createTruck } from '../game/truck.js';
 import { createPlayer, updatePlayer } from '../game/player.js';
 import { createAnimals } from '../game/animals.js';
 import { createRivals } from '../game/rivals.js';
+import { createParticles } from '../render/particles.js';
+import { sfx, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { capacity as capacityOf, speedMult, lureMult, zoomMult, tierCount } from '../systems/economy.js';
@@ -16,7 +18,7 @@ const RIVAL_COUNT = 6;
 const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
-let input, grid, player, animals, followers, rivals, camera, ctxRef;
+let input, grid, player, animals, followers, rivals, particles, camera, ctxRef;
 let haul, capacity, armed, busted;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -83,7 +85,9 @@ export const woodsScreen = {
     player.speedMult = speedMult(fx);
     animals = createAnimals(scene, grid, ANIMAL_COUNT, player, { tierCount: tierCount(fx), lure: lureMult(fx) });
     followers = createFollowers(scene, player);
-    rivals = createRivals(scene, grid, RIVAL_COUNT, player);
+    rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
+    particles = createParticles(scene);
+    setMusic('woods');
     busted = false;
     bustedEl.style.display = 'none';
     snapCamera(camera, player.x, player.z);
@@ -98,20 +102,21 @@ export const woodsScreen = {
     input.update();
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
     const got = animals.update(dt, haul.length >= capacity);
-    if (got) { haul.push(got); followers.add(got); paintHud(); }
+    if (got) { haul.push(got); followers.add(got); paintHud(); sfx('pickup'); particles.burst(player.x, 0.8, player.z, 0xffe066, 8, 3); }
+    particles.update(dt);
     followers.update(dt);
     updateChaseCamera(camera, player.x, player.z, dt);
-    if (rivals.update(dt)) { busted = true; bustedEl.style.display = ''; return; }
+    if (rivals.update(dt)) { busted = true; bustedEl.style.display = ''; sfx('caught'); return; }
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
-    else if (armed && d < DEPOSIT_RADIUS) { busted = true; showResult(); }
+    else if (armed && d < DEPOSIT_RADIUS) { busted = true; showResult(); sfx('cash'); }
   },
 
   exit() {
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
     resultEl.style.display = 'none';
-    input = grid = player = animals = followers = rivals = camera = null;
+    input = grid = player = animals = followers = rivals = particles = camera = null;
   },
 };

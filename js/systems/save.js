@@ -58,4 +58,4 @@ export function loadSettings() {
   return Object.assign({ sound: true, music: true }, read(SETTINGS_KEY));
 }
 
-export function saveSettings(s) { write(SETTINGS_KEY, s); }
+export function saveSettings(s) { write(SETTINGS_KEY, Object.assign(read(SETTINGS_KEY) || {}, s)); }

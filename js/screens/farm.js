@@ -6,7 +6,8 @@ import { ANIMALS, UPGRADES } from '../data/animals.js';
 import { level, nextCost, buy } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
-import { tapSound } from '../systems/audio.js';
+import { createParticles } from '../render/particles.js';
+import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 55 * Math.PI / 180, DIST = 24;
 const PEN = 3.6, PEN_Z0 = 9, PEN_DZ = 4.2, PEN_X = 2.2;
@@ -44,13 +45,13 @@ function renderShop() {
 shopList.addEventListener('click', (ev) => {
   const id = ev.target.dataset && ev.target.dataset.id;
   if (id && buy(save, id)) {
-    tapSound();
+    sfx('upgrade');
     moneyEl.textContent = '$' + save.money.toLocaleString();
     renderShop();
   }
 });
 
-let camera, canvas, scene, ctxRef, save, confetti;
+let camera, canvas, scene, ctxRef, save, confetti, particles;
 let panZ, time, entries;   // entries: { a, group, x, z, owned, ph, reveal } (reveal = seconds until the color unlock, -1 = none)
 const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
@@ -93,7 +94,7 @@ function onUp(ev) {
 
 const closeShop = () => { shopEl.style.display = 'none'; };
 const onShop = () => { tapSound(); renderShop(); shopEl.style.display = ''; };
-const onRun = () => { tapSound(); ctxRef.go('woods'); };
+const onRun = () => { tapSound(); ctxRef.go('drive'); };
 document.getElementById('shop-btn').addEventListener('click', onShop);
 document.getElementById('shop-close').addEventListener('click', () => { tapSound(); closeShop(); });
 document.getElementById('run-btn').addEventListener('click', onRun);
@@ -146,6 +147,8 @@ export const farmScreen = {
     showPop(null);
     closeShop();
     confetti = createConfetti(scene);
+    particles = createParticles(scene);
+    setMusic('farm');
     winEl.style.display = 'none';
     if (save.money >= WIN_MONEY && !save.won) {
       save.won = true;
@@ -157,6 +160,7 @@ export const farmScreen = {
         `<div class="res-row"><span>Runs made</span><span>${save.runs}</span></div>`;
       winEl.style.display = '';
       confetti.show(true);
+      sfx('win');
     }
     ui.style.display = '';
     canvas.addEventListener('pointerdown', onDown);
@@ -178,6 +182,8 @@ export const farmScreen = {
           e.popT = 0;
           scene.add(e.group);
           e.owned = true;
+          sfx('reveal');
+          particles.burst(e.x, 1, e.z, 0xffe066, 16, 4);
           popEl.innerHTML = `<div class="n">NEW! ${e.a.name}</div><div class="t">${e.a.tier}</div>`;
           popEl.style.display = '';
         }
@@ -194,6 +200,7 @@ export const farmScreen = {
       e.group.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8);
     }
     confetti.update(dt, time, 0, panZ);
+    particles.update(dt);
     const sway = Math.sin(time * 0.4) * 0.4;
     camera.position.set(sway, Math.sin(PITCH) * DIST, panZ + Math.cos(PITCH) * DIST);
     camera.lookAt(sway * 0.5, 0, panZ);
@@ -206,6 +213,6 @@ export const farmScreen = {
     canvas.removeEventListener('pointermove', onMove);
     canvas.removeEventListener('pointerup', onUp);
     drag = null;
-    camera = scene = entries = confetti = null;
+    camera = scene = entries = confetti = particles = null;
   },
 };

@@ -28,7 +28,7 @@ function makeMark() {
 }
 
 // Farther spawns are more dangerous: faster chase speed.
-export function createRivals(scene, grid, count, player) {
+export function createRivals(scene, grid, count, player, onAlert) {
   const list = [];
   for (let i = 0; i < count; i++) {
     const group = makeFarmer(0x3a3a3a, 0x222222);
@@ -62,7 +62,7 @@ export function createRivals(scene, grid, count, player) {
       let speed = 0;
 
       if (r.state === 'wander') {
-        if (sees(r)) { r.state = 'alert'; r.alert = ALERT_TIME; r.mark.visible = true; }
+        if (sees(r)) { r.state = 'alert'; r.alert = ALERT_TIME; r.mark.visible = true; if (onAlert) onAlert(); }
         else if (r.wait > 0) r.wait -= dt;
         else {
           const dx = r.tx - r.x, dz = r.tz - r.z;
