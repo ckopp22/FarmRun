@@ -322,3 +322,19 @@ button { touch-action: manipulation; }
 #win-stats { width: min(360px, 100%); }
 
 #fade { position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+
+#update-banner {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 10px);
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 20px;
+  background: #ffd23f;
+  color: #222;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}

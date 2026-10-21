@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v14';
+const CACHE = 'farmrun3d-v15';
 const SHELL = [
   './',
   'index.html',
@@ -38,8 +38,11 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
 });
+
+// The page asks us to take over once the player taps the update banner.
+self.addEventListener('message', (e) => { if (e.data === 'skip') self.skipWaiting(); });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(

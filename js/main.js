@@ -84,5 +84,21 @@ screens.go('menu');
 start();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  const banner = document.getElementById('update-banner');
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('service-worker.js').then((reg) => {
+    const offer = (worker) => {
+      banner.style.display = '';
+      banner.onclick = () => { banner.textContent = 'Updating...'; worker.postMessage('skip'); };
+    };
+    if (reg.waiting && hadController) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      w.addEventListener('statechange', () => {
+        if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w);
+      });
+    });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
 }
