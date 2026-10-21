@@ -20,7 +20,8 @@ button { touch-action: manipulation; }
   position: fixed;
   inset: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: calc(100lvh + env(safe-area-inset-bottom));
   display: block;
   touch-action: none;
 }
