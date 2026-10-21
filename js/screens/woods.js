@@ -149,6 +149,7 @@ function board(dt) {
   }
   const allIn = followers.board(bx, bz, dt, truck);
   particles.update(dt);
+  rivals.update(dt, truck.position, true);
   updateChaseCamera(camera, truck.position.x, truck.position.z, dt);
   if (!player.group.visible && allIn) startDriving();
 }
@@ -162,6 +163,7 @@ function driveAway(dt) {
   truck.position.z += Math.cos(leave.heading) * leave.v * dt;
   truck.rotation.y = leave.heading;
   dropMarks();
+  rivals.update(dt, truck.position, true);
   updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
   if (leave.t > 2.2) greatJob.classList.add('show');
   if (leave.t > 3.8) {

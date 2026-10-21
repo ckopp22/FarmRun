@@ -34,6 +34,7 @@ function makeMark() {
 // Farther spawns are more dangerous: faster chase speed.
 export function createRivals(scene, grid, count, player, onAlert) {
   const list = [];
+  let tgt = player;   // what rivals chase: the player, or the truck once the run ends
   for (let i = 0; i < count; i++) {
     const group = makeFarmer(0x3a3a3a, 0x222222);
     const mark = makeMark();
@@ -50,11 +51,11 @@ export function createRivals(scene, grid, count, player, onAlert) {
   }
 
   function sees(r) {
-    const dx = player.x - r.x, dz = player.z - r.z;
+    const dx = tgt.x - r.x, dz = tgt.z - r.z;
     const d2 = dx * dx + dz * dz;
     if (d2 > SIGHT * SIGHT) return false;
     if (Math.abs(wrap(Math.atan2(dx, dz) - r.heading)) > HALF_CONE) return false;
-    return !grid.blocked(r.x, r.z, player.x, player.z);
+    return !grid.blocked(r.x, r.z, tgt.x, tgt.z);
   }
 
   // Pick the heading closest to `want` whose path ahead is clear of trees.
@@ -75,7 +76,9 @@ export function createRivals(scene, grid, count, player, onAlert) {
   function turn(r, target, dt) { r.heading += wrap(target - r.heading) * Math.min(1, 10 * dt); }
 
   // Returns true if any rival caught the player this frame.
-  function update(dt) {
+  // `follow`: the run is over and `target` is the truck; chasers keep pursuing it, nobody else reacts, no catches.
+  function update(dt, target = player, follow = false) {
+    tgt = target;
     let caught = false;
     let chasers = 0;
     for (const r of list) if (r.state === 'chase') chasers++;
@@ -84,7 +87,8 @@ export function createRivals(scene, grid, count, player, onAlert) {
       let speed = 0;
 
       if (r.state === 'wander') {
-        if (sees(r)) { r.state = 'alert'; r.alert = ALERT_TIME; r.mark.visible = true; if (onAlert) onAlert(); }
+        if (follow) { /* idle */ }
+        else if (sees(r)) { r.state = 'alert'; r.alert = ALERT_TIME; r.mark.visible = true; if (onAlert) onAlert(); }
         else if (r.wait > 0) r.wait -= dt;
         else {
           const dx = r.tx - r.x, dz = r.tz - r.z;
@@ -100,19 +104,19 @@ export function createRivals(scene, grid, count, player, onAlert) {
           }
         }
       } else if (r.state === 'alert') {
-        turn(r, Math.atan2(player.x - r.x, player.z - r.z), dt);
+        turn(r, Math.atan2(tgt.x - r.x, tgt.z - r.z), dt);
         r.alert -= dt;
         if (r.alert <= 0) { r.state = 'chase'; r.lost = 0; r.mark.visible = false; }
       } else {
-        const dx = player.x - r.x, dz = player.z - r.z;
+        const dx = tgt.x - r.x, dz = tgt.z - r.z;
         const d = Math.hypot(dx, dz);
-        r.lost = grid.blocked(r.x, r.z, player.x, player.z) ? r.lost + dt : 0;
-        if (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME) {
+        r.lost = grid.blocked(r.x, r.z, tgt.x, tgt.z) ? r.lost + dt : 0;
+        if (!follow && (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME)) {
           r.state = 'wander'; r.wait = 1; r.tx = r.x; r.tz = r.z;
         } else {
           turn(r, steer(r, Math.atan2(dx, dz)), dt);
           speed = r.chaseSpeed * pack;
-          if (d < CATCH) caught = true;
+          if (d < CATCH && !follow) caught = true;
         }
       }
 
@@ -132,7 +136,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
       animateFarmer(r.group, r.runT, r.run);
       r.group.position.set(r.x, r.run * Math.abs(Math.sin(r.runT * 12)) * 0.08, r.z);
       r.group.rotation.y = r.heading;
-      r.group.visible = Math.hypot(r.x - player.x, r.z - player.z) < 66;
+      r.group.visible = Math.hypot(r.x - tgt.x, r.z - tgt.z) < 66;
     }
     return caught;
   }
