@@ -50,13 +50,13 @@ shopList.addEventListener('click', (ev) => {
   const id = ev.target.dataset && ev.target.dataset.id;
   if (id === 'pen') {
     if (!buyPen(save)) return;
-    sfx('upgrade');
+    sfx('cash');
     closeShop();
     ctxRef.go('farm');
     return;
   }
   if (id && buy(save, id)) {
-    sfx('upgrade');
+    sfx('cash');
     moneyEl.textContent = '$' + save.money.toLocaleString();
     renderShop();
   }

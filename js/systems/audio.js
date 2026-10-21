@@ -12,6 +12,16 @@ const TRACKS = {
   farm:  { files: ['audio/acoustic1.mp3', 'audio/acoustic2.mp3'], vol: 0.12 },
   woods: { files: ['audio/chase.mp3'], vol: 0.25 },
 };
+// Sampled sound effects, decoded on first unlock. Names without a sample fall back to the synth SFX below.
+const SAMPLES = {
+  cash:  { file: 'audio/cash.mp3', vol: 0.7 },
+  door:  { file: 'audio/car-door.mp3', vol: 0.55 },
+  swipe: { file: 'audio/swipe.mp3', vol: 0.8 },
+  drive: { file: 'audio/drive.mp3', vol: 0.55 },
+  walk:  { file: 'audio/walking.mp3', vol: 0.5 },
+};
+const buffers = {};
+const loops = {};
 const player = new Audio();
 let fadeTimer = 0;
 let trackIdx = 0;
@@ -50,8 +60,40 @@ const SFX = {
   engine:  () => tone(70, 0.9, 'sawtooth', 0.05, 110),
 };
 
+function loadSamples() {
+  for (const [name, s] of Object.entries(SAMPLES)) {
+    if (buffers[name]) continue;
+    fetch(s.file).then((r) => r.arrayBuffer()).then((b) => actx.decodeAudioData(b)).then((buf) => { buffers[name] = buf; }).catch(() => {});
+  }
+}
+
+function playSample(name, loop) {
+  const src = actx.createBufferSource(), g = actx.createGain();
+  src.buffer = buffers[name];
+  src.loop = !!loop;
+  g.gain.value = SAMPLES[name].vol;
+  src.connect(g).connect(actx.destination);
+  src.start();
+  return { src, g };
+}
+
 export function sfx(name) {
-  if (settings.sound && actx && SFX[name]) SFX[name]();
+  if (!settings.sound || !actx) return;
+  if (buffers[name]) playSample(name);
+  else if (SFX[name]) SFX[name]();
+}
+
+// Looping sample (e.g. footsteps) switched on and off by state; stops with a short fade.
+export function setLoop(name, on) {
+  if (!actx) return;
+  const l = loops[name];
+  if (on && settings.sound && buffers[name]) {
+    if (!l) loops[name] = playSample(name, true);
+  } else if (l) {
+    l.g.gain.setTargetAtTime(0, actx.currentTime, 0.04);
+    l.src.stop(actx.currentTime + 0.25);
+    delete loops[name];
+  }
 }
 export const tapSound = () => sfx('tap');
 
@@ -73,12 +115,12 @@ function startTrack() {
   player.src = track.files[0];
   player.volume = 0;
   player.play().catch(() => {});
-  fadeTo(track.vol, 1000);
+  fadeTo(track.vol, 2500);
 }
 
 function applyMusic(fade) {
   clearInterval(fadeTimer);
-  if (fade && !player.paused) fadeTo(0, 700, startTrack);
+  if (fade && !player.paused) fadeTo(0, 1500, startTrack);
   else startTrack();
 }
 
@@ -93,6 +135,7 @@ export function unlockAudio() {
   try {
     if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
     if (actx.state === 'suspended') actx.resume();
+    loadSamples();
     if (player.paused) applyMusic();
   } catch (e) { /* no audio available */ }
 }

@@ -12,7 +12,7 @@ import { createFootsteps } from '../render/footsteps.js';
 import { createIndicators } from '../render/indicators.js';
 import { createRivals } from '../game/rivals.js';
 import { createParticles } from '../render/particles.js';
-import { sfx, setMusic } from '../systems/audio.js';
+import { sfx, setLoop, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { capacity as capacityOf, speedMult, penCount } from '../systems/economy.js';
@@ -24,6 +24,7 @@ const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking 
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
 let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
+let swipeCd = 0;
 let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -34,8 +35,18 @@ document.getElementById('busted-btn').addEventListener('click', () => {
   ctxRef.go('farm');
 });
 
+// Wobble the backpack and flash the count red for a moment (bag full).
+let fullTimer = 0;
+function flashFull() {
+  hud.classList.remove('full');
+  void hud.offsetWidth;   // restart the animation
+  hud.classList.add('full');
+  clearTimeout(fullTimer);
+  fullTimer = setTimeout(() => hud.classList.remove('full'), 550);
+}
+
 function paintHud() {
-  hud.textContent = `🎒 ${haul.length}/${capacity}`;
+  hud.innerHTML = `<span class="bag-icon">🎒</span>&nbsp;<span class="bag-num">${haul.length}/${capacity}</span>`;
 }
 
 // Bank the haul into the inventory and unlock colors. Selling happens on the farm.
@@ -65,6 +76,7 @@ let marks, markCount, markX, markZ;
 function startDriving() {
   leave.boarding = false;
   leave.heading = 0;
+  sfx('drive');
   markCount = 0;
   markX = truck.position.x; markZ = truck.position.z;
   marks = new THREE.InstancedMesh(
@@ -122,7 +134,7 @@ function board(dt) {
   const dx = bx - player.x, dz = bz - player.z;
   const d = Math.hypot(dx, dz);
   if (player.group.visible) {
-    if (d < 0.3) player.group.visible = false;
+    if (d < 0.3) { player.group.visible = false; sfx('door'); }
     else {
       const step = Math.min(d, 6 * dt);
       player.x += dx / d * step;
@@ -190,11 +202,14 @@ export const woodsScreen = {
   },
 
   update(dt) {
+    setLoop('walk', !leave && !busted && player.run > 0.3);
     if (leave) { driveAway(dt); return; }
     if (busted) return;
     input.update();
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
     const got = animals.update(dt, haul.length >= capacity);
+    swipeCd -= dt;
+    if (animals.blocked && swipeCd <= 0) { sfx('swipe'); swipeCd = 0.7; flashFull(); }
     if (got) { haul.push(got); followers.add(got); paintHud(); sfx('pickup'); particles.burst(player.x, 0.8, player.z, 0xffe066, 8, 3); }
     particles.update(dt);
     followers.update(dt);
@@ -207,10 +222,11 @@ export const woodsScreen = {
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
-    else if (armed && d < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); sfx('cash'); }
+    else if (armed && d < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); }
   },
 
   exit() {
+    setLoop('walk', false);
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
     truck = leave = marks = scene = null;

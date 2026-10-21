@@ -44,6 +44,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
   // Returns the animal data picked up this frame (or null). Nothing is picked up when `full`.
   function update(dt, full) {
     let picked = null;
+    api.blocked = false;   // true when a full bag stops the player from grabbing an animal in reach
     for (let i = list.length - 1; i >= 0; i--) {
       const c = list[i];
       c.tm += dt;
@@ -81,6 +82,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
         }
       }
 
+      if (full && pd2 < PICKUP * PICKUP) api.blocked = true;
       if (!full && !picked && pd2 < PICKUP * PICKUP) {
         picked = c.a;
         scene.remove(c.group);
@@ -96,5 +98,6 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     return picked;
   }
 
-  return { update, list };
+  const api = { update, list, blocked: false };
+  return api;
 }
