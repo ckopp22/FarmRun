@@ -53,6 +53,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     for (let i = list.length - 1; i >= 0; i--) {
       const c = list[i];
       c.tm += dt;
+      if (c.cool > 0) c.cool -= dt;
       let moving = false;
       const px = player.x - c.x, pz = player.z - c.z;
       const pd2 = px * px + pz * pz;
@@ -93,7 +94,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
       }
 
       if (full && pd2 < PICKUP * PICKUP) api.blocked = true;
-      if (!full && !picked && pd2 < PICKUP * PICKUP) {
+      if (!full && !picked && !(c.cool > 0) && pd2 < PICKUP * PICKUP) {
         picked = c.a;
         scene.remove(c.group);
         list.splice(i, 1);
@@ -108,6 +109,17 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     return picked;
   }
 
-  const api = { update, list, blocked: false };
+  // Set a stolen animal loose at (x, z), running away from (fromX, fromZ). It can't be grabbed again for a moment.
+  function release(a, x, z, fromX, fromZ) {
+    const group = makeAnimal(a);
+    scene.add(group);
+    const dx = x - fromX, dz = z - fromZ, d = Math.hypot(dx, dz) || 1;
+    const c = { a, t: TIERS[a.tier], group, x, z, heading: Math.atan2(dx, dz),
+      tx: clampLimit(x + dx / d * 7), tz: clampLimit(z + dz / d * 7), wait: 0, tm: 0, cool: 1.5 };
+    grid.resolve(c, RADIUS);
+    list.push(c);
+  }
+
+  const api = { update, list, release, blocked: false };
   return api;
 }

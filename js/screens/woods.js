@@ -20,6 +20,8 @@ import { ANIMALS } from '../data/animals.js';
 
 const ANIMAL_COUNT = 28;
 const RIVAL_COUNT = 10;
+const STEAL_REACH = 0.95;   // rival radius + animal radius: touching a caught animal steals it
+const STEAL_COOLDOWN = 1.2; // per rival, so a pack doesn't strip the whole line at once
 const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
@@ -44,6 +46,27 @@ function flashFull() {
   hud.classList.add('full');
   clearTimeout(fullTimer);
   fullTimer = setTimeout(() => hud.classList.remove('full'), 550);
+}
+
+// Rivals that touch an animal following the player take it and set it free.
+function stealFollowers(dt) {
+  for (const r of rivals.list) {
+    r.steal = (r.steal || 0) - dt;
+    if (r.steal > 0) continue;
+    const fl = followers.list;
+    for (let i = fl.length - 1; i >= 0; i--) {
+      const f = fl[i];
+      if (Math.hypot(r.x - f.x, r.z - f.z) > STEAL_REACH) continue;
+      followers.remove(i);
+      haul.splice(haul.indexOf(f.a), 1);
+      animals.release(f.a, f.x, f.z, r.x, r.z);
+      particles.burst(f.x, 0.8, f.z, 0xff5555, 10, 3);
+      sfx('deny');
+      paintHud();
+      r.steal = STEAL_COOLDOWN;
+      break;
+    }
+  }
 }
 
 function paintHud() {
@@ -225,6 +248,7 @@ export const woodsScreen = {
     for (const r of rivals.list) if (r.group.visible) footsteps.track(r);
     footsteps.update(dt);
     indicators.update(dt, player, truck.position, rivals.list);
+    stealFollowers(dt);
     if (rivals.update(dt)) { busted = true; bustedEl.style.display = ''; sfx('caught'); return; }
 
     const d = Math.hypot(player.x, player.z);

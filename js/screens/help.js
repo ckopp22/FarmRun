@@ -16,7 +16,7 @@ const PAGES = {
       <ul>
         <li><b>Move:</b> touch and drag anywhere on the screen to steer your farmer.</li>
         <li><b>Catch:</b> walk up to an animal to put it on a leash. Your bag only holds so many, so watch the 🎒 counter.</li>
-        <li><b>Rivals:</b> other farmers are hunting the same animals. If one catches you, you lose your haul.</li>
+        <li><b>Rivals:</b> mean farmers run animal testing. If one catches you, you lose your haul, and if one touches an animal on your leash, it steals it and lets it go.</li>
         <li><b>Escape:</b> walk back to your truck to bank your animals and drive home.</li>
         <li><b>Sell:</b> tap an animal's pen on the farm to sell it. You can sell common animals once you have 5. Every other animal sells once you have 2, and one always stays in its pen.</li>
         <li><b>Upgrade:</b> spend your money in the 🛒 Shop on bigger bags, faster shoes, and new animal pens.</li>

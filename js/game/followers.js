@@ -21,7 +21,7 @@ export function createFollowers(scene, player) {
     );
     leash.frustumCulled = false;
     scene.add(leash);
-    list.push({ group, leash, x: player.x, z: player.z, heading: player.heading, gap: GAP_MIN + Math.random() * (GAP_MAX - GAP_MIN), t: Math.random() * 10 });
+    list.push({ a: animal, group, leash, x: player.x, z: player.z, heading: player.heading, gap: GAP_MIN + Math.random() * (GAP_MAX - GAP_MIN), t: Math.random() * 10 });
   }
 
   function update(dt) {
@@ -62,6 +62,15 @@ export function createFollowers(scene, player) {
     }
   }
 
+  // A rival grabbed follower i: remove it from the leash line and hand back its entry.
+  function remove(i) {
+    const f = list.splice(i, 1)[0];
+    scene.remove(f.group);
+    scene.remove(f.leash);
+    f.leash.geometry.dispose();
+    return f;
+  }
+
   // Each animal walks to (x, z) in turn and hops into the truck bed. Returns true once all are aboard.
   function board(x, z, dt, truck) {
     const k = 1 - Math.exp(-FOLLOW * dt);
@@ -90,5 +99,5 @@ export function createFollowers(scene, player) {
     return done;
   }
 
-  return { add, update, board };
+  return { add, update, board, remove, list };
 }
