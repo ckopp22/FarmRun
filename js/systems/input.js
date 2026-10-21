@@ -1,4 +1,4 @@
-// Floating joystick (left half of the screen) + WASD/arrows. Exposes input.x / input.y in [-1, 1], y down.
+// Floating joystick (anywhere on screen) + WASD/arrows. Exposes input.x / input.y in [-1, 1], y down.
 const MAX = 50;   // px of knob travel for full speed
 
 export function createInput() {
@@ -29,7 +29,7 @@ export function createInput() {
     if (onUi(e)) return;
     e.preventDefault();
     for (const t of e.changedTouches) {
-      if (touchId === null && t.clientX < window.innerWidth / 2) {
+      if (touchId === null) {
         touchId = t.identifier;
         ox = t.clientX; oz = t.clientY;
         base.style.left = ox + 'px';
