@@ -1,19 +1,27 @@
 import { loadSettings, saveSettings } from './save.js';
 
-// Synthesized SFX and a tiny step-sequencer for music (no audio files). Unlocked on the first user gesture.
+// Synthesized SFX and mp3 music tracks. Unlocked on the first user gesture.
 const settings = loadSettings();
 let actx = null;
 let musicName = null;
-let timer = 0;
-let step = 0;
 
 export const audioSettings = () => settings;
 
-const N = { C4: 262, D4: 294, E4: 330, F4: 349, G4: 392, A4: 440, B4: 494, C5: 523, E5: 659, G5: 784, A2: 110, C3: 131, E3: 165, F3: 175, G3: 196 };
-const SONGS = {
-  farm:  { ms: 240, type: 'triangle', vol: 0.05, notes: [N.C4, N.E4, N.G4, N.E4, N.F4, N.A4, N.C5, N.A4, N.G4, N.B4, N.G4, N.D4, N.E4, N.G4, N.C5, 0] },
-  woods: { ms: 330, type: 'sawtooth', vol: 0.025, notes: [N.A2, 0, N.A2, N.C3, N.E3, 0, N.C3, 0, N.A2, 0, N.F3, N.E3, N.G3, 0, N.E3, 0] },
+const N = { C4: 262, D4: 294, E4: 330, F4: 349, G4: 392, A4: 440, B4: 494, C5: 523, D5: 587, E5: 659, G5: 784, A2: 110, C3: 131, E3: 165, F3: 175, G3: 196 };
+const TRACKS = {
+  farm:  ['audio/acoustic1.mp3', 'audio/acoustic2.mp3'],
+  woods: ['audio/chase.mp3'],
 };
+const player = new Audio();
+player.volume = 0.5;
+let trackIdx = 0;
+player.addEventListener('ended', () => {
+  const list = TRACKS[musicName];
+  if (!list) return;
+  trackIdx = (trackIdx + 1) % list.length;
+  player.src = list[trackIdx];
+  player.play().catch(() => {});
+});
 
 function tone(freq, dur, type, vol, slideTo, delay) {
   if (!actx) return;
@@ -48,15 +56,12 @@ export function sfx(name) {
 export const tapSound = () => sfx('tap');
 
 function applyMusic() {
-  clearInterval(timer);
-  timer = 0;
-  const song = SONGS[musicName];
-  if (!settings.music || !song || !actx) return;
-  step = 0;
-  timer = setInterval(() => {
-    const f = song.notes[step++ % song.notes.length];
-    if (f) tone(f, song.ms / 1000 * 1.6, song.type, song.vol);
-  }, song.ms);
+  const list = TRACKS[musicName];
+  player.pause();
+  if (!settings.music || !list || !actx) return;
+  trackIdx = 0;
+  player.src = list[0];
+  player.play().catch(() => {});
 }
 
 export function setMusic(name) {
@@ -70,7 +75,7 @@ export function unlockAudio() {
   try {
     if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
     if (actx.state === 'suspended') actx.resume();
-    if (!timer) applyMusic();
+    if (player.paused) applyMusic();
   } catch (e) { /* no audio available */ }
 }
 
@@ -83,5 +88,5 @@ export function toggle(kind) {
 
 document.addEventListener('visibilitychange', () => {
   if (!actx) return;
-  if (document.hidden) actx.suspend(); else actx.resume();
+  if (document.hidden) { actx.suspend(); player.pause(); } else { actx.resume(); if (settings.music && TRACKS[musicName]) player.play().catch(() => {}); }
 });
