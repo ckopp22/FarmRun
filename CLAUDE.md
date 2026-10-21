@@ -45,6 +45,7 @@ Keep token usage low. Be efficient in what you read, what you write, and what yo
 
 ## Git
 - Commit once per finished task or phase with a short, clear message. Do not push unless I ask.
+- Before every commit, bump the `CACHE` version in `service-worker.js` (e.g. v20 to v21) so clients pick up the new files.
 - Do not commit secrets, keys, or `.env` files. Keep them out of the repo and out of chat.
 
 ## Context hygiene
