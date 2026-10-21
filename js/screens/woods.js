@@ -1,5 +1,5 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { createScene } from '../render/renderer.js';
+import { createScene, addDirt } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
 import { animateFarmer } from '../render/models.js';
 import { quality } from '../render/quality.js';
@@ -89,7 +89,7 @@ function board(dt) {
       animateFarmer(player.group, player.runT, 1);
     }
   }
-  const allIn = followers.board(bx, bz, dt);
+  const allIn = followers.board(bx, bz, dt, truck);
   particles.update(dt);
   updateChaseCamera(camera, truck.position.x, truck.position.z, dt);
   if (!player.group.visible && allIn) startDriving();
@@ -119,6 +119,7 @@ export const woodsScreen = {
     scene.fog = null;
     camera = createChaseCamera(window.innerWidth / window.innerHeight);
     grid = createGrid();
+    addDirt(scene, 0, 0, { radius: 7 });
     truck = createTruck(scene, grid, 0, 0);
     leave = null;
     buildForest(scene, grid, quality().trees * 3, 10);

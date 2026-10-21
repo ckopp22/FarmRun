@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v39';
+const CACHE = 'farmrun3d-v40';
 const SHELL = [
   './',
   'index.html',

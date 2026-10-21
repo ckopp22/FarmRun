@@ -1,19 +1,18 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { makeAnimal } from '../render/models.js';
 
-const GAP = 1.2;       // leash length between neighbours
+const GAP_MIN = 1.4, GAP_MAX = 3.6;   // each animal's own leash length to the player
+const SEPARATION = 0.8;               // followers push apart so they don't bunch up
 const FOLLOW = 8;      // higher = snappier
-const SCALE = 0.55;
 const LEASH_COLOR = 0x6b4a2b;
 
-// Picked-up animals trail behind the player in a chain, each tied to the one ahead.
+// Picked-up animals each have their own leash to the player and spread out behind them.
 export function createFollowers(scene, player) {
   const list = [];
   let boardT = 0;
 
   function add(animal) {
     const group = makeAnimal(animal);
-    group.scale.setScalar(SCALE);
     group.position.set(player.x, 0, player.z);
     scene.add(group);
     const leash = new THREE.Line(
@@ -22,19 +21,29 @@ export function createFollowers(scene, player) {
     );
     leash.frustumCulled = false;
     scene.add(leash);
-    list.push({ group, leash, x: player.x, z: player.z, heading: player.heading, t: Math.random() * 10 });
+    list.push({ group, leash, x: player.x, z: player.z, heading: player.heading, gap: GAP_MIN + Math.random() * (GAP_MAX - GAP_MIN), t: Math.random() * 10 });
   }
 
   function update(dt) {
     const k = 1 - Math.exp(-FOLLOW * dt);
     for (let i = 0; i < list.length; i++) {
       const f = list[i];
-      const lead = i === 0 ? player : list[i - 1];
-      const dx = f.x - lead.x, dz = f.z - lead.z;
+      const dx = f.x - player.x, dz = f.z - player.z;
       const d = Math.hypot(dx, dz) || 0.0001;
       const px = f.x, pz = f.z;
-      f.x += (lead.x + dx / d * GAP - f.x) * k;
-      f.z += (lead.z + dz / d * GAP - f.z) * k;
+      if (d > f.gap) {
+        f.x += (player.x + dx / d * f.gap - f.x) * k;
+        f.z += (player.z + dz / d * f.gap - f.z) * k;
+      }
+      for (let j = 0; j < list.length; j++) {
+        if (j === i) continue;
+        const o = list[j], ox = f.x - o.x, oz = f.z - o.z, od = Math.hypot(ox, oz);
+        if (od < SEPARATION) {
+          const push = (SEPARATION - od) / (od || 0.0001) * 0.5 * k;
+          f.x += (od ? ox : 1) * push;
+          f.z += oz * push;
+        }
+      }
       const moved = Math.hypot(f.x - px, f.z - pz);
       if (moved > 0.002) {
         let diff = Math.atan2(f.x - px, f.z - pz) - f.heading;
@@ -46,19 +55,19 @@ export function createFollowers(scene, player) {
       f.group.rotation.y = f.heading;
 
       const p = f.leash.geometry.attributes.position;
-      p.setXYZ(0, lead.x, i === 0 ? 0.9 : 0.35, lead.z);
+      p.setXYZ(0, player.x, 0.9, player.z);
       p.setXYZ(1, f.x, 0.35, f.z);
       p.needsUpdate = true;
     }
   }
 
-  // Each animal walks to (x, z) in turn and disappears there. Returns true once all are aboard.
-  function board(x, z, dt) {
+  // Each animal walks to (x, z) in turn and hops into the truck bed. Returns true once all are aboard.
+  function board(x, z, dt, truck) {
     const k = 1 - Math.exp(-FOLLOW * dt);
     boardT += dt;
     let done = true;
     list.forEach((f, i) => {
-      if (!f.group.visible) return;
+      if (f.aboard) return;
       done = false;
       if (boardT < i * 0.2) return;
       const px = f.x, pz = f.z;
@@ -69,7 +78,12 @@ export function createFollowers(scene, player) {
       f.group.position.set(f.x, Math.abs(Math.sin(f.t * 14)) * 0.06, f.z);
       f.group.rotation.y = f.heading;
       f.leash.visible = false;
-      if (Math.hypot(x - f.x, z - f.z) < 0.4) f.group.visible = false;
+      if (Math.hypot(x - f.x, z - f.z) < 0.4) {
+        f.aboard = true;
+        truck.add(f.group);
+        f.group.position.set(i % 2 ? 0.4 : -0.4, 1.2 + Math.floor(i / 6) * 0.3, -0.5 - (Math.floor(i / 2) % 3) * 0.6);
+        f.group.rotation.y = Math.random() * 6.28;
+      }
     });
     return done;
   }

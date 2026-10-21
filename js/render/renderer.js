@@ -77,3 +77,31 @@ export function watchContext(canvas, onLost, onRestored) {
   });
   canvas.addEventListener('webglcontextrestored', onRestored);
 }
+
+const dirtMat = new THREE.MeshLambertMaterial({ color: 0x9c7a4d });
+
+// Smooth random wobble in [-1, 1] along t.
+function wobble() {
+  const a = Math.random() * 6.28, b = Math.random() * 6.28, c = Math.random() * 6.28;
+  return (t) => (Math.sin(t * 1.7 + a) + Math.sin(t * 3.9 + b) * 0.6 + Math.sin(t * 7.3 + c) * 0.3) / 1.9;
+}
+
+// Flat dirt patch (circle) or road (w x len strip, long axis along heading yaw) with ragged natural edges.
+export function addDirt(scene, x, z, { radius, w, len, yaw = 0 }) {
+  const pts = [];
+  if (radius) {
+    const n = wobble(), N = 48;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2, r = radius * (1 + 0.22 * n(a * 2));
+      pts.push(new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r));
+    }
+  } else {
+    const n1 = wobble(), n2 = wobble(), N = Math.round(len / 1.5);
+    for (let i = 0; i <= N; i++) { const t = i / N * len; pts.push(new THREE.Vector2(w / 2 * (1 + 0.3 * n1(t * 0.4)), t - len / 2)); }
+    for (let i = N; i >= 0; i--) { const t = i / N * len; pts.push(new THREE.Vector2(-w / 2 * (1 + 0.3 * n2(t * 0.4)), t - len / 2)); }
+  }
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts)).rotateX(-Math.PI / 2), dirtMat);
+  m.position.set(x, 0.02, z);
+  m.rotation.y = yaw;
+  scene.add(m);
+}

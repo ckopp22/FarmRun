@@ -1,5 +1,5 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { createScene } from '../render/renderer.js';
+import { createScene, addDirt } from '../render/renderer.js';
 import { makeBarn, makeFarmer, makeTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees } from '../render/instancing.js';
 import { ANIMALS, UPGRADES } from '../data/animals.js';
@@ -225,6 +225,8 @@ export const farmScreen = {
     const farmer = makeFarmer();
     farmer.position.set(0, 0, 4.5);
     scene.add(farmer);
+    addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
+    addDirt(scene, -7, 1, { radius: 3.5 });
     const truck = makeTruck();
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
