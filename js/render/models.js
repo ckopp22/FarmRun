@@ -22,6 +22,7 @@ export function makeBlobShadow(radius) {
   m.scale.set(radius, 1, radius);
   m.position.y = 0.03;
   m.renderOrder = 1;
+  m.userData.shadow = true;
   return m;
 }
 
@@ -80,4 +81,77 @@ export function makeBarn() {
   }
   g.add(makeBlobShadow(4.2));
   return g;
+}
+
+function makeQuad(a) {
+  const g = new THREE.Group();
+  const { w, h, l, leg } = a;
+  const hc = a.hc || a.c;
+  const lw = Math.max(0.1, w * 0.2);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    box(g, lw, leg, lw, hc === a.c ? a.c : 0x555555, sx * (w / 2 - lw / 2), leg / 2, sz * (l / 2 - lw / 2));
+  }
+  box(g, w, h, l, a.c, 0, leg + h / 2, 0);
+  const hs = h * 0.8;
+  const neck = a.neck || 0;
+  const hy = leg + h * 0.95 + neck;
+  const hz = l / 2 + hs * 0.4 - (neck ? hs * 0.2 : 0);
+  if (neck) box(g, hs * 0.5, neck + 0.1, hs * 0.5, a.c, 0, leg + h + neck / 2, l / 2 - 0.1);
+  box(g, hs, hs, hs, hc, 0, hy, hz);
+  if (a.sn) box(g, hs * 0.6, hs * 0.45, hs * 0.4, a.sn, 0, hy - hs * 0.15, hz + hs * 0.6);
+  if (a.ear) for (const sx of [-1, 1]) box(g, hs * 0.2, a.ear, hs * 0.2, hc, sx * hs * 0.35, hy + hs * 0.5 + a.ear / 2, hz);
+  box(g, 0.1, 0.1, 0.25, a.tc || a.c, 0, leg + h * 0.8, -l / 2 - 0.1);
+  if (a.x) for (const e of a.x) box(g, e[0], e[1], e[2], e[3], e[4], e[5], e[6]);
+  g.add(makeBlobShadow(Math.max(w, l) * 0.8));
+  return g;
+}
+
+function makeBird(a) {
+  const g = new THREE.Group();
+  box(g, 0.5, 0.4, 0.65, a.c, 0, 0.45, 0);
+  if (a.plume) box(g, 0.7, 0.8, 0.1, a.tc, 0, 0.85, -0.45);
+  else box(g, 0.3, 0.1, 0.25, a.tc, 0, 0.7, -0.38);
+  box(g, 0.26, 0.3, 0.26, a.c, 0, 0.8, 0.3);
+  box(g, 0.12, 0.08, 0.15, a.b, 0, 0.78, 0.5);
+  if (a.crest) box(g, 0.08, 0.1, 0.16, a.crest, 0, 0.99, 0.3);
+  box(g, 0.06, 0.25, 0.06, a.b, -0.12, 0.13, 0);
+  box(g, 0.06, 0.25, 0.06, a.b, 0.12, 0.13, 0);
+  g.scale.setScalar(a.s || 1);
+  g.add(makeBlobShadow(0.4));
+  return g;
+}
+
+export function makeAnimal(a) {
+  const g = a.k === 'bird' ? makeBird(a) : makeQuad(a);
+  g.userData.animalId = a.id;
+  return g;
+}
+
+const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+// Same model, one shared unlit black material.
+export function silhouette(group) {
+  group.traverse((o) => { if (o.isMesh && !o.userData.shadow) o.material = blackMat; });
+  return group;
+}
+
+export function makeFence(scene, pens, size) {
+  const rails = new THREE.InstancedMesh(boxGeo, mat(0x8a5a2b), pens.length * 8);
+  const posts = new THREE.InstancedMesh(boxGeo, mat(0x6b4a2b), pens.length * 4);
+  const floors = new THREE.InstancedMesh(boxGeo, mat(0xb08a5a), pens.length);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+  let ri = 0, pi = 0, fi = 0;
+  const put = (mesh, i, x, y, z, w, h, d) => { m.compose(p.set(x, y, z), q, sc.set(w, h, d)); mesh.setMatrixAt(i, m); };
+  const hs = size / 2;
+  for (const pen of pens) {
+    put(floors, fi++, pen.x, 0.01, pen.z, size, 0.02, size);
+    for (const y of [0.35, 0.7]) {
+      put(rails, ri++, pen.x, y, pen.z - hs, size, 0.08, 0.08);
+      put(rails, ri++, pen.x, y, pen.z + hs, size, 0.08, 0.08);
+      put(rails, ri++, pen.x - hs, y, pen.z, 0.08, 0.08, size);
+      put(rails, ri++, pen.x + hs, y, pen.z, 0.08, 0.08, size);
+    }
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) put(posts, pi++, pen.x + sx * hs, 0.45, pen.z + sz * hs, 0.16, 0.9, 0.16);
+  }
+  for (const im of [rails, posts, floors]) { im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); scene.add(im); }
 }

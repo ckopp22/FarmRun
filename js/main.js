@@ -2,6 +2,7 @@ import { createRenderer, watchResize, watchContext } from './render/renderer.js'
 import { createInput } from './systems/input.js';
 import { createScreenManager } from './screens/manager.js';
 import { woodsScreen } from './screens/woods.js';
+import { farmScreen } from './screens/farm.js';
 import { menuScreen } from './screens/menu.js';
 import { audioSettings, toggle, unlockAudio, tapSound } from './systems/audio.js';
 
@@ -12,6 +13,7 @@ const renderer = createRenderer(canvas);
 const ctx = { renderer, input: createInput() };
 const screens = createScreenManager(renderer, ctx);
 screens.register('menu', menuScreen);
+screens.register('farm', farmScreen);
 screens.register('woods', woodsScreen);
 watchResize(renderer, screens.camera);
 

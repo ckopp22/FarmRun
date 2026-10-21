@@ -1,6 +1,8 @@
 import { listSlots, deleteSlot } from '../systems/save.js';
 
-const ANIMAL_TOTAL = 40;
+import { ANIMALS } from '../data/animals.js';
+
+const ANIMAL_TOTAL = ANIMALS.length;
 
 function card(n, data, onPick, onDelete) {
   const el = document.createElement('div');

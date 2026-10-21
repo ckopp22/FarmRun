@@ -19,7 +19,7 @@ const onBack = () => { tapSound(); show(slotsEl, false); show(menuEl, true); };
 function pick(n) {
   tapSound();
   startSlot(n);
-  ctxRef.go('woods');   // farm screen replaces this in the next phase
+  ctxRef.go('farm');
 }
 
 const playBtn = document.getElementById('play-btn');
