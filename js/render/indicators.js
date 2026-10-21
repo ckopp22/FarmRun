@@ -1,12 +1,12 @@
 import * as THREE from '../../lib/three.module.min.js';
 
-const TRUCK_RING = 3.6;
-const RIVAL_RING = 2.6;
+const TRUCK_RING = 5.2;
+const RIVAL_RING = 4;
 const TRUCK_HIDE = 7;   // no truck arrow once this close
 
 function makeArrow(color, size) {
   const geo = new THREE.ConeGeometry(0.28 * size, 0.7 * size, 3).rotateX(Math.PI / 2);
-  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, depthTest: false }));
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.55, depthTest: false }));
   m.renderOrder = 10;
   m.visible = false;
   return m;
@@ -14,8 +14,8 @@ function makeArrow(color, size) {
 
 // Ground arrows orbiting the player: green points to the truck, red to each chasing rival.
 export function createIndicators(scene, count) {
-  const truckArrow = makeArrow(0x66ff66, 1.5);
-  const rivalArrows = Array.from({ length: count }, () => makeArrow(0xff2a2a, 1));
+  const truckArrow = makeArrow(0x66ff66, 0.9);
+  const rivalArrows = Array.from({ length: count }, () => makeArrow(0xff2a2a, 0.6));
   scene.add(truckArrow, ...rivalArrows);
   let t = 0;
 

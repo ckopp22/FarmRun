@@ -22,7 +22,11 @@ export function createInput() {
     knob.style.transform = '';
   }
 
+  // Let taps on buttons through so they still fire click.
+  const onUi = (e) => e.target.closest && e.target.closest('button, .slot-card, #shop-panel');
+
   document.addEventListener('touchstart', (e) => {
+    if (onUi(e)) return;
     e.preventDefault();
     for (const t of e.changedTouches) {
       if (touchId === null && t.clientX < window.innerWidth / 2) {
@@ -37,6 +41,7 @@ export function createInput() {
   }, { passive: false });
 
   document.addEventListener('touchmove', (e) => {
+    if (onUi(e)) return;
     e.preventDefault();
     for (const t of e.changedTouches) if (t.identifier === touchId) setStick(t.clientX, t.clientY);
   }, { passive: false });
