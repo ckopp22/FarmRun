@@ -4,7 +4,7 @@ Keep token usage low. Be efficient in what you read, what you write, and what yo
 
 ## Project (fill in per project)
 - **Name:** Farm Run 3D
-- **Type:** (TBD, e.g. web game)
+- **Type:** web game (GitHub Pages: https://ckopp22.github.io/FarmRun/). Git repo + origin already set up; commit and push to main when asked, no need to ask about remote.
 - **Stack:**
 - **Design doc:** (e.g. `MDD.md`, `README.md`, or "none")
 - **Key constraints:** (e.g. no frameworks, relative paths only, offline-first)

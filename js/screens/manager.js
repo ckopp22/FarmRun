@@ -18,6 +18,7 @@ export function createScreenManager(renderer, ctx) {
       current = screens.get(name);
       active = current.enter(ctx);
       fitRenderer(renderer, active.camera);
+      document.dispatchEvent(new CustomEvent('screenchange', { detail: name }));
     },
 
     update(dt) { if (current) current.update(dt); },

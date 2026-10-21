@@ -66,7 +66,7 @@ function start() {
 watchContext(canvas, () => { running = false; }, () => start());
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) running = false;
-  else if (!running) start();
+  else if (!running && pauseEl.style.display === 'none') start();
 });
 
 for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music']]) {
@@ -74,11 +74,39 @@ for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music']]) {
   const paint = () => {
     const on = audioSettings()[kind];
     btn.classList.toggle('off', !on);
-    if (kind === 'sound') btn.textContent = on ? '🔊' : '🔇';
+    if (kind === 'sound') btn.textContent = on ? '🔊 Sound' : '🔇 Sound';
   };
   btn.addEventListener('click', () => { unlockAudio(); toggle(kind); paint(); tapSound(); });
   paint();
 }
+
+const dropEl = document.getElementById('menu-drop');
+const pauseBtn = document.getElementById('pause-btn');
+const pauseEl = document.getElementById('pause');
+const shopItem = document.getElementById('shop-menu-btn');
+document.getElementById('menu-btn').addEventListener('click', () => {
+  tapSound();
+  const open = dropEl.style.display === 'none';
+  shopItem.style.display = document.getElementById('farm-ui').style.display === 'none' ? 'none' : '';
+  dropEl.style.display = open ? '' : 'none';
+});
+shopItem.addEventListener('click', () => {
+  dropEl.style.display = 'none';
+  document.getElementById('shop-btn').click();
+});
+const setPaused = (p) => {
+  pauseEl.style.display = p ? '' : 'none';
+  if (p) running = false;
+  else if (!running) start();
+};
+pauseBtn.addEventListener('click', () => { tapSound(); dropEl.style.display = 'none'; setPaused(true); });
+document.getElementById('resume-btn').addEventListener('click', () => { tapSound(); setPaused(false); });
+document.getElementById('pause-menu-btn').addEventListener('click', () => {
+  tapSound();
+  setPaused(false);
+  screens.go('menu');
+});
+document.addEventListener('screenchange', (e) => { pauseBtn.style.display = e.detail === 'menu' ? 'none' : ''; });
 
 screens.go('menu');
 start();

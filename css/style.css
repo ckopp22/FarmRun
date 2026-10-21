@@ -55,8 +55,8 @@ button { touch-action: manipulation; }
 
 #fps {
   position: absolute;
-  right: calc(env(safe-area-inset-right) + 12px);
-  top: calc(env(safe-area-inset-top) + 10px);
+  left: calc(env(safe-area-inset-left) + 12px);
+  bottom: calc(env(safe-area-inset-bottom) + 10px);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   opacity: 0.85;
@@ -90,20 +90,43 @@ button { touch-action: manipulation; }
   position: fixed;
   left: calc(env(safe-area-inset-left) + 12px);
   top: calc(env(safe-area-inset-top) + 10px);
-  display: flex;
-  gap: 8px;
   z-index: 20;
 }
 
 #sound button {
+  border: 0;
+  font-size: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+#menu-btn { width: 40px; height: 40px; border-radius: 50%; }
+
+#menu-drop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#menu-drop button { padding: 10px 16px; border-radius: 18px; font-size: 16px; font-weight: 700; text-align: left; }
+
+#pause-btn {
+  position: fixed;
+  right: calc(env(safe-area-inset-right) + 12px);
+  top: calc(env(safe-area-inset-top) + 10px);
   width: 40px;
   height: 40px;
   border: 0;
   border-radius: 50%;
   font-size: 20px;
-  background: rgba(0, 0, 0, 0.3);
+  font-weight: 800;
   color: #fff;
+  background: #d32f2f;
+  z-index: 20;
 }
+
+#pause { justify-content: center; gap: 18px; background: rgba(0, 0, 0, 0.5); z-index: 35; }
 
 #sound button.off { opacity: 0.45; }
 
@@ -212,7 +235,7 @@ button { touch-action: manipulation; }
 
 #money {
   position: absolute;
-  left: calc(env(safe-area-inset-left) + 108px);
+  left: calc(env(safe-area-inset-left) + 62px);
   top: calc(env(safe-area-inset-top) + 10px);
   height: 40px;
   line-height: 40px;
@@ -223,6 +246,7 @@ button { touch-action: manipulation; }
 }
 
 #shop-btn {
+  display: none;
   position: absolute;
   left: calc(env(safe-area-inset-left) + 14px);
   bottom: calc(env(safe-area-inset-bottom) + 24px);

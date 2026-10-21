@@ -19,8 +19,18 @@
   <div id="fps">-- fps</div>
 </div>
 <div id="sound">
-  <button id="sound-btn" aria-label="Sound">🔊</button>
-  <button id="music-btn" aria-label="Music">🎵</button>
+  <button id="menu-btn" aria-label="Menu">☰</button>
+  <div id="menu-drop" style="display:none">
+    <button id="shop-menu-btn">🛒 Shop</button>
+    <button id="music-btn" aria-label="Music">🎵 Music</button>
+    <button id="sound-btn" aria-label="Sound">🔊 Sound</button>
+  </div>
+</div>
+<button id="pause-btn" aria-label="Pause" style="display:none">✕</button>
+<div id="pause" class="overlay" style="display:none">
+  <h1 class="title">Paused</h1>
+  <button id="resume-btn" class="big-btn">Resume</button>
+  <button id="pause-menu-btn" class="back-btn">Main Menu</button>
 </div>
 <div id="menu" class="overlay">
   <h1 class="title">FARM RUN</h1>
