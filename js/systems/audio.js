@@ -9,17 +9,17 @@ export const audioSettings = () => settings;
 
 const N = { C4: 262, D4: 294, E4: 330, F4: 349, G4: 392, A4: 440, B4: 494, C5: 523, D5: 587, E5: 659, G5: 784, A2: 110, C3: 131, E3: 165, F3: 175, G3: 196 };
 const TRACKS = {
-  farm:  ['audio/acoustic1.mp3', 'audio/acoustic2.mp3'],
-  woods: ['audio/chase.mp3'],
+  farm:  { files: ['audio/acoustic1.mp3', 'audio/acoustic2.mp3'], vol: 0.12 },
+  woods: { files: ['audio/chase.mp3'], vol: 0.25 },
 };
 const player = new Audio();
-player.volume = 0.5;
+let fadeTimer = 0;
 let trackIdx = 0;
 player.addEventListener('ended', () => {
-  const list = TRACKS[musicName];
-  if (!list) return;
-  trackIdx = (trackIdx + 1) % list.length;
-  player.src = list[trackIdx];
+  const track = TRACKS[musicName];
+  if (!track) return;
+  trackIdx = (trackIdx + 1) % track.files.length;
+  player.src = track.files[trackIdx];
   player.play().catch(() => {});
 });
 
@@ -55,19 +55,37 @@ export function sfx(name) {
 }
 export const tapSound = () => sfx('tap');
 
-function applyMusic() {
-  const list = TRACKS[musicName];
+function fadeTo(vol, ms, done) {
+  clearInterval(fadeTimer);
+  const from = player.volume, t0 = performance.now();
+  fadeTimer = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    player.volume = from + (vol - from) * k;
+    if (k === 1) { clearInterval(fadeTimer); if (done) done(); }
+  }, 30);
+}
+
+function startTrack() {
+  const track = TRACKS[musicName];
   player.pause();
-  if (!settings.music || !list || !actx) return;
+  if (!settings.music || !track || !actx) return;
   trackIdx = 0;
-  player.src = list[0];
+  player.src = track.files[0];
+  player.volume = 0;
   player.play().catch(() => {});
+  fadeTo(track.vol, 1000);
+}
+
+function applyMusic(fade) {
+  clearInterval(fadeTimer);
+  if (fade && !player.paused) fadeTo(0, 700, startTrack);
+  else startTrack();
 }
 
 export function setMusic(name) {
   if (name === musicName) return;
   musicName = name;
-  applyMusic();
+  applyMusic(true);
 }
 
 // Must be called from a user gesture (iOS).
