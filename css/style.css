@@ -157,6 +157,13 @@ button { touch-action: manipulation; }
 .help-toast { position: absolute; bottom: 90px; padding: 8px 16px; border-radius: 16px; background: rgba(0, 0, 0, 0.7); font-weight: 700; }
 
 #menu-btn { width: 40px; height: 40px; border-radius: 50%; }
+#sound.can-buy #menu-btn { position: relative; animation: shop-glow 1.2s ease-in-out infinite; }
+#sound.can-buy #menu-btn::before { content: '💵'; position: absolute; left: 30px; top: -8px; font-size: 18px; animation: shop-bob 1s ease-in-out infinite; }
+#sound.can-buy #menu-btn::after { content: '✨'; position: absolute; left: -10px; top: -10px; font-size: 16px; animation: shop-twinkle 1.2s ease-in-out infinite; }
+#sound.can-buy #shop-menu-btn { animation: shop-glow 1.2s ease-in-out infinite; }
+@keyframes shop-glow { 0%, 100% { box-shadow: 0 0 4px 1px rgba(255, 220, 80, 0.5); } 50% { box-shadow: 0 0 14px 5px rgba(255, 220, 80, 0.95); } }
+@keyframes shop-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes shop-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(20deg); } }
 
 #menu-drop {
   display: flex;

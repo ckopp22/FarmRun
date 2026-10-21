@@ -35,6 +35,13 @@ document.getElementById('win-keep').addEventListener('click', () => {
 document.getElementById('win-menu').addEventListener('click', () => { tapSound(); ctxRef.go('menu'); });
 const shopList = document.getElementById('shop-list');
 
+const soundEl = document.getElementById('sound');
+function updateShopHint() {
+  const pen = nextPenCost(save);
+  const can = (pen !== undefined && save.money >= pen) || UPGRADES.some((u) => { const c = nextCost(save, u.id); return c !== undefined && save.money >= c; });
+  soundEl.classList.toggle('can-buy', can);
+}
+
 function renderShop() {
   const penCost = nextPenCost(save);
   const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : ANIMALS[penCount(save)].name + ' in the woods'} · ${penCount(save)}/${ANIMALS.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
@@ -58,6 +65,7 @@ shopList.addEventListener('click', (ev) => {
   if (id && buy(save, id)) {
     sfx('cash');
     moneyEl.textContent = '$' + save.money.toLocaleString();
+    updateShopHint();
     renderShop();
   }
 });
@@ -208,6 +216,7 @@ sellBtn.addEventListener('click', () => {
   saveActive();
   sfx('cash');
   moneyEl.textContent = '$' + save.money.toLocaleString();
+  updateShopHint();
   selected = null;
   showPop(null);
   paintSell();
@@ -286,6 +295,7 @@ export const farmScreen = {
     }
     time = 0;
     moneyEl.textContent = '$' + save.money.toLocaleString();
+    updateShopHint();
     showPop(null);
     closeShop();
     confetti = createConfetti(scene);
@@ -348,6 +358,7 @@ export const farmScreen = {
   },
 
   exit() {
+    soundEl.classList.remove('can-buy');
     ui.style.display = 'none';
     winEl.style.display = 'none';
     canvas.removeEventListener('pointerdown', onDown);
