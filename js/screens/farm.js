@@ -186,7 +186,7 @@ const sellBtn = document.getElementById('sell-btn');
 function paintSell() {
   if (entries) for (const e of entries) e.cash.visible = held(e) >= SELL_MIN;
   sellBtn.style.display = selected ? '' : 'none';
-  if (selected) sellBtn.textContent = `SELL ${held(selected)} ${plural(selected.a.name)} $${(held(selected) * selected.a.value).toLocaleString()}`;
+  if (selected) sellBtn.textContent = `SELL ${held(selected)} = $${(held(selected) * selected.a.value).toLocaleString()}`;
 }
 sellBtn.addEventListener('click', () => {
   if (!selected || held(selected) < SELL_MIN) return;
