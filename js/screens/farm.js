@@ -132,6 +132,7 @@ function onUp(ev) {
   }
   if (!e) { showPop(null); selected = null; paintSell(); return; }
   showPop(e);
+  if (e.owned) { e.pet = 1.5; particles.burst(e.x, 1, e.z, 0xff7fa8, 8, 3); }
   selected = e.owned && held(e) >= sellMin(e) ? e : null;
   paintSell();
   tapSound();
@@ -342,12 +343,14 @@ export const farmScreen = {
       if (!e.owned) { e.group.position.set(e.x, 0, e.z); continue; }
       const n = held(e);
       e.sign.visible = n === 0;
+      const k = e.pet > 0 ? Math.min(1, e.pet) : 0;   // petting excitement, fades out
+      if (e.pet > 0) e.pet -= dt;
       [e.group, ...e.extras].forEach((g, i) => {
         g.visible = Math.min(n, 5) > i;
         const [ox, oz] = i ? PEN_SPOTS[i - 1] : [0, 0];
         const t = time * 0.6 + e.ph + i * 1.3;
-        g.position.set(e.x + ox + Math.sin(t) * 0.4, Math.abs(Math.sin(time * 5 + e.ph + i)) * 0.05, e.z + oz + Math.cos(t * 0.8) * 0.4);
-        g.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8);
+        g.position.set(e.x + ox + Math.sin(t) * 0.4 + Math.sin(time * 9 + i * 2) * 0.25 * k, Math.abs(Math.sin(time * 5 + e.ph + i)) * 0.05 + Math.abs(Math.sin(time * 12 + i * 1.7)) * 0.3 * k, e.z + oz + Math.cos(t * 0.8) * 0.4 + Math.cos(time * 8 + i * 2) * 0.25 * k);
+        g.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8) + Math.sin(time * 14 + i) * 0.5 * k;
       });
     }
     confetti.update(dt, time, 0, panZ);
