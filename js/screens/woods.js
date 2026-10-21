@@ -8,6 +8,8 @@ import { buildForest } from '../game/map.js';
 import { createTruck } from '../game/truck.js';
 import { createPlayer, updatePlayer } from '../game/player.js';
 import { createAnimals } from '../game/animals.js';
+import { createFootsteps } from '../render/footsteps.js';
+import { createIndicators } from '../render/indicators.js';
 import { createRivals } from '../game/rivals.js';
 import { createParticles } from '../render/particles.js';
 import { sfx, setMusic } from '../systems/audio.js';
@@ -20,7 +22,7 @@ const RIVAL_COUNT = 10;
 const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
-let input, grid, player, animals, followers, rivals, particles, camera, ctxRef;
+let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
 let haul, capacity, armed, busted, truck, leave, trackL, trackR, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -124,6 +126,8 @@ export const woodsScreen = {
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);
+    footsteps = createFootsteps(scene);
+    indicators = createIndicators(scene, RIVAL_COUNT);
     setMusic('woods');
     busted = false;
     bustedEl.style.display = 'none';
@@ -144,6 +148,10 @@ export const woodsScreen = {
     particles.update(dt);
     followers.update(dt);
     updateChaseCamera(camera, player.x, player.z, dt);
+    footsteps.track(player);
+    for (const r of rivals.list) if (r.group.visible) footsteps.track(r);
+    footsteps.update(dt);
+    indicators.update(dt, player, truck.position, rivals.list);
     if (rivals.update(dt)) { busted = true; bustedEl.style.display = ''; sfx('caught'); return; }
 
     const d = Math.hypot(player.x, player.z);
@@ -155,6 +163,6 @@ export const woodsScreen = {
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
     truck = leave = trackL = trackR = scene = null;
-    input = grid = player = animals = followers = rivals = particles = camera = null;
+    input = grid = player = animals = followers = rivals = particles = footsteps = indicators = camera = null;
   },
 };

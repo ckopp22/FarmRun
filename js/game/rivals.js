@@ -8,10 +8,14 @@ const CATCH = RADIUS + 0.45;
 const SIGHT = 13;                    // detection radius
 const HALF_CONE = 55 * Math.PI / 180;
 const GIVE_UP_DIST = 24;
-const GIVE_UP_TIME = 2;              // seconds without line of sight
+const GIVE_UP_TIME = 4;              // seconds without line of sight
 const WANDER_SPEED = 1.8;
 const ALERT_TIME = 0.45;
 const MIN_FROM_TRUCK = 16;
+const PACK_BONUS = 0.12;             // chase speed bonus per additional chaser
+const PACK_MAX = 1.7;
+const PROBE = 1.6;                   // how far ahead to look for trees
+const STEER_ANGLES = [0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.1, -2.1];
 
 const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 const wrap = (a) => ((a + Math.PI) % 6.2832 + 6.2832) % 6.2832 - Math.PI;
@@ -38,7 +42,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
     const ang = Math.random() * 6.28;
     const dist = MIN_FROM_TRUCK + Math.sqrt(Math.random()) * (PLAYER_LIMIT - MIN_FROM_TRUCK - 2);
     const r = { group, mark, state: 'wander', x: Math.cos(ang) * dist, z: Math.sin(ang) * dist,
-      heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, alert: 0, lost: 0, run: 0, runT: 0,
+      heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, alert: 0, lost: 0, side: 1, run: 0, runT: 0,
       chaseSpeed: 4 + dist / PLAYER_LIMIT * 1.2, radius: RADIUS };
     grid.resolve(r, RADIUS);
     r.tx = r.x; r.tz = r.z;
@@ -53,11 +57,29 @@ export function createRivals(scene, grid, count, player, onAlert) {
     return !grid.blocked(r.x, r.z, player.x, player.z);
   }
 
+  // Pick the heading closest to `want` whose path ahead is clear of trees.
+  function steer(r, want) {
+    const order = r.side < 0 ? STEER_ANGLES.map((a, i) => (i ? -a : a)) : STEER_ANGLES;
+    for (const a of order) {
+      const h = want + a;
+      const sx = Math.sin(h), sz = Math.cos(h);
+      if (!grid.overlaps(r.x + sx * PROBE, r.z + sz * PROBE, RADIUS) &&
+          !grid.overlaps(r.x + sx * PROBE * 0.5, r.z + sz * PROBE * 0.5, RADIUS)) {
+        if (a) r.side = a > 0 ? 1 : -1;
+        return h;
+      }
+    }
+    return want;
+  }
+
   function turn(r, target, dt) { r.heading += wrap(target - r.heading) * Math.min(1, 10 * dt); }
 
   // Returns true if any rival caught the player this frame.
   function update(dt) {
     let caught = false;
+    let chasers = 0;
+    for (const r of list) if (r.state === 'chase') chasers++;
+    const pack = Math.min(PACK_MAX, 1 + PACK_BONUS * Math.max(0, chasers - 1));
     for (const r of list) {
       let speed = 0;
 
@@ -73,7 +95,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
             r.tx = clampLimit(r.x + Math.cos(a) * len);
             r.tz = clampLimit(r.z + Math.sin(a) * len);
           } else {
-            turn(r, Math.atan2(dx, dz), dt);
+            turn(r, steer(r, Math.atan2(dx, dz)), dt);
             speed = WANDER_SPEED;
           }
         }
@@ -88,8 +110,8 @@ export function createRivals(scene, grid, count, player, onAlert) {
         if (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME) {
           r.state = 'wander'; r.wait = 1; r.tx = r.x; r.tz = r.z;
         } else {
-          turn(r, Math.atan2(dx, dz), dt);
-          speed = r.chaseSpeed;
+          turn(r, steer(r, Math.atan2(dx, dz)), dt);
+          speed = r.chaseSpeed * pack;
           if (d < CATCH) caught = true;
         }
       }
@@ -98,6 +120,11 @@ export function createRivals(scene, grid, count, player, onAlert) {
         r.x += Math.sin(r.heading) * speed * dt;
         r.z += Math.cos(r.heading) * speed * dt;
         if (grid.resolve(r, RADIUS) && r.state === 'wander') r.wait = 0.3;
+        for (const o of list) {
+          if (o === r) continue;
+          const ox = r.x - o.x, oz = r.z - o.z, min = RADIUS * 2, d2 = ox * ox + oz * oz;
+          if (d2 < min * min) { const d = Math.sqrt(d2) || 0.0001, k = (min - d) / d * 0.5; r.x += ox * k; r.z += oz * k; }
+        }
         r.x = clampLimit(r.x); r.z = clampLimit(r.z);
       }
       r.run += (Math.min(1, speed / 6) - r.run) * Math.min(1, 12 * dt);
@@ -110,5 +137,5 @@ export function createRivals(scene, grid, count, player, onAlert) {
     return caught;
   }
 
-  return { update };
+  return { update, list };
 }
