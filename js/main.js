@@ -21,21 +21,6 @@ screens.register('drive', driveScreen);
 screens.register('woods', woodsScreen);
 watchResize(renderer, screens.camera);
 
-// iOS standalone can start with a viewport short by the top inset; toggling the viewport meta makes it recompute.
-if (navigator.standalone) {
-  const vp = document.querySelector('meta[name="viewport"]');
-  const good = vp.content;
-  const kick = () => {
-    vp.content = good.replace('viewport-fit=cover', 'viewport-fit=auto');
-    requestAnimationFrame(() => {
-      vp.content = good;
-      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
-    });
-  };
-  setTimeout(kick, 100);
-  setTimeout(kick, 800);
-}
-
 let running = true;
 let last = performance.now();
 let raf = 0;
