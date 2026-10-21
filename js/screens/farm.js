@@ -10,7 +10,7 @@ import { createParticles } from '../render/particles.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 55 * Math.PI / 180, DIST = 24;
-const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.6 : DIST * 0.75;   // zoom out in portrait, in on landscape
+const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.9 : DIST * 0.75;   // zoom out in portrait, in on landscape
 const PEN = 3.6, PEN_Z0 = 9, PEN_DZ = 4.2, PEN_X = 2.2;
 const PAN_MIN = 6;
 let PAN_MAX = PAN_MIN;

@@ -115,7 +115,8 @@ export const menuScreen = {
       p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.08;
     }
     angle += dt * 0.12;
-    camera.position.set(Math.sin(angle) * RADIUS, HEIGHT, Math.cos(angle) * RADIUS);
+    const z = window.innerHeight > window.innerWidth ? 1.3 : 1;
+    camera.position.set(Math.sin(angle) * RADIUS * z, HEIGHT * z, Math.cos(angle) * RADIUS * z);
     camera.lookAt(0, 2, 0);
   },
 
