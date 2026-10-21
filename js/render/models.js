@@ -27,7 +27,7 @@ export function makeBlobShadow(radius) {
 }
 
 // Models face +z.
-export function makeFarmer(shirt = 0xc0392b, hat = hat) {
+export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a) {
   const g = new THREE.Group();
   box(g, 0.3, 0.7, 0.3, 0x2f4f8f, -0.18, 0.35, 0);   // legs
   box(g, 0.3, 0.7, 0.3, 0x2f4f8f, 0.18, 0.35, 0);
