@@ -178,8 +178,9 @@ function makeBird(a) {
   return g;
 }
 
-export function makeAnimal(a) {
+export function makeAnimal(a, shadowScale = 1) {
   const g = a.k === 'bird' ? makeBird(a) : makeQuad(a);
+  if (shadowScale !== 1) g.children.forEach((o) => { if (o.userData.shadow) o.scale.multiplyScalar(shadowScale); });
   g.userData.animalId = a.id;
   return g;
 }

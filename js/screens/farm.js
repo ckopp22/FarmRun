@@ -68,7 +68,8 @@ const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 let drag = null;
 let selected = null;   // pen entry picked for selling
-const SELL_MIN = 5;
+const sellMin = (e) => e.a.tier === 'Common' ? 5 : 2;   // Common sells from 5 (all of them), others from 2
+const sellQty = (e) => e.a.tier === 'Common' ? held(e) : held(e) - 1;   // others always keep one in the pen
 const PEN_SPOTS = [[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]];   // offsets for animals 2-5 (max 5 shown per pen)
 const held = (e) => save.owned[e.a.id] || 0;
 const cashTex = (() => {
@@ -82,6 +83,7 @@ const cashTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
+const PEN_SHADOW = 0.5;   // pen animals get a smaller blob shadow
 const plural = (n) => /^(Sheep|Bison|Deer)$/.test(n) ? n : /x$/.test(n) ? n + 'es' : /Goose$/.test(n) ? n.replace(/Goose$/, 'Geese') : /y$/.test(n) ? n.slice(0, -1) + 'ies' : n + 's';
 function showPop(e) {
   if (!e) { popEl.style.display = 'none'; return; }
@@ -122,7 +124,7 @@ function onUp(ev) {
   }
   if (!e) { showPop(null); selected = null; paintSell(); return; }
   showPop(e);
-  selected = e.owned && held(e) >= SELL_MIN ? e : null;
+  selected = e.owned && held(e) >= sellMin(e) ? e : null;
   paintSell();
   tapSound();
 }
@@ -194,14 +196,15 @@ function checkWin() {
 
 const sellBtn = document.getElementById('sell-btn');
 function paintSell() {
-  if (entries) for (const e of entries) e.cash.visible = held(e) >= SELL_MIN;
+  if (entries) for (const e of entries) e.cash.visible = held(e) >= sellMin(e);
   sellBtn.style.display = selected ? '' : 'none';
-  if (selected) sellBtn.textContent = `SELL ${held(selected)} = $${(held(selected) * selected.a.value).toLocaleString()}`;
+  if (selected) sellBtn.textContent = `SELL ${sellQty(selected)} = $${(sellQty(selected) * selected.a.value).toLocaleString()}`;
 }
 sellBtn.addEventListener('click', () => {
-  if (!selected || held(selected) < SELL_MIN) return;
-  save.money += held(selected) * selected.a.value;
-  save.owned[selected.a.id] = 0;
+  if (!selected || held(selected) < sellMin(selected)) return;
+  const qty = sellQty(selected);
+  save.money += qty * selected.a.value;
+  save.owned[selected.a.id] -= qty;
   saveActive();
   sfx('cash');
   moneyEl.textContent = '$' + save.money.toLocaleString();
@@ -254,14 +257,14 @@ export const farmScreen = {
     entries = shown.map((a, i) => {
       const isNew = newly.includes(a.id);
       const owned = !!(save.discovered && save.discovered[a.id]) && !isNew;
-      const group = makeAnimal(a);
+      const group = makeAnimal(a, PEN_SHADOW);
       if (!owned) silhouette(group);
       scene.add(group);
       const sign = makeGhost(ctx.renderer, a);
       sign.visible = false;
       scene.add(sign);
       const extras = PEN_SPOTS.map(() => {
-        const g = makeAnimal(a);
+        const g = makeAnimal(a, PEN_SHADOW);
         g.visible = false;
         scene.add(g);
         return g;
@@ -307,7 +310,7 @@ export const farmScreen = {
         e.reveal -= dt;
         if (e.reveal < 0) {
           scene.remove(e.group);
-          e.group = makeAnimal(e.a);
+          e.group = makeAnimal(e.a, PEN_SHADOW);
           e.group.scale.setScalar(0.1);
           e.popT = 0;
           scene.add(e.group);

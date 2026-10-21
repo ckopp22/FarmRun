@@ -374,3 +374,15 @@ button { touch-action: manipulation; }
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
+
+/* Landscape phones: shrink the shop so it fits without scrolling. */
+@media (orientation: landscape) and (max-height: 600px) {
+  #shop-panel { max-height: 96dvh; padding: 8px 12px; }
+  #shop-panel h2 { margin: 0 0 4px; font-size: 18px; }
+  #shop-list { overflow-y: visible; flex: none; }
+  .shop-row { padding: 6px 10px; margin-bottom: 4px; }
+  .sn { font-size: 13px; }
+  .sd { font-size: 10px; margin-top: 0; }
+  .shop-row button { padding: 5px 10px; font-size: 13px; }
+  #shop-close { margin-top: 4px; padding: 5px 24px; font-size: 14px; }
+}

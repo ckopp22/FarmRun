@@ -95,5 +95,5 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     return picked;
   }
 
-  return { update };
+  return { update, list };
 }

@@ -70,5 +70,17 @@ export function createGrid() {
     return false;
   }
 
-  return { add, resolve, overlaps, blocked };
+  // Call fn(x, z, r) for every static circle in cells within `range` of (x, z).
+  function each(x, z, range, fn) {
+    const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL), n = Math.ceil(range / CELL);
+    for (let ox = -n; ox <= n; ox++) {
+      for (let oz = -n; oz <= n; oz++) {
+        const list = cells.get(key(cx + ox, cz + oz));
+        if (!list) continue;
+        for (let j = 0; j < list.length; j++) fn(xs[list[j]], zs[list[j]], rs[list[j]]);
+      }
+    }
+  }
+
+  return { add, resolve, overlaps, blocked, each };
 }

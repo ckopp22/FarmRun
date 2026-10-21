@@ -24,7 +24,7 @@ const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking 
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
 let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
-let haul, capacity, armed, busted, truck, leave, trackL, trackR, scene;
+let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
 
@@ -56,19 +56,65 @@ function bankHaul() {
 
 // Truck pulls out toward the camera (screen down), leaving tire marks, then we go to the farm.
 function startLeave() {
-  leave = { t: 0, v: 0, z0: truck.position.z, boarding: true };
+  leave = { t: 0, v: 0, x0: truck.position.x, z0: truck.position.z, boarding: true };
 }
+
+const TRUCK_HALF = 1.1;     // half width plus a little margin
+const MARK_STEP = 0.7;      // distance between tire mark segments
+let marks, markCount, markX, markZ;
 
 function startDriving() {
   leave.boarding = false;
-  const mat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
-  [trackL, trackR] = [-0.95, 0.95].map((dx) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 1), mat);
-    m.rotation.x = -Math.PI / 2;
-    m.position.set(truck.position.x + dx, 0.03, truck.position.z);
-    scene.add(m);
-    return m;
+  leave.heading = 0;
+  markCount = 0;
+  markX = truck.position.x; markZ = truck.position.z;
+  marks = new THREE.InstancedMesh(
+    new THREE.PlaneGeometry(0.35, 1).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false }),
+    400
+  );
+  marks.frustumCulled = false;
+  marks.count = 0;
+  scene.add(marks);
+}
+
+// Turn away from trees, animals and rivals in the lane ahead; ease back to straight otherwise.
+function steerTruck(dt) {
+  const px = truck.position.x, pz = truck.position.z, h = leave.heading;
+  const fx = Math.sin(h), fz = Math.cos(h), sx = fz, sz = -fx;
+  const look = 5 + leave.v * 0.6;
+  let steer = 0;
+  const consider = (ox, oz, r) => {
+    const dx = ox - px, dz = oz - pz, ahead = dx * fx + dz * fz;
+    if (ahead < 0.5 || ahead > look) return;
+    const reach = r + TRUCK_HALF, side = dx * sx + dz * sz;
+    if (Math.abs(side) > reach) return;
+    const w = (1 - ahead / look) * (0.4 + 0.6 * (1 - Math.abs(side) / reach));
+    steer += (side === 0 ? (px >= ox ? 1 : -1) : -Math.sign(side)) * w;
+  };
+  grid.each(px + fx * look / 2, pz + fz * look / 2, look / 2 + 3, (x, z, r) => {
+    if (Math.hypot(x - leave.x0, z - leave.z0) < 3.5) return;   // the parked truck's own collision circles
+    consider(x, z, r);
   });
+  for (const c of animals.list) consider(c.x, c.z, 0.5);
+  for (const r of rivals.list) consider(r.x, r.z, 0.6);
+  if (steer) leave.heading += Math.max(-1, Math.min(1, steer)) * 3 * dt;
+  else leave.heading -= leave.heading * Math.min(1, 1.5 * dt);
+  leave.heading = Math.max(-0.9, Math.min(0.9, leave.heading));
+}
+
+const markM = new THREE.Matrix4(), markQ = new THREE.Quaternion(), markV = new THREE.Vector3(), markS = new THREE.Vector3(1, 1, 1);
+function dropMarks() {
+  const h = leave.heading, dx = truck.position.x - markX, dz = truck.position.z - markZ;
+  if (Math.hypot(dx, dz) < MARK_STEP || markCount + 2 > 400) return;
+  markX = truck.position.x; markZ = truck.position.z;
+  markQ.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, h);
+  for (const side of [-0.95, 0.95]) {
+    markV.set(markX + Math.cos(h) * side - Math.sin(h) * 1.4, 0.03, markZ - Math.sin(h) * side - Math.cos(h) * 1.4);
+    marks.setMatrixAt(markCount++, markM.compose(markV, markQ, markS.set(1, 1, MARK_STEP * 1.4)));
+  }
+  marks.count = markCount;
+  marks.instanceMatrix.needsUpdate = true;
 }
 
 // Farmer and animals climb into the bed (back of the truck, -z side).
@@ -99,9 +145,11 @@ function driveAway(dt) {
   if (leave.boarding) { board(dt); return; }
   leave.t += dt;
   leave.v += 14 * dt;
-  truck.position.z += leave.v * dt;
-  const len = Math.max(0.01, truck.position.z - 1.4 - leave.z0);
-  for (const m of [trackL, trackR]) { m.scale.y = len; m.position.z = leave.z0 + len / 2; }
+  steerTruck(dt);
+  truck.position.x += Math.sin(leave.heading) * leave.v * dt;
+  truck.position.z += Math.cos(leave.heading) * leave.v * dt;
+  truck.rotation.y = leave.heading;
+  dropMarks();
   updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
   if (leave.t > 2.8) ctxRef.go('farm');
 }
@@ -166,7 +214,7 @@ export const woodsScreen = {
   exit() {
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
-    truck = leave = trackL = trackR = scene = null;
+    truck = leave = marks = scene = null;
     input = grid = player = animals = followers = rivals = particles = footsteps = indicators = camera = null;
   },
 };
