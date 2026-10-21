@@ -15,7 +15,8 @@ import { createParticles } from '../render/particles.js';
 import { sfx, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
-import { capacity as capacityOf, speedMult } from '../systems/economy.js';
+import { capacity as capacityOf, speedMult, penCount } from '../systems/economy.js';
+import { ANIMALS } from '../data/animals.js';
 
 const ANIMAL_COUNT = 28;
 const RIVAL_COUNT = 10;
@@ -110,7 +111,7 @@ export const woodsScreen = {
     ctxRef = ctx;
     input = ctx.input;
     const save = activeSave();
-    const fx = save || { upgrades: {} };
+    const fx = save || { upgrades: {}, pens: 0 };
     capacity = capacityOf(fx);
     haul = [];
     armed = false;
@@ -122,7 +123,7 @@ export const woodsScreen = {
     buildForest(scene, grid, quality().trees * 3, 10);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
-    animals = createAnimals(scene, grid, ANIMAL_COUNT, player);
+    animals = createAnimals(scene, grid, ANIMAL_COUNT, player, ANIMALS.slice(0, penCount(fx)));
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);

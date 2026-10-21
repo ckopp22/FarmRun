@@ -1,4 +1,6 @@
 // localStorage wrapper: 4 save slots + global settings. All access is try/catch'd.
+import { ANIMALS, START_PENS } from '../data/animals.js';
+
 const VERSION = 1;
 const SLOTS = 4;
 const SETTINGS_KEY = 'farmrun_settings';
@@ -17,13 +19,18 @@ function write(key, value) {
 }
 
 export function newSave() {
-  return { v: VERSION, money: 0, owned: {}, discovered: {}, upgrades: {}, runs: 0, playTime: 0, lastPlayed: Date.now() };
+  return { v: VERSION, money: 0, owned: {}, discovered: {}, upgrades: {}, pens: 0, runs: 0, playTime: 0, lastPlayed: Date.now() };
 }
 
 export function loadSlot(n) {
   const d = read(slotKey(n));
   if (!d || typeof d.v !== 'number') return null;
-  return Object.assign(newSave(), d);
+  const save = Object.assign(newSave(), d);
+  if (d.pens === undefined) {   // older saves: keep every pen that held a discovered animal
+    const top = ANIMALS.reduce((m, a, i) => (save.discovered[a.id] ? i : m), -1);
+    save.pens = Math.max(0, top + 1 - START_PENS);
+  }
+  return save;
 }
 
 export function listSlots() {

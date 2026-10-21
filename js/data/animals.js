@@ -5,7 +5,7 @@ export const ANIMALS = [
   { id: 'chicken', name: 'Chicken', tier: 'Common', value: 10, k: 'bird', s: 1, c: 0xffffff, b: 0xf39c12, tc: 0xeeeeee, crest: 0xd62d20 },
   { id: 'duck', name: 'Duck', tier: 'Common', value: 25, k: 'bird', s: 0.9, c: 0xf5e8a0, b: 0xf39c12, tc: 0xe0d08a },
   { id: 'rabbit', name: 'Rabbit', tier: 'Common', value: 50, k: 'quad', w: 0.35, h: 0.3, l: 0.5, leg: 0.12, ear: 0.4, c: 0xd9c7b0, tc: 0xffffff },
-  { id: 'goat', name: 'Goat', tier: 'Uncommon', value: 100, k: 'quad', w: 0.45, h: 0.5, l: 0.8, leg: 0.45, ear: 0.12, c: 0xe8e0d0,
+  { id: 'goat', name: 'Goat', tier: 'Common', value: 100, k: 'quad', w: 0.45, h: 0.5, l: 0.8, leg: 0.45, ear: 0.12, c: 0xe8e0d0,
     x: [[0.06, 0.22, 0.06, 0x8a7a5a, -0.1, 1.2, 0.5], [0.06, 0.22, 0.06, 0x8a7a5a, 0.1, 1.2, 0.5]] },
   { id: 'sheep', name: 'Sheep', tier: 'Uncommon', value: 200, k: 'quad', w: 0.7, h: 0.6, l: 0.9, leg: 0.35, ear: 0.1, c: 0xf4f4f4, hc: 0x333333 },
   { id: 'pig', name: 'Pig', tier: 'Uncommon', value: 500, k: 'quad', w: 0.6, h: 0.55, l: 0.9, leg: 0.25, ear: 0.12, c: 0xf2a6b5, sn: 0xe58a9d },
@@ -22,6 +22,10 @@ export const ANIMALS = [
   { id: 'unicorn', name: 'Unicorn Pony', tier: 'Legendary', value: 250000, k: 'quad', w: 0.6, h: 0.7, l: 1.3, leg: 0.7, neck: 0.4, ear: 0.15, c: 0xffffff, tc: 0xff7ac8,
     x: [[0.08, 0.45, 0.08, 0xffd700, 0, 2.0, 0.85], [0.1, 0.45, 0.15, 0xff7ac8, 0, 1.6, 0.5]] },
 ];
+
+// The first START_PENS animals have pens from the start; each later pen is bought in order.
+export const START_PENS = 4;
+export const PEN_COSTS = [250, 750, 2000, 5000, 12000, 30000, 70000, 150000, 300000, 600000, 800000];
 
 // costs[i] = price of level i+1. Effects live in systems/economy.js.
 export const UPGRADES = [

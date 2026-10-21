@@ -3,16 +3,17 @@ import { createScene } from '../render/renderer.js';
 import { makeBarn, makeFarmer, makeTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees } from '../render/instancing.js';
 import { ANIMALS, UPGRADES } from '../data/animals.js';
-import { level, nextCost, buy } from '../systems/economy.js';
+import { level, nextCost, buy, penCount, nextPenCost, buyPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 55 * Math.PI / 180, DIST = 24;
-const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.35 : DIST * 0.88;   // zoom out in portrait, in on landscape
+const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.6 : DIST * 0.75;   // zoom out in portrait, in on landscape
 const PEN = 3.6, PEN_Z0 = 9, PEN_DZ = 4.2, PEN_X = 2.2;
-const PAN_MIN = 6, PAN_MAX = PEN_Z0 + (Math.ceil(ANIMALS.length / 2) - 1) * PEN_DZ - 4;
+const PAN_MIN = 6;
+let PAN_MAX = PAN_MIN;
 
 const ui = document.getElementById('farm-ui');
 const moneyEl = document.getElementById('money');
@@ -35,7 +36,9 @@ document.getElementById('win-menu').addEventListener('click', () => { tapSound()
 const shopList = document.getElementById('shop-list');
 
 function renderShop() {
-  shopList.innerHTML = UPGRADES.map((u) => {
+  const penCost = nextPenCost(save);
+  const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : ANIMALS[penCount(save)].name + ' in the woods'} · ${penCount(save)}/${ANIMALS.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
+  shopList.innerHTML = penRow + UPGRADES.map((u) => {
     const lv = level(save, u.id), cost = nextCost(save, u.id);
     const action = cost === undefined ? '<span>MAX</span>'
       : `<button data-id="${u.id}" ${save.money < cost ? 'disabled' : ''}>$${cost.toLocaleString()}</button>`;
@@ -45,6 +48,13 @@ function renderShop() {
 
 shopList.addEventListener('click', (ev) => {
   const id = ev.target.dataset && ev.target.dataset.id;
+  if (id === 'pen') {
+    if (!buyPen(save)) return;
+    sfx('upgrade');
+    closeShop();
+    ctxRef.go('farm');
+    return;
+  }
   if (id && buy(save, id)) {
     sfx('upgrade');
     moneyEl.textContent = '$' + save.money.toLocaleString();
@@ -231,13 +241,15 @@ export const farmScreen = {
       { x: -10, z: 20, s: 1.2 }, { x: 10, z: 24, s: 1 }, { x: -9, z: 31, s: 1.1 }, { x: 9, z: 35, s: 1.2 },
     ]);
 
-    const pens = ANIMALS.map((_, i) => ({ x: (i % 2 ? 1 : -1) * PEN_X, z: PEN_Z0 + Math.floor(i / 2) * PEN_DZ }));
+    const shown = ANIMALS.slice(0, penCount(save));
+    PAN_MAX = Math.max(PAN_MIN, PEN_Z0 + (Math.ceil(shown.length / 2) - 1) * PEN_DZ - 4);
+    const pens = shown.map((_, i) => ({ x: (i % 2 ? 1 : -1) * PEN_X, z: PEN_Z0 + Math.floor(i / 2) * PEN_DZ }));
     makeFence(scene, pens, PEN);
 
     const newly = ctx.newlyFound || [];
     ctx.newlyFound = [];
-    const newOrder = ANIMALS.map((a) => a.id).filter((id) => newly.includes(id));
-    entries = ANIMALS.map((a, i) => {
+    const newOrder = shown.map((a) => a.id).filter((id) => newly.includes(id));
+    entries = shown.map((a, i) => {
       const isNew = newly.includes(a.id);
       const owned = !!(save.discovered && save.discovered[a.id]) && !isNew;
       const group = makeAnimal(a);

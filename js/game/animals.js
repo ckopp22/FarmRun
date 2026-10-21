@@ -26,9 +26,8 @@ function pickAnimal(pool, total) {
 
 const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 
-export function createAnimals(scene, grid, count, player) {
+export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
   const list = [];
-  const pool = ANIMALS;
   const total = pool.reduce((s, a) => s + TIERS[a.tier].weight, 0);
   const fleeRange = FLEE_RANGE;
   for (let i = 0; i < count; i++) {

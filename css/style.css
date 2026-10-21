@@ -5,8 +5,7 @@ html, body {
   overflow: hidden;
   overscroll-behavior: none;
   position: fixed;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: #9fd4f0;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   user-select: none;
@@ -19,22 +18,16 @@ button { touch-action: manipulation; }
 
 #game {
   position: fixed;
-  left: 0;
-  top: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  height: 100dvh;
   display: block;
   touch-action: none;
 }
 
 #hud {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  height: 100dvh;
+  inset: 0;
   pointer-events: none;
   padding: calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 12px)
            calc(env(safe-area-inset-bottom) + 10px) calc(env(safe-area-inset-left) + 12px);
@@ -301,15 +294,21 @@ button { touch-action: manipulation; }
 
 #shop-panel {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(420px, 70dvh);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(env(safe-area-inset-top) + 70px) 16px calc(env(safe-area-inset-bottom) + 24px);
-  background: rgba(20, 40, 20, 0.88);
+  padding: 16px 14px;
+  border-radius: 20px;
+  background: rgba(20, 40, 20, 0.94);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
-#shop-panel h2 { margin: 0 0 12px; font-size: 26px; }
+#shop-panel h2 { margin: 0 0 10px; font-size: 24px; }
 
 #shop-list {
   width: min(420px, 100%);

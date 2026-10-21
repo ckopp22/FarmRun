@@ -14,7 +14,7 @@ export function createChaseCamera(aspect) {
 }
 
 function place(camera) {
-  const dist = DIST;
+  const dist = window.innerHeight > window.innerWidth ? DIST * 1.25 : DIST;
   const h = Math.cos(PITCH) * dist;
   camera.position.set(focus.x + Math.sin(YAW) * h, focus.y + Math.sin(PITCH) * dist, focus.z + Math.cos(YAW) * h);
   camera.lookAt(focus.x, focus.y, focus.z);
