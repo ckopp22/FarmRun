@@ -72,13 +72,43 @@ export function makeTruck() {
 
 export function makeBarn() {
   const g = new THREE.Group();
-  box(g, 6, 3.4, 5, 0xb83a2e, 0, 1.7, 0);               // walls
-  box(g, 1.8, 2.4, 0.12, 0xf4efe4, 0, 1.2, 2.53);       // door
-  box(g, 0.14, 2.4, 0.14, 0x8e2b20, 0, 1.2, 2.6);       // door divider
+  const red = 0xb83a2e, white = 0xf4efe4, roof = 0x5a5a62;
+  box(g, 6, 3, 5, red, 0, 1.5, 0);                      // walls
+  box(g, 4.4, 1.4, 5, red, 0, 3.6, 0);                  // gambrel lower
+  box(g, 3.4, 0.5, 5, red, 0, 4.5, 0);                  // gambrel mid
+  box(g, 2, 0.5, 5, red, 0, 4.95, 0);                   // gambrel top
+  box(g, 2.6, 2.5, 0.1, white, 0, 1.25, 2.52);          // door frame
+  box(g, 2.3, 2.3, 0.14, red, 0, 1.25, 2.55);           // door
+  box(g, 0.12, 2.3, 0.16, white, 0, 1.25, 2.6);         // door divider
   for (const s of [-1, 1]) {
-    const r = box(g, 3.9, 0.3, 5.6, 0x6b4a2b, s * 1.56, 3.4 + 0.9, 0);
-    r.rotation.z = s * Math.PI / 6;
+    const x = box(g, 1.2, 0.12, 0.16, white, s * 0.57, 1.25, 2.62);
+    x.scale.x = 3.1;
+    x.rotation.z = s * 0.82;                            // X braces
   }
+  box(g, 1.1, 1.1, 0.1, white, 0, 3.7, 2.52);           // loft trim
+  box(g, 0.9, 0.9, 0.14, 0x3a2a20, 0, 3.7, 2.55);       // loft door
+  for (const [w, h, y] of [[6, 0.14, 3.0], [6, 0.14, 0.07]]) box(g, w + 0.1, h, 5.1, white, 0, y, 0);
+  for (const s of [-1, 1]) {
+    const lo = box(g, 1.9, 0.25, 5.6, roof, s * 2.6, 3.6, 0);
+    lo.rotation.z = -s * 0.862;
+    const up = box(g, 2.3, 0.25, 5.6, roof, s * 1.0, 4.85, 0);
+    up.rotation.z = -s * 0.464;
+  }
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#f4efe4';
+  x.font = 'bold 52px sans-serif';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText('God Loves You', 256, 68);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1.1),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+  sign.position.set(0, 2.2, -2.52);
+  sign.rotation.y = Math.PI;                             // back wall faces -z
+  g.add(sign);
   g.add(makeBlobShadow(4.2));
   return g;
 }

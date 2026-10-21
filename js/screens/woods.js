@@ -1,3 +1,4 @@
+import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, setCameraZoom, CAMERA_YAW } from '../render/camera.js';
 import { quality } from '../render/quality.js';
@@ -19,12 +20,9 @@ const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking 
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
 let input, grid, player, animals, followers, rivals, particles, camera, ctxRef;
-let haul, capacity, armed, busted;
+let haul, capacity, armed, busted, truck, leave, trackL, trackR, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
-const resultEl = document.getElementById('result');
-const resultList = document.getElementById('result-list');
-const resultBtn = document.getElementById('result-btn');
 
 document.getElementById('busted-btn').addEventListener('click', () => {
   const save = activeSave();
@@ -37,25 +35,12 @@ function paintHud() {
   hud.textContent = `🎒 ${haul.length}/${capacity} · $${value.toLocaleString()}`;
 }
 
-function showResult() {
-  const counts = new Map();
-  for (const a of haul) counts.set(a, (counts.get(a) || 0) + 1);
-  const total = haul.reduce((s, a) => s + a.value, 0);
-  resultList.innerHTML = haul.length
-    ? [...counts].map(([a, n]) => `<div class="res-row"><span>${a.name} ×${n}</span><span>$${(a.value * n).toLocaleString()}</span></div>`).join('') +
-      `<div class="res-row total"><span>Total</span><span>$${total.toLocaleString()}</span></div>`
-    : '<div class="res-row"><span>Nothing collected</span></div>';
-  resultBtn.textContent = haul.length ? 'SELL' : 'OK';
-  resultEl.style.display = '';
-}
-
-// Sell the haul: money goes up, animals stay discovered (color unlocked), then back to the farm.
-resultBtn.addEventListener('click', () => {
+// Bank the haul into the inventory and unlock colors. Selling happens on the farm.
+function bankHaul() {
   const save = activeSave();
   const found = [];
   if (save) {
     for (const a of haul) {
-      save.money += a.value;
       save.owned[a.id] = (save.owned[a.id] || 0) + 1;
       if (!save.discovered[a.id]) { save.discovered[a.id] = true; found.push(a.id); }
     }
@@ -63,8 +48,29 @@ resultBtn.addEventListener('click', () => {
     saveActive();
   }
   ctxRef.newlyFound = found;
-  ctxRef.go('farm');
-});
+}
+
+// Truck pulls out toward the camera (screen down), leaving tire marks, then we go to the farm.
+function startLeave() {
+  leave = { t: 0, v: 0, z0: truck.position.z };
+  const mat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
+  [trackL, trackR] = [-0.95, 0.95].map((dx) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 1), mat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(truck.position.x + dx, 0.03, truck.position.z);
+    scene.add(m);
+    return m;
+  });
+}
+
+function driveAway(dt) {
+  leave.t += dt;
+  leave.v += 14 * dt;
+  truck.position.z += leave.v * dt;
+  const len = Math.max(0.01, truck.position.z - 1.4 - leave.z0);
+  for (const m of [trackL, trackR]) { m.scale.y = len; m.position.z = leave.z0 + len / 2; }
+  if (leave.t > 2.2) ctxRef.go('farm');
+}
 
 export const woodsScreen = {
   enter(ctx) {
@@ -76,10 +82,11 @@ export const woodsScreen = {
     setCameraZoom(zoomMult(fx));
     haul = [];
     armed = false;
-    const scene = createScene();
+    scene = createScene();
     camera = createChaseCamera(window.innerWidth / window.innerHeight);
     grid = createGrid();
-    createTruck(scene, grid, 0, 0);
+    truck = createTruck(scene, grid, 0, 0);
+    leave = null;
     buildForest(scene, grid, quality().trees, 10);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
@@ -98,6 +105,7 @@ export const woodsScreen = {
   },
 
   update(dt) {
+    if (leave) { driveAway(dt); return; }
     if (busted) return;
     input.update();
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
@@ -110,13 +118,13 @@ export const woodsScreen = {
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
-    else if (armed && d < DEPOSIT_RADIUS) { busted = true; showResult(); sfx('cash'); }
+    else if (armed && d < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); sfx('cash'); }
   },
 
   exit() {
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
-    resultEl.style.display = 'none';
+    truck = leave = trackL = trackR = scene = null;
     input = grid = player = animals = followers = rivals = particles = camera = null;
   },
 };

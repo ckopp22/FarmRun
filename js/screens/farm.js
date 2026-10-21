@@ -56,6 +56,20 @@ let panZ, time, entries;   // entries: { a, group, x, z, owned, ph, reveal } (re
 const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 let drag = null;
+let selected = null;   // pen entry picked for selling
+const SELL_MIN = 5;
+const PEN_SPOTS = [[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]];   // offsets for animals 2-5 (max 5 shown per pen)
+const held = (e) => save.owned[e.a.id] || 0;
+const cashTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#2e9e4f'; x.beginPath(); x.arc(64, 64, 58, 0, Math.PI * 2); x.fill();
+  x.lineWidth = 8; x.strokeStyle = '#fff'; x.stroke();
+  x.fillStyle = '#fff'; x.font = 'bold 84px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText('$', 64, 70);
+  return new THREE.CanvasTexture(c);
+})();
 
 function showPop(e) {
   if (!e) { popEl.style.display = 'none'; return; }
@@ -84,11 +98,14 @@ function onUp(ev) {
   if (!tap) return;
   ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const hits = ray.intersectObjects(entries.map((e) => e.group), true);
-  if (!hits.length) { showPop(null); return; }
+  const hits = ray.intersectObjects(entries.flatMap((e) => [e.group, e.cash, e.sign, ...e.extras].filter((g) => g.visible)), true);
+  if (!hits.length) { showPop(null); selected = null; paintSell(); return; }
   let o = hits[0].object;
   while (o && !o.userData.animalId) o = o.parent;
-  showPop(entries.find((e) => e.a.id === o.userData.animalId));
+  const e = entries.find((en) => en.a.id === o.userData.animalId);
+  showPop(e);
+  selected = e.owned && held(e) >= SELL_MIN ? e : null;
+  paintSell();
   tapSound();
 }
 
@@ -98,6 +115,83 @@ const onRun = () => { tapSound(); ctxRef.go('drive'); };
 document.getElementById('shop-btn').addEventListener('click', onShop);
 document.getElementById('shop-close').addEventListener('click', () => { tapSound(); closeShop(); });
 document.getElementById('run-btn').addEventListener('click', onRun);
+
+// Empty-pen marker: a dotted border with a faint picture of the animal that belongs there.
+let iconTargets = [];
+const borderTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d');
+  x.strokeStyle = '#fff'; x.lineWidth = 8; x.lineCap = 'round'; x.setLineDash([2, 18]);
+  x.strokeRect(14, 14, 228, 228);
+  return new THREE.CanvasTexture(c);
+})();
+
+function makeGhost(renderer, a) {
+  const rt = new THREE.WebGLRenderTarget(256, 256);
+  iconTargets.push(rt);
+  const mini = new THREE.Scene();
+  mini.add(new THREE.HemisphereLight(0xffffff, 0x888888, 1.4));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  sun.position.set(-3, 6, 4);
+  mini.add(sun);
+  const animal = makeAnimal(a);
+  animal.traverse((o) => { if (o.material && o.material.transparent) o.visible = false; });   // skip the blob shadow
+  mini.add(animal);
+  const cam = new THREE.PerspectiveCamera(22, 1, 0.1, 50);
+  cam.position.set(2.5, 2.2, 4.5);
+  cam.lookAt(0, 0.5, 0);
+  const color = renderer.getClearColor(new THREE.Color()), alpha = renderer.getClearAlpha();
+  renderer.setClearColor(0x000000, 0);
+  renderer.setRenderTarget(rt);
+  renderer.clear();
+  renderer.render(mini, cam);
+  renderer.setRenderTarget(null);
+  renderer.setClearColor(color, alpha);
+
+  const g = new THREE.Group();
+  const img = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), new THREE.MeshBasicMaterial({ map: rt.texture, transparent: true, opacity: 0.55, depthWrite: false }));
+  const border = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 3.3), new THREE.MeshBasicMaterial({ map: borderTex, transparent: true, opacity: 0.8, depthWrite: false }));
+  img.position.z = 0.01;
+  g.add(border, img);
+  g.rotation.x = -Math.PI / 2;
+  g.userData.animalId = a.id;
+  return g;
+}
+
+function checkWin() {
+  if (save.money >= WIN_MONEY && !save.won) {
+    save.won = true;
+    saveActive();
+    const found = Object.keys(save.discovered).length;
+    document.getElementById('win-stats').innerHTML =
+      `<div class="res-row"><span>Play time</span><span>${fmtTime(save.playTime)}</span></div>` +
+      `<div class="res-row"><span>Animals collected</span><span>${found}/${ANIMALS.length}</span></div>` +
+      `<div class="res-row"><span>Runs made</span><span>${save.runs}</span></div>`;
+    winEl.style.display = '';
+    confetti.show(true);
+    sfx('win');
+  }
+}
+
+const sellBtn = document.getElementById('sell-btn');
+function paintSell() {
+  if (entries) for (const e of entries) e.cash.visible = held(e) >= SELL_MIN;
+  sellBtn.style.display = selected ? '' : 'none';
+  if (selected) sellBtn.textContent = `SELL ${held(selected)} ${selected.a.name} $${(held(selected) * selected.a.value).toLocaleString()}`;
+}
+sellBtn.addEventListener('click', () => {
+  if (!selected || held(selected) < SELL_MIN) return;
+  save.money += held(selected) * selected.a.value;
+  save.owned[selected.a.id] = 0;
+  saveActive();
+  sfx('cash');
+  moneyEl.textContent = '$' + save.money.toLocaleString();
+  selected = null;
+  showPop(null);
+  paintSell();
+  checkWin();
+});
 
 export const farmScreen = {
   enter(ctx) {
@@ -114,7 +208,14 @@ export const farmScreen = {
     scene.add(farmer);
     const truck = makeTruck();
     truck.position.set(-7, 0, 1);
-    truck.rotation.y = 0.5;
+    truck.rotation.y = 1.25;
+    const trackMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
+    for (const x of [-0.95, 0.95]) {
+      const track = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 16), trackMat);
+      track.rotation.x = -Math.PI / 2;
+      track.position.set(x, 0.03, -1.4 - 8);
+      truck.add(track);
+    }
     scene.add(truck);
     createTrees(scene, [
       { x: 8, z: 0, s: 1.2 }, { x: -9, z: 8, s: 1 }, { x: 9, z: 12, s: 1.1 },
@@ -133,7 +234,22 @@ export const farmScreen = {
       const group = makeAnimal(a);
       if (!owned) silhouette(group);
       scene.add(group);
-      return { a, group, x: pens[i].x, z: pens[i].z, owned, ph: i * 1.7, reveal: isNew ? 0.8 + newOrder.indexOf(a.id) * 1.2 : -1 };
+      const sign = makeGhost(ctx.renderer, a);
+      sign.visible = false;
+      scene.add(sign);
+      const extras = PEN_SPOTS.map(() => {
+        const g = makeAnimal(a);
+        g.visible = false;
+        scene.add(g);
+        return g;
+      });
+      const cash = new THREE.Sprite(new THREE.SpriteMaterial({ map: cashTex, depthTest: false, transparent: true, opacity: 0.75 }));
+      cash.scale.setScalar(0.9);
+      cash.renderOrder = 10;
+      cash.userData.animalId = a.id;
+      cash.visible = false;
+      scene.add(cash);
+      return { a, group, sign, extras, cash, x: pens[i].x, z: pens[i].z, owned, ph: i * 1.7, reveal: isNew ? 0.8 + newOrder.indexOf(a.id) * 1.2 : -1 };
     });
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 150);
@@ -150,18 +266,9 @@ export const farmScreen = {
     particles = createParticles(scene);
     setMusic('farm');
     winEl.style.display = 'none';
-    if (save.money >= WIN_MONEY && !save.won) {
-      save.won = true;
-      saveActive();
-      const found = Object.keys(save.discovered).length;
-      document.getElementById('win-stats').innerHTML =
-        `<div class="res-row"><span>Play time</span><span>${fmtTime(save.playTime)}</span></div>` +
-        `<div class="res-row"><span>Animals collected</span><span>${found}/${ANIMALS.length}</span></div>` +
-        `<div class="res-row"><span>Runs made</span><span>${save.runs}</span></div>`;
-      winEl.style.display = '';
-      confetti.show(true);
-      sfx('win');
-    }
+    selected = null;
+    paintSell();
+    checkWin();
     ui.style.display = '';
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
@@ -194,10 +301,18 @@ export const farmScreen = {
         e.group.scale.setScalar(t < 1 ? 0.1 + 0.9 * t + Math.sin(t * Math.PI) * 0.3 : 1);
         if (t >= 1) e.popT = undefined;
       }
+      e.sign.position.set(e.x, 0.06, e.z);
+      e.cash.position.set(e.x, 3 + Math.sin(time * 3 + e.ph) * 0.2, e.z);
       if (!e.owned) { e.group.position.set(e.x, 0, e.z); continue; }
-      const t = time * 0.6 + e.ph;
-      e.group.position.set(e.x + Math.sin(t) * 0.7, Math.abs(Math.sin(time * 5 + e.ph)) * 0.05, e.z + Math.cos(t * 0.8) * 0.7);
-      e.group.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8);
+      const n = held(e);
+      e.sign.visible = n === 0;
+      [e.group, ...e.extras].forEach((g, i) => {
+        g.visible = Math.min(n, 5) > i;
+        const [ox, oz] = i ? PEN_SPOTS[i - 1] : [0, 0];
+        const t = time * 0.6 + e.ph + i * 1.3;
+        g.position.set(e.x + ox + Math.sin(t) * 0.4, Math.abs(Math.sin(time * 5 + e.ph + i)) * 0.05, e.z + oz + Math.cos(t * 0.8) * 0.4);
+        g.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8);
+      });
     }
     confetti.update(dt, time, 0, panZ);
     particles.update(dt);
@@ -213,6 +328,8 @@ export const farmScreen = {
     canvas.removeEventListener('pointermove', onMove);
     canvas.removeEventListener('pointerup', onUp);
     drag = null;
-    camera = scene = entries = confetti = particles = null;
+    iconTargets.forEach((t) => t.dispose());
+    iconTargets = [];
+    camera = scene = entries = confetti = particles = selected = null;
   },
 };
