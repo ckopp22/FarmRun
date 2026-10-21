@@ -7,6 +7,7 @@ import { activeSave } from './systems/save.js';
 import { driveScreen } from './screens/drive.js';
 import { getQuality, setQuality } from './render/quality.js';
 import { menuScreen } from './screens/menu.js';
+import { initHelp } from './screens/help.js';
 import { audioSettings, toggle, unlockAudio, tapSound } from './systems/audio.js';
 
 const canvas = document.getElementById('game');
@@ -80,6 +81,8 @@ for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music'], ['fps-
   btn.addEventListener('click', () => { unlockAudio(); toggle(kind); paint(); tapSound(); });
   paint();
 }
+
+initHelp();
 
 const dropEl = document.getElementById('menu-drop');
 const pauseBtn = document.getElementById('pause-btn');
