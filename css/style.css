@@ -22,7 +22,7 @@ button { touch-action: manipulation; }
 @media (display-mode: standalone) {
   html, body { height: var(--full-h, 100%); overflow: visible; }
   #game { position: absolute; top: 0; left: 0; height: var(--full-h, 100%); }
-  #hud, .overlay, #farm-ui, #fade { bottom: auto; height: var(--full-h, 100%); }
+  #hud, .overlay, #farm-ui, #fade, #great-job { bottom: auto; height: var(--full-h, 100%); }
 }
 
 #game {
@@ -370,6 +370,22 @@ button { touch-action: manipulation; }
 #win { justify-content: center; gap: 14px; background: rgba(0, 0, 0, 0.35); z-index: 40; }
 #win .big-btn { margin-bottom: 0; }
 #win-stats { width: min(360px, 100%); }
+
+#great-job {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2f6b2a;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+#great-job.show { opacity: 1; }
+#great-job h1 { margin: 0; font-size: 56px; font-weight: 900; color: #fff; text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); transform: scale(0.8); transition: transform 0.6s cubic-bezier(0.2, 1.4, 0.4, 1); }
+#great-job.show h1 { transform: scale(1); }
 
 #fade { position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
 

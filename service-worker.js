@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v46';
+const CACHE = 'farmrun3d-v47';
 const SHELL = [
   './',
   'index.html',
@@ -12,6 +12,9 @@ const SHELL = [
   'audio/deny.mp3',
   'audio/drive.mp3',
   'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/apple-touch-icon.png',
   'css/style.css',
   'lib/three.module.min.js',
   'js/main.js',

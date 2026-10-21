@@ -24,6 +24,7 @@ const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking 
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
 let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
+const greatJob = document.getElementById('great-job');
 let swipeCd = 0;
 let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
@@ -162,7 +163,11 @@ function driveAway(dt) {
   truck.rotation.y = leave.heading;
   dropMarks();
   updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
-  if (leave.t > 2.8) ctxRef.go('farm');
+  if (leave.t > 2.2) greatJob.classList.add('show');
+  if (leave.t > 3.8) {
+    ctxRef.go('farm');
+    requestAnimationFrame(() => greatJob.classList.remove('show'));
+  }
 }
 
 export const woodsScreen = {

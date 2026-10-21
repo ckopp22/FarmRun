@@ -33,9 +33,14 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     const t = TIERS[a.tier];
     const group = makeAnimal(a);
     scene.add(group);
-    const ang = Math.random() * 6.28, dist = t.min + Math.random() * (t.max - t.min);
-    const c = { a, t, group, x: clampLimit(Math.cos(ang) * dist), z: clampLimit(Math.sin(ang) * dist),
+    const c = { a, t, group, x: 0, z: 0,
       heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, tm: Math.random() * 10 };
+    for (let tries = 0; tries < 30; tries++) {   // keep trying until the spot is clear of trees
+      const ang = Math.random() * 6.28, dist = t.min + Math.random() * (t.max - t.min);
+      c.x = clampLimit(Math.cos(ang) * dist);
+      c.z = clampLimit(Math.sin(ang) * dist);
+      if (!grid.overlaps(c.x, c.z, RADIUS + 0.2)) break;
+    }
     grid.resolve(c, RADIUS);
     c.tx = c.x; c.tz = c.z;
     list.push(c);
@@ -70,15 +75,20 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
         const d = Math.hypot(dx, dz);
         if (d < 0.2) {
           c.wait = 0.5 + Math.random() * 2.5;
-          const ang = Math.random() * 6.28, r = 2 + Math.random() * 5;
-          c.tx = clampLimit(c.x + Math.cos(ang) * r);
-          c.tz = clampLimit(c.z + Math.sin(ang) * r);
+          c.tx = c.x; c.tz = c.z;
+          for (let tries = 0; tries < 6; tries++) {   // only wander to spots with a clear path, never into a tree
+            const ang = Math.random() * 6.28, r = 2 + Math.random() * 5;
+            const tx = clampLimit(c.x + Math.cos(ang) * r), tz = clampLimit(c.z + Math.sin(ang) * r);
+            if (grid.overlaps(tx, tz, RADIUS + 0.3) || grid.blocked(c.x, c.z, tx, tz)) continue;
+            c.tx = tx; c.tz = tz;
+            break;
+          }
         } else {
           c.x += dx / d * c.t.speed * dt;
           c.z += dz / d * c.t.speed * dt;
           c.heading += (((Math.atan2(dx, dz) - c.heading + Math.PI) % 6.2832 + 6.2832) % 6.2832 - Math.PI) * Math.min(1, 10 * dt);
           moving = true;
-          if (grid.resolve(c, RADIUS)) c.wait = 0.3;
+          if (grid.resolve(c, RADIUS)) { c.wait = 0.3; c.tx = c.x; c.tz = c.z; }   // bumped a tree: pick a fresh target
         }
       }
 
