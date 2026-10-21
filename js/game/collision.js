@@ -42,5 +42,33 @@ export function createGrid() {
     return hit;
   }
 
-  return { add, resolve };
+  // True if a circle at (x, z) with radius r touches any static circle.
+  function overlaps(x, z, r) {
+    const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oz = -1; oz <= 1; oz++) {
+        const list = cells.get(key(cx + ox, cz + oz));
+        if (!list) continue;
+        for (let j = 0; j < list.length; j++) {
+          const i = list[j];
+          const dx = x - xs[i], dz = z - zs[i], min = r + rs[i];
+          if (dx * dx + dz * dz < min * min) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // True if a static circle sits on the segment (x0, z0) -> (x1, z1).
+  function blocked(x0, z0, x1, z1) {
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const n = Math.ceil(len / 0.8);
+    for (let s = 1; s < n; s++) {
+      const t = s / n;
+      if (overlaps(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, 0.1)) return true;
+    }
+    return false;
+  }
+
+  return { add, resolve, overlaps, blocked };
 }

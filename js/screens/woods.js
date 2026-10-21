@@ -6,17 +6,26 @@ import { buildForest } from '../game/map.js';
 import { createTruck } from '../game/truck.js';
 import { createPlayer, updatePlayer } from '../game/player.js';
 import { createAnimals } from '../game/animals.js';
+import { createRivals } from '../game/rivals.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
 
 const BASE_CAPACITY = 3;
 const ANIMAL_COUNT = 14;
+const RIVAL_COUNT = 6;
 const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
-let input, grid, player, animals, followers, camera, ctxRef;
-let haul, capacity, armed;
+let input, grid, player, animals, followers, rivals, camera, ctxRef;
+let haul, capacity, armed, busted;
 const hud = document.getElementById('chickens');
+const bustedEl = document.getElementById('busted');
+
+document.getElementById('busted-btn').addEventListener('click', () => {
+  const save = activeSave();
+  if (save) { save.runs++; saveActive(); }
+  ctxRef.go('farm');
+});
 
 function paintHud() {
   const value = haul.reduce((s, a) => s + a.value, 0);
@@ -53,6 +62,9 @@ export const woodsScreen = {
     player = createPlayer(scene, 3.5, 3);
     animals = createAnimals(scene, grid, ANIMAL_COUNT, player);
     followers = createFollowers(scene, player);
+    rivals = createRivals(scene, grid, RIVAL_COUNT, player);
+    busted = false;
+    bustedEl.style.display = 'none';
     snapCamera(camera, player.x, player.z);
 
     paintHud();
@@ -61,12 +73,14 @@ export const woodsScreen = {
   },
 
   update(dt) {
+    if (busted) return;
     input.update();
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
     const got = animals.update(dt, haul.length >= capacity);
     if (got) { haul.push(got); followers.add(got); paintHud(); }
     followers.update(dt);
     updateChaseCamera(camera, player.x, player.z, dt);
+    if (rivals.update(dt)) { busted = true; bustedEl.style.display = ''; return; }
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
@@ -75,6 +89,7 @@ export const woodsScreen = {
 
   exit() {
     hud.style.display = 'none';
-    input = grid = player = animals = followers = camera = null;
+    bustedEl.style.display = 'none';
+    input = grid = player = animals = followers = rivals = camera = null;
   },
 };
