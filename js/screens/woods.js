@@ -4,7 +4,7 @@ import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '..
 import { animateFarmer } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
-import { buildForest } from '../game/map.js';
+import { buildForest, buildFence } from '../game/map.js';
 import { createTruck } from '../game/truck.js';
 import { createPlayer, updatePlayer } from '../game/player.js';
 import { createAnimals } from '../game/animals.js';
@@ -116,11 +116,13 @@ export const woodsScreen = {
     haul = [];
     armed = false;
     scene = createScene();
+    scene.fog = null;
     camera = createChaseCamera(window.innerWidth / window.innerHeight);
     grid = createGrid();
     truck = createTruck(scene, grid, 0, 0);
     leave = null;
     buildForest(scene, grid, quality().trees * 3, 10);
+    buildFence(scene);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
     animals = createAnimals(scene, grid, ANIMAL_COUNT, player, ANIMALS.slice(0, penCount(fx)));
