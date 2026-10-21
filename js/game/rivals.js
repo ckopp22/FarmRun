@@ -5,9 +5,10 @@ import { PLAYER_LIMIT } from './map.js';
 
 const RADIUS = 0.45;
 const CATCH = RADIUS + 0.45;
-const SIGHT = 13;                    // detection radius
+const SIGHT = 20;                    // detection radius
+const NEAR = 10;                     // all-around detection radius, no facing needed
 const HALF_CONE = 55 * Math.PI / 180;
-const GIVE_UP_DIST = 24;
+const GIVE_UP_DIST = 32;
 const GIVE_UP_TIME = 4;              // seconds without line of sight
 const WANDER_SPEED = 1.8;
 const ALERT_TIME = 0.45;
@@ -54,7 +55,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
     const dx = tgt.x - r.x, dz = tgt.z - r.z;
     const d2 = dx * dx + dz * dz;
     if (d2 > SIGHT * SIGHT) return false;
-    if (Math.abs(wrap(Math.atan2(dx, dz) - r.heading)) > HALF_CONE) return false;
+    if (d2 > NEAR * NEAR && Math.abs(wrap(Math.atan2(dx, dz) - r.heading)) > HALF_CONE) return false;
     return !grid.blocked(r.x, r.z, tgt.x, tgt.z);
   }
 
