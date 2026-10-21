@@ -122,7 +122,10 @@ document.getElementById('pause-menu-btn').addEventListener('click', () => {
   setPaused(false);
   screens.go('menu');
 });
-document.addEventListener('screenchange', (e) => { pauseBtn.style.display = e.detail === 'menu' ? 'none' : ''; });
+document.addEventListener('screenchange', (e) => {
+  pauseBtn.style.display = e.detail === 'menu' ? 'none' : '';
+  document.documentElement.style.setProperty('--top', e.detail === 'menu' ? '#9fd4f0' : '#5fa83f');
+});
 
 screens.go('menu');
 start();
