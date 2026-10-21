@@ -82,7 +82,7 @@ const cashTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
-const plural = (n) => n === 'Sheep' ? n : /Goose$/.test(n) ? n.replace(/Goose$/, 'Geese') : /y$/.test(n) ? n.slice(0, -1) + 'ies' : n + 's';
+const plural = (n) => /^(Sheep|Bison|Deer)$/.test(n) ? n : /x$/.test(n) ? n + 'es' : /Goose$/.test(n) ? n.replace(/Goose$/, 'Geese') : /y$/.test(n) ? n.slice(0, -1) + 'ies' : n + 's';
 function showPop(e) {
   if (!e) { popEl.style.display = 'none'; return; }
   popEl.innerHTML = e.owned

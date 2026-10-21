@@ -134,9 +134,15 @@ function makeQuad(a) {
   const { w, h, l, leg } = a;
   const hc = a.hc || a.c;
   const lw = Math.max(0.1, w * 0.2);
+  const legs = [];
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    box(g, lw, leg, lw, hc === a.c ? a.c : 0x555555, sx * (w / 2 - lw / 2), leg / 2, sz * (l / 2 - lw / 2));
+    const pivot = new THREE.Group();   // hip joint; swings the leg
+    pivot.position.set(sx * (w / 2 - lw / 2), leg, sz * (l / 2 - lw / 2));
+    box(pivot, lw, leg, lw, hc === a.c ? a.c : 0x555555, 0, -leg / 2, 0);
+    g.add(pivot);
+    legs.push([pivot, sx * sz]);
   }
+  g.userData.legs = legs;
   box(g, w, h, l, a.c, 0, leg + h / 2, 0);
   const hs = h * 0.8;
   const neck = a.neck || 0;
@@ -160,8 +166,13 @@ function makeBird(a) {
   box(g, 0.26, 0.3, 0.26, a.c, 0, 0.8, 0.3);
   box(g, 0.12, 0.08, 0.15, a.b, 0, 0.78, 0.5);
   if (a.crest) box(g, 0.08, 0.1, 0.16, a.crest, 0, 0.99, 0.3);
-  box(g, 0.06, 0.25, 0.06, a.b, -0.12, 0.13, 0);
-  box(g, 0.06, 0.25, 0.06, a.b, 0.12, 0.13, 0);
+  g.userData.legs = [-1, 1].map((side) => {
+    const pivot = new THREE.Group();
+    pivot.position.set(side * 0.12, 0.26, 0);
+    box(pivot, 0.06, 0.25, 0.06, a.b, 0, -0.13, 0);
+    g.add(pivot);
+    return [pivot, side];
+  });
   g.scale.setScalar(a.s || 1);
   g.add(makeBlobShadow(0.4));
   return g;
@@ -171,6 +182,12 @@ export function makeAnimal(a) {
   const g = a.k === 'bird' ? makeBird(a) : makeQuad(a);
   g.userData.animalId = a.id;
   return g;
+}
+
+// Swing the legs of a makeAnimal() model; amount 0 = standing still, 1 = full run.
+export function animateAnimal(g, time, amount) {
+  const swing = Math.sin(time * 14) * 0.8 * amount;
+  for (const [pivot, side] of g.userData.legs) pivot.rotation.x = swing * side;
 }
 
 const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });

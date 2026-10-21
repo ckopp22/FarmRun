@@ -1,5 +1,5 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { makeAnimal } from '../render/models.js';
+import { makeAnimal, animateAnimal } from '../render/models.js';
 
 const GAP_MIN = 1.4, GAP_MAX = 3.6;   // each animal's own leash length to the player
 const SEPARATION = 0.8;               // followers push apart so they don't bunch up
@@ -53,6 +53,7 @@ export function createFollowers(scene, player) {
       }
       f.group.position.set(f.x, moved > dt * 0.4 ? Math.abs(Math.sin(f.t * 14)) * 0.06 : 0, f.z);
       f.group.rotation.y = f.heading;
+      animateAnimal(f.group, f.t, moved > dt * 0.4 ? 1 : 0);
 
       const p = f.leash.geometry.attributes.position;
       p.setXYZ(0, player.x, 0.9, player.z);
@@ -77,6 +78,7 @@ export function createFollowers(scene, player) {
       f.t += dt;
       f.group.position.set(f.x, Math.abs(Math.sin(f.t * 14)) * 0.06, f.z);
       f.group.rotation.y = f.heading;
+      animateAnimal(f.group, f.t, 1);
       f.leash.visible = false;
       if (Math.hypot(x - f.x, z - f.z) < 0.4) {
         f.aboard = true;

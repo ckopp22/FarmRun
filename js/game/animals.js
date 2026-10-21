@@ -1,4 +1,4 @@
-import { makeAnimal } from '../render/models.js';
+import { makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { PLAYER_LIMIT } from './map.js';
 
@@ -89,6 +89,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
 
       c.group.position.set(c.x, moving ? Math.abs(Math.sin(c.tm * 14)) * 0.06 : 0, c.z);
       c.group.rotation.y = c.heading;
+      animateAnimal(c.group, c.tm, moving ? 1 : 0);
       c.group.visible = pd2 < FOG_CULL * FOG_CULL;
     }
     return picked;
