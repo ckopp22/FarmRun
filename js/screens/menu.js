@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
-import { makeBarn, makeTruck, makeAnimal } from '../render/models.js';
+import { makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { createTrees } from '../render/instancing.js';
 import { renderSlots } from './slots.js';
@@ -105,7 +105,7 @@ export const menuScreen = {
     clock += dt;
     for (const r of roamers) {
       const p = r.group.position;
-      if (r.wait > 0) { r.wait -= dt; p.y = 0; continue; }
+      if (r.wait > 0) { r.wait -= dt; p.y = 0; animateAnimal(r.group, 0, 0); continue; }
       const dx = r.tx - p.x, dz = r.tz - p.z, d = Math.hypot(dx, dz);
       if (d < 0.2) { r.wait = 1 + Math.random() * 3; pickTarget(r); continue; }
       p.x += (dx / d) * r.speed * dt;
@@ -113,6 +113,7 @@ export const menuScreen = {
       collide(p, p);
       r.group.rotation.y = Math.atan2(dx, dz);
       p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.08;
+      animateAnimal(r.group, clock * 0.5 + r.ph, 1);   // slower stride for a walk
     }
     angle += dt * 0.12;
     const z = window.innerHeight > window.innerWidth ? 1.3 : 1;
