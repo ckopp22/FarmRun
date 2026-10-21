@@ -3,6 +3,7 @@ import { createInput } from './systems/input.js';
 import { createScreenManager } from './screens/manager.js';
 import { woodsScreen } from './screens/woods.js';
 import { farmScreen } from './screens/farm.js';
+import { activeSave } from './systems/save.js';
 import { menuScreen } from './screens/menu.js';
 import { audioSettings, toggle, unlockAudio, tapSound } from './systems/audio.js';
 
@@ -29,6 +30,8 @@ function frame(now) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
 
+  const sv = activeSave();
+  if (sv) sv.playTime += dt;
   screens.update(dt);
   screens.render();
 
