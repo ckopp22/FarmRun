@@ -14,7 +14,7 @@ const TRACKS = {
 };
 // Sampled sound effects, decoded on first unlock. Names without a sample fall back to the synth SFX below.
 const SAMPLES = {
-  cash:  { file: 'audio/cash.mp3', vol: 0.7 },
+  cash:  { file: 'audio/cash.mp3', vol: 0.5 },
   door:  { file: 'audio/car-door.mp3', vol: 0.55 },
   deny:  { file: 'audio/deny.mp3', vol: 0.8 },
   drive: { file: 'audio/drive.mp3', vol: 0.55 },
