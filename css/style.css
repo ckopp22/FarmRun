@@ -16,6 +16,15 @@ html, body {
 
 button { touch-action: manipulation; }
 
+/* iOS home-screen app launches with a layout viewport one top-inset short (innerHeight 793 on an 852 screen)
+   and clips to it, leaving a bar at the bottom. In standalone, make the page the real screen height
+   (--full-h, set from fitRenderer) and let it overflow the short viewport. */
+@media (display-mode: standalone) {
+  html, body { height: var(--full-h, 100%); overflow: visible; }
+  #game { position: absolute; top: 0; left: 0; height: var(--full-h, 100%); }
+  #hud, .overlay, #farm-ui, #fade { bottom: auto; height: var(--full-h, 100%); }
+}
+
 #game {
   position: fixed;
   inset: 0;
@@ -24,18 +33,6 @@ button { touch-action: manipulation; }
   height: calc(100lvh + env(safe-area-inset-bottom));
   display: block;
   touch-action: none;
-}
-
-/* Solid strip at the bottom edge: iOS extends the color of fixed edge elements into the unsafe area. */
-#edge-bottom {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 6px;
-  background: #618d3f;
-  pointer-events: none;
-  z-index: 1;
 }
 
 #hud {

@@ -35,7 +35,11 @@ export function fitRenderer(renderer, camera) {
   const portrait = window.innerHeight > window.innerWidth;
   const vv = window.visualViewport ? window.visualViewport.height : 0;
   const scr = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  if (navigator.standalone) canvas.style.height = Math.max(window.innerHeight, vv, scr) + 'px';
+  if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) {
+    const full = Math.max(window.innerHeight, vv, scr);
+    canvas.style.height = full + 'px';
+    document.documentElement.style.setProperty('--full-h', full + 'px');
+  }
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
   renderer.setPixelRatio(pixelRatio());
