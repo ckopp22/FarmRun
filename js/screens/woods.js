@@ -209,7 +209,7 @@ export const woodsScreen = {
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
     const got = animals.update(dt, haul.length >= capacity);
     swipeCd -= dt;
-    if (animals.blocked && swipeCd <= 0) { sfx('swipe'); swipeCd = 0.7; flashFull(); }
+    if (animals.blocked && swipeCd <= 0) { sfx('deny'); swipeCd = 0.7; flashFull(); }
     if (got) { haul.push(got); followers.add(got); paintHud(); sfx('pickup'); particles.burst(player.x, 0.8, player.z, 0xffe066, 8, 3); }
     particles.update(dt);
     followers.update(dt);

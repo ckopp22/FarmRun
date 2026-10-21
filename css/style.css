@@ -60,14 +60,14 @@ button { touch-action: manipulation; }
   border-radius: 14px;
 }
 
-#chickens.full .bag-icon { display: inline-block; animation: bag-wobble 0.5s ease-in-out; }
+#chickens.full { animation: bag-wobble 0.55s ease-in-out; transform-origin: left center; }
 #chickens.full .bag-num { color: #ff4d4d; }
 @keyframes bag-wobble {
-  0%, 100% { transform: rotate(0); }
-  20% { transform: rotate(-22deg); }
-  40% { transform: rotate(18deg); }
-  60% { transform: rotate(-14deg); }
-  80% { transform: rotate(8deg); }
+  0%, 100% { transform: scale(1) rotate(0); }
+  15% { transform: scale(1.35) rotate(-8deg); }
+  35% { transform: scale(1.35) rotate(7deg); }
+  55% { transform: scale(1.3) rotate(-5deg); }
+  75% { transform: scale(1.15) rotate(3deg); }
 }
 
 #fps {

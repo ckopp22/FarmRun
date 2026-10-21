@@ -16,7 +16,7 @@ const TRACKS = {
 const SAMPLES = {
   cash:  { file: 'audio/cash.mp3', vol: 0.7 },
   door:  { file: 'audio/car-door.mp3', vol: 0.55 },
-  swipe: { file: 'audio/swipe.mp3', vol: 0.8 },
+  deny:  { file: 'audio/deny.mp3', vol: 0.8 },
   drive: { file: 'audio/drive.mp3', vol: 0.55 },
   walk:  { file: 'audio/walking.mp3', vol: 0.5 },
 };
