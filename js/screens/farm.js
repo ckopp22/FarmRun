@@ -10,6 +10,7 @@ import { createParticles } from '../render/particles.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 55 * Math.PI / 180, DIST = 24;
+const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.2 : DIST;   // zoom out slightly in portrait
 const PEN = 3.6, PEN_Z0 = 9, PEN_DZ = 4.2, PEN_X = 2.2;
 const PAN_MIN = 6, PAN_MAX = PEN_Z0 + (Math.ceil(ANIMALS.length / 2) - 1) * PEN_DZ - 4;
 
@@ -71,10 +72,11 @@ const cashTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
+const plural = (n) => n === 'Sheep' ? n : /Goose$/.test(n) ? n.replace(/Goose$/, 'Geese') : /y$/.test(n) ? n.slice(0, -1) + 'ies' : n + 's';
 function showPop(e) {
   if (!e) { popEl.style.display = 'none'; return; }
   popEl.innerHTML = e.owned
-    ? `<div class="n">${e.a.name}</div><div class="t">${e.a.tier} · Sells $${e.a.value.toLocaleString()}</div><div class="t">Caught: ${save.owned[e.a.id] || 0}</div>`
+    ? `<div class="n">${plural(e.a.name)} - ${save.owned[e.a.id] || 0}</div><div class="t">${e.a.tier} · $${e.a.value.toLocaleString()}</div>`
     : `<div class="n">???</div><div class="t">Not discovered yet</div>`;
   popEl.style.display = '';
 }
@@ -88,7 +90,7 @@ function onMove(ev) {
   const dy = ev.clientY - drag.y;
   drag.y = ev.clientY;
   drag.moved += Math.abs(dy);
-  const k = (2 * DIST * Math.tan(25 * Math.PI / 180)) / window.innerHeight / Math.sin(PITCH);
+  const k = (2 * dist() * Math.tan(25 * Math.PI / 180)) / window.innerHeight / Math.sin(PITCH);
   panZ = Math.min(PAN_MAX, Math.max(PAN_MIN, panZ - dy * k));
 }
 function onUp(ev) {
@@ -99,10 +101,16 @@ function onUp(ev) {
   ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(entries.flatMap((e) => [e.group, e.cash, e.sign, ...e.extras].filter((g) => g.visible)), true);
-  if (!hits.length) { showPop(null); selected = null; paintSell(); return; }
-  let o = hits[0].object;
-  while (o && !o.userData.animalId) o = o.parent;
-  const e = entries.find((en) => en.a.id === o.userData.animalId);
+  let e;
+  if (hits.length) {
+    let o = hits[0].object;
+    while (o && !o.userData.animalId) o = o.parent;
+    e = entries.find((en) => en.a.id === o.userData.animalId);
+  } else {
+    const pt = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
+    e = pt && entries.find((en) => Math.abs(pt.x - en.x) <= PEN / 2 && Math.abs(pt.z - en.z) <= PEN / 2);
+  }
+  if (!e) { showPop(null); selected = null; paintSell(); return; }
   showPop(e);
   selected = e.owned && held(e) >= SELL_MIN ? e : null;
   paintSell();
@@ -178,7 +186,7 @@ const sellBtn = document.getElementById('sell-btn');
 function paintSell() {
   if (entries) for (const e of entries) e.cash.visible = held(e) >= SELL_MIN;
   sellBtn.style.display = selected ? '' : 'none';
-  if (selected) sellBtn.textContent = `SELL ${held(selected)} ${selected.a.name} $${(held(selected) * selected.a.value).toLocaleString()}`;
+  if (selected) sellBtn.textContent = `SELL ${held(selected)} ${plural(selected.a.name)} $${(held(selected) * selected.a.value).toLocaleString()}`;
 }
 sellBtn.addEventListener('click', () => {
   if (!selected || held(selected) < SELL_MIN) return;
@@ -199,6 +207,7 @@ export const farmScreen = {
     canvas = ctx.renderer.domElement;
     save = activeSave() || { money: 0, owned: {}, discovered: {} };
     scene = createScene();
+    scene.fog = null;
 
     const barn = makeBarn();
     barn.position.set(0, 0, -1);
@@ -317,7 +326,7 @@ export const farmScreen = {
     confetti.update(dt, time, 0, panZ);
     particles.update(dt);
     const sway = Math.sin(time * 0.4) * 0.4;
-    camera.position.set(sway, Math.sin(PITCH) * DIST, panZ + Math.cos(PITCH) * DIST);
+    camera.position.set(sway, Math.sin(PITCH) * dist(), panZ + Math.cos(PITCH) * dist());
     camera.lookAt(sway * 0.5, 0, panZ);
   },
 

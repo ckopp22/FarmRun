@@ -181,7 +181,9 @@ button { touch-action: manipulation; }
   height: 40px;
   border: 0;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #e53935;
   background: rgba(0, 0, 0, 0.35);
 }
 
@@ -235,8 +237,10 @@ button { touch-action: manipulation; }
 
 #sell-btn {
   position: absolute;
-  right: calc(env(safe-area-inset-right) + 14px);
-  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  left: 50%;
+  top: calc(env(safe-area-inset-top) + 150px);
+  transform: translateX(-50%);
+  white-space: nowrap;
   padding: 12px 18px;
   border: 0;
   border-radius: 24px;

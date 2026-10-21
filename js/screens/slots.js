@@ -12,7 +12,7 @@ function card(n, data, onPick, onDelete) {
     el.innerHTML = `<div class="slot-title">Slot ${n}</div>
       <div class="slot-info">$${data.money.toLocaleString()} · ${found}/${ANIMAL_TOTAL} animals</div>
       <div class="slot-date">${new Date(data.lastPlayed).toLocaleDateString()}</div>
-      <button class="slot-del" aria-label="Delete slot ${n}">🗑</button>`;
+      <button class="slot-del" aria-label="Delete slot ${n}">✕</button>`;
     el.querySelector('.slot-del').addEventListener('click', (e) => {
       e.stopPropagation();
       if (confirm(`Delete Slot ${n}? This cannot be undone.`)) onDelete();
