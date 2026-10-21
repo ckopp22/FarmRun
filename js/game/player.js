@@ -19,7 +19,7 @@ export function updatePlayer(p, input, grid, dt, yaw) {
     const s = Math.sin(yaw), c = Math.cos(yaw);
     const wx = input.x * c + input.y * s;
     const wz = -input.x * s + input.y * c;
-    const step = SPEED * mag * dt / Math.hypot(wx, wz);
+    const step = SPEED * (p.speedMult || 1) * mag * dt / Math.hypot(wx, wz);
     p.x += wx * step;
     p.z += wz * step;
 

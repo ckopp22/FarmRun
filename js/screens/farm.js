@@ -3,6 +3,7 @@ import { createScene } from '../render/renderer.js';
 import { makeBarn, makeFarmer, makeTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees } from '../render/instancing.js';
 import { ANIMALS, UPGRADES } from '../data/animals.js';
+import { level, nextCost, buy } from '../systems/economy.js';
 import { activeSave } from '../systems/save.js';
 import { tapSound } from '../systems/audio.js';
 
@@ -14,11 +15,28 @@ const ui = document.getElementById('farm-ui');
 const moneyEl = document.getElementById('money');
 const popEl = document.getElementById('animal-pop');
 const shopEl = document.getElementById('shop-panel');
-document.getElementById('shop-list').innerHTML =
-  UPGRADES.map((u) => `<div class="shop-row"><span>${u}</span><span>Soon</span></div>`).join('');
+const shopList = document.getElementById('shop-list');
+
+function renderShop() {
+  shopList.innerHTML = UPGRADES.map((u) => {
+    const lv = level(save, u.id), cost = nextCost(save, u.id);
+    const action = cost === undefined ? '<span>MAX</span>'
+      : `<button data-id="${u.id}" ${save.money < cost ? 'disabled' : ''}>$${cost.toLocaleString()}</button>`;
+    return `<div class="shop-row"><div><div class="sn">${u.name}</div><div class="sd">${u.desc} · Lv ${lv}/${u.costs.length}</div></div>${action}</div>`;
+  }).join('');
+}
+
+shopList.addEventListener('click', (ev) => {
+  const id = ev.target.dataset && ev.target.dataset.id;
+  if (id && buy(save, id)) {
+    tapSound();
+    moneyEl.textContent = '$' + save.money.toLocaleString();
+    renderShop();
+  }
+});
 
 let camera, canvas, scene, ctxRef, save;
-let panZ, time, entries;   // entries: { a, group, x, z, owned, ph }
+let panZ, time, entries;   // entries: { a, group, x, z, owned, ph, reveal } (reveal = seconds until the color unlock, -1 = none)
 const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 let drag = null;
@@ -26,7 +44,7 @@ let drag = null;
 function showPop(e) {
   if (!e) { popEl.style.display = 'none'; return; }
   popEl.innerHTML = e.owned
-    ? `<div class="n">${e.a.name}</div><div class="t">${e.a.tier} · Sells $${e.a.value.toLocaleString()}</div><div class="t">Owned: ${save.owned[e.a.id] || 0}</div>`
+    ? `<div class="n">${e.a.name}</div><div class="t">${e.a.tier} · Sells $${e.a.value.toLocaleString()}</div><div class="t">Caught: ${save.owned[e.a.id] || 0}</div>`
     : `<div class="n">???</div><div class="t">Not discovered yet</div>`;
   popEl.style.display = '';
 }
@@ -59,7 +77,7 @@ function onUp(ev) {
 }
 
 const closeShop = () => { shopEl.style.display = 'none'; };
-const onShop = () => { tapSound(); shopEl.style.display = ''; };
+const onShop = () => { tapSound(); renderShop(); shopEl.style.display = ''; };
 const onRun = () => { tapSound(); ctxRef.go('woods'); };
 document.getElementById('shop-btn').addEventListener('click', onShop);
 document.getElementById('shop-close').addEventListener('click', () => { tapSound(); closeShop(); });
@@ -90,16 +108,24 @@ export const farmScreen = {
     const pens = ANIMALS.map((_, i) => ({ x: (i % 2 ? 1 : -1) * PEN_X, z: PEN_Z0 + Math.floor(i / 2) * PEN_DZ }));
     makeFence(scene, pens, PEN);
 
+    const newly = ctx.newlyFound || [];
+    ctx.newlyFound = [];
+    const newOrder = ANIMALS.map((a) => a.id).filter((id) => newly.includes(id));
     entries = ANIMALS.map((a, i) => {
-      const owned = !!(save.discovered && save.discovered[a.id]);
+      const isNew = newly.includes(a.id);
+      const owned = !!(save.discovered && save.discovered[a.id]) && !isNew;
       const group = makeAnimal(a);
       if (!owned) silhouette(group);
       scene.add(group);
-      return { a, group, x: pens[i].x, z: pens[i].z, owned, ph: i * 1.7 };
+      return { a, group, x: pens[i].x, z: pens[i].z, owned, ph: i * 1.7, reveal: isNew ? 0.8 + newOrder.indexOf(a.id) * 1.2 : -1 };
     });
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 150);
     panZ = PAN_MIN;
+    if (newOrder.length) {
+      const e = entries.find((x) => x.a.id === newOrder[0]);
+      panZ = Math.min(PAN_MAX, Math.max(PAN_MIN, e.z - 4));
+    }
     time = 0;
     moneyEl.textContent = '$' + save.money.toLocaleString();
     showPop(null);
@@ -115,6 +141,25 @@ export const farmScreen = {
   update(dt) {
     time += dt;
     for (const e of entries) {
+      if (e.reveal >= 0) {
+        e.reveal -= dt;
+        if (e.reveal < 0) {
+          scene.remove(e.group);
+          e.group = makeAnimal(e.a);
+          e.group.scale.setScalar(0.1);
+          e.popT = 0;
+          scene.add(e.group);
+          e.owned = true;
+          popEl.innerHTML = `<div class="n">NEW! ${e.a.name}</div><div class="t">${e.a.tier}</div>`;
+          popEl.style.display = '';
+        }
+      }
+      if (e.popT !== undefined) {
+        e.popT += dt;
+        const t = Math.min(1, e.popT / 0.5);
+        e.group.scale.setScalar(t < 1 ? 0.1 + 0.9 * t + Math.sin(t * Math.PI) * 0.3 : 1);
+        if (t >= 1) e.popT = undefined;
+      }
       if (!e.owned) { e.group.position.set(e.x, 0, e.z); continue; }
       const t = time * 0.6 + e.ph;
       e.group.position.set(e.x + Math.sin(t) * 0.7, Math.abs(Math.sin(time * 5 + e.ph)) * 0.05, e.z + Math.cos(t * 0.8) * 0.7);

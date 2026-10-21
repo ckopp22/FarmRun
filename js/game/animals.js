@@ -13,23 +13,28 @@ const TIERS = {
   Legendary: { weight: 0.5, min: 40, max: 45, speed: 2.4, flee: 4.8 },
 };
 const FLEE_RANGE = 6;
-const TOTAL_WEIGHT = ANIMALS.reduce((s, a) => s + TIERS[a.tier].weight, 0);
+const TIER_ORDER = Object.keys(TIERS);
 
-function pickAnimal() {
-  let r = Math.random() * TOTAL_WEIGHT;
-  for (const a of ANIMALS) {
+function pickAnimal(pool, total) {
+  let r = Math.random() * total;
+  for (const a of pool) {
     r -= TIERS[a.tier].weight;
     if (r <= 0) return a;
   }
-  return ANIMALS[0];
+  return pool[0];
 }
 
 const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 
-export function createAnimals(scene, grid, count, player) {
+// opts: { tierCount: how many tiers can spawn, lure: multiplier on flee range/speed }
+export function createAnimals(scene, grid, count, player, opts) {
   const list = [];
+  const allowed = TIER_ORDER.slice(0, opts.tierCount);
+  const pool = ANIMALS.filter((a) => allowed.includes(a.tier));
+  const total = pool.reduce((s, a) => s + TIERS[a.tier].weight, 0);
+  const fleeRange = FLEE_RANGE * opts.lure;
   for (let i = 0; i < count; i++) {
-    const a = pickAnimal();
+    const a = pickAnimal(pool, total);
     const t = TIERS[a.tier];
     const group = makeAnimal(a);
     scene.add(group);
@@ -51,10 +56,10 @@ export function createAnimals(scene, grid, count, player) {
       const px = player.x - c.x, pz = player.z - c.z;
       const pd2 = px * px + pz * pz;
 
-      if (c.t.flee && pd2 < FLEE_RANGE * FLEE_RANGE) {
+      if (c.t.flee && pd2 < fleeRange * fleeRange) {
         const d = Math.sqrt(pd2) || 0.001;
-        c.x = clampLimit(c.x - px / d * c.t.flee * dt);
-        c.z = clampLimit(c.z - pz / d * c.t.flee * dt);
+        c.x = clampLimit(c.x - px / d * c.t.flee * opts.lure * dt);
+        c.z = clampLimit(c.z - pz / d * c.t.flee * opts.lure * dt);
         c.heading = Math.atan2(-px, -pz);
         c.tx = c.x; c.tz = c.z; c.wait = 0.4;
         moving = true;

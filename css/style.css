@@ -286,10 +286,20 @@ button { touch-action: manipulation; }
   padding: 14px 16px;
   margin-bottom: 8px;
   border-radius: 12px;
+  align-items: center;
   background: rgba(255, 255, 255, 0.12);
-  opacity: 0.7;
 }
 
 #busted { justify-content: center; gap: 18px; background: rgba(120, 20, 10, 0.55); z-index: 30; }
 #busted .big-btn { margin-bottom: 0; }
 .msg { margin: 0; font-size: 18px; text-align: center; }
+
+#result { justify-content: center; gap: 18px; background: rgba(20, 60, 20, 0.7); z-index: 30; }
+#result .big-btn { margin-bottom: 0; }
+#result-list { width: min(360px, 100%); max-height: 45vh; overflow-y: auto; overscroll-behavior: contain; }
+.res-row { display: flex; justify-content: space-between; padding: 8px 4px; font-size: 18px; font-weight: 700; }
+.res-row.total { border-top: 2px solid rgba(255, 255, 255, 0.5); font-size: 22px; }
+.sn { font-size: 17px; font-weight: 800; }
+.sd { font-size: 13px; font-weight: 600; opacity: 0.85; margin-top: 2px; }
+.shop-row button { padding: 8px 14px; border: 0; border-radius: 16px; font-size: 16px; font-weight: 800; color: #fff; background: #e67e22; }
+.shop-row button:disabled { background: #555; opacity: 0.6; }

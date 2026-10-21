@@ -23,7 +23,11 @@ export const ANIMALS = [
     x: [[0.08, 0.45, 0.08, 0xffd700, 0, 2.0, 0.85], [0.1, 0.45, 0.15, 0xff7ac8, 0, 1.6, 0.5]] },
 ];
 
+// costs[i] = price of level i+1. Effects live in systems/economy.js.
 export const UPGRADES = [
-  'Bigger Bag', 'Running Shoes', 'Better Truck', 'Animal Lure',
-  'Scout Binoculars', 'Barn Expansion', 'New Woods Zones',
+  { id: 'bag', name: 'Bigger Bag', desc: '+1 carry capacity', costs: [50, 250, 1500, 10000, 60000] },
+  { id: 'shoes', name: 'Running Shoes', desc: '+10% move speed', costs: [100, 600, 4000] },
+  { id: 'lure', name: 'Animal Lure', desc: 'Animals flee less', costs: [150, 900, 6000] },
+  { id: 'binoculars', name: 'Scout Binoculars', desc: 'Wider camera view', costs: [200, 2000, 15000] },
+  { id: 'zones', name: 'New Woods Zones', desc: 'Rarer animals appear', costs: [500, 5000, 50000] },
 ];
