@@ -37,6 +37,7 @@ const PAGES = {
 
 function render() {
   bodyEl.innerHTML = '';
+  bodyEl.classList.toggle('fit', page === 'how');
   if (page) {
     titleEl.textContent = PAGES[page].title;
     bodyEl.innerHTML = PAGES[page].html;
