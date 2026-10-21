@@ -252,14 +252,13 @@ button { touch-action: manipulation; }
 
 #run-btn {
   position: absolute;
-  left: 50%;
+  right: calc(env(safe-area-inset-right) + 14px);
   bottom: calc(env(safe-area-inset-bottom) + 16px);
   width: 170px;
   margin: 0;
-  transform: translateX(-50%);
 }
 
-#run-btn:active { transform: translateX(-50%) translateY(3px); }
+#run-btn:active { transform: translateY(3px); }
 
 #animal-pop {
   position: absolute;
