@@ -1,4 +1,4 @@
-import { makeFarmer } from '../render/models.js';
+import { makeFarmer, animateFarmer } from '../render/models.js';
 import { PLAYER_LIMIT } from './map.js';
 
 const SPEED = 6;
@@ -9,7 +9,7 @@ export function createPlayer(scene, x, z) {
   const group = makeFarmer();
   group.position.set(x, 0, z);
   scene.add(group);
-  return { group, x, z, heading: Math.PI, radius: RADIUS };
+  return { group, x, z, heading: Math.PI, radius: RADIUS, run: 0, runT: 0 };
 }
 
 // input: { x, y } in screen space (y down). Movement is relative to the camera yaw.
@@ -28,6 +28,9 @@ export function updatePlayer(p, input, grid, dt, yaw) {
     d = ((d + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
     p.heading += d * (1 - Math.exp(-TURN * dt));
   }
+  p.run += (mag - p.run) * Math.min(1, 12 * dt);
+  p.runT += dt * (0.5 + p.run);
+  animateFarmer(p.group, p.runT, p.run);
   grid.resolve(p, p.radius);
   p.x = Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, p.x));
   p.z = Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, p.z));

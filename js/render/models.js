@@ -29,16 +29,32 @@ export function makeBlobShadow(radius) {
 // Models face +z.
 export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a) {
   const g = new THREE.Group();
-  box(g, 0.3, 0.7, 0.3, 0x2f4f8f, -0.18, 0.35, 0);   // legs
-  box(g, 0.3, 0.7, 0.3, 0x2f4f8f, 0.18, 0.35, 0);
+  // Limbs hang from pivot groups at hip/shoulder so animateFarmer can swing them.
+  const limb = (w, h, d, color, x, y) => {
+    const p = new THREE.Group();
+    p.position.set(x, y, 0);
+    box(p, w, h, d, color, 0, -h / 2, 0);
+    g.add(p);
+    return p;
+  };
+  g.userData.limbs = [
+    limb(0.3, 0.7, 0.3, 0x2f4f8f, -0.18, 0.7), limb(0.3, 0.7, 0.3, 0x2f4f8f, 0.18, 0.7),   // legs
+    limb(0.2, 0.7, 0.25, shirt, -0.5, 1.45), limb(0.2, 0.7, 0.25, shirt, 0.5, 1.45),       // arms
+  ];
   box(g, 0.8, 0.8, 0.45, shirt, 0, 1.1, 0);       // body
-  box(g, 0.2, 0.7, 0.25, shirt, -0.5, 1.1, 0);    // arms
-  box(g, 0.2, 0.7, 0.25, shirt, 0.5, 1.1, 0);
   box(g, 0.5, 0.5, 0.5, 0xf1c9a0, 0, 1.75, 0);       // head
   box(g, 1.0, 0.07, 1.0, hat, 0, 2.02, 0);      // hat brim
   box(g, 0.55, 0.28, 0.55, hat, 0, 2.17, 0);    // hat crown
   g.add(makeBlobShadow(0.7));
   return g;
+}
+
+// Run cycle: opposite legs/arms swing, body bobs. amount 0..1 eases back to idle.
+export function animateFarmer(g, time, amount) {
+  const [lL, lR, aL, aR] = g.userData.limbs;
+  const s = Math.sin(time * 12) * 0.9 * amount;
+  lL.rotation.x = s; lR.rotation.x = -s;
+  aL.rotation.x = -s * 0.9; aR.rotation.x = s * 0.9;
 }
 
 export function makeChicken() {

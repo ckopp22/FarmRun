@@ -1,7 +1,7 @@
 import { createTrees } from '../render/instancing.js';
 
-export const WORLD_HALF = 50;    // trees are scattered within +/- this
-export const PLAYER_LIMIT = 46;  // farmer/chickens stay inside +/- this
+export const WORLD_HALF = 100;    // trees are scattered within +/- this
+export const PLAYER_LIMIT = 92;  // farmer/chickens stay inside +/- this
 const TRUNK_RADIUS = 0.35;
 
 // Scatter trees, keeping a clearing around (0, 0) where the truck and farmer spawn.

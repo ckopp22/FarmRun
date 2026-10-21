@@ -5,9 +5,6 @@ const DIST = 15;
 const YAW = 0;               // fixed: always looks north (-z)
 const FOLLOW = 6;            // higher = snappier
 
-let zoom = 1;
-export const setCameraZoom = (z) => { zoom = z; };
-
 const focus = new THREE.Vector3();
 
 export const CAMERA_YAW = YAW;
@@ -17,7 +14,7 @@ export function createChaseCamera(aspect) {
 }
 
 function place(camera) {
-  const dist = DIST * zoom;
+  const dist = DIST;
   const h = Math.cos(PITCH) * dist;
   camera.position.set(focus.x + Math.sin(YAW) * h, focus.y + Math.sin(PITCH) * dist, focus.z + Math.cos(YAW) * h);
   camera.lookAt(focus.x, focus.y, focus.z);

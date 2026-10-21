@@ -1,6 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
-import { createChaseCamera, updateChaseCamera, snapCamera, setCameraZoom, CAMERA_YAW } from '../render/camera.js';
+import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
+import { animateFarmer } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
 import { buildForest } from '../game/map.js';
@@ -12,10 +13,10 @@ import { createParticles } from '../render/particles.js';
 import { sfx, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
-import { capacity as capacityOf, speedMult, lureMult, zoomMult, tierCount } from '../systems/economy.js';
+import { capacity as capacityOf, speedMult } from '../systems/economy.js';
 
-const ANIMAL_COUNT = 14;
-const RIVAL_COUNT = 6;
+const ANIMAL_COUNT = 28;
+const RIVAL_COUNT = 10;
 const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
@@ -52,7 +53,11 @@ function bankHaul() {
 
 // Truck pulls out toward the camera (screen down), leaving tire marks, then we go to the farm.
 function startLeave() {
-  leave = { t: 0, v: 0, z0: truck.position.z };
+  leave = { t: 0, v: 0, z0: truck.position.z, boarding: true };
+}
+
+function startDriving() {
+  leave.boarding = false;
   const mat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
   [trackL, trackR] = [-0.95, 0.95].map((dx) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 1), mat);
@@ -63,13 +68,39 @@ function startLeave() {
   });
 }
 
+// Farmer and animals climb into the bed (back of the truck, -z side).
+function board(dt) {
+  const bx = truck.position.x, bz = truck.position.z - 1.2;
+  const dx = bx - player.x, dz = bz - player.z;
+  const d = Math.hypot(dx, dz);
+  if (player.group.visible) {
+    if (d < 0.3) player.group.visible = false;
+    else {
+      const step = Math.min(d, 6 * dt);
+      player.x += dx / d * step;
+      player.z += dz / d * step;
+      player.heading = Math.atan2(dx, dz);
+      player.group.position.set(player.x, 0, player.z);
+      player.group.rotation.y = player.heading;
+      player.runT += dt * 1.5;
+      animateFarmer(player.group, player.runT, 1);
+    }
+  }
+  const allIn = followers.board(bx, bz, dt);
+  particles.update(dt);
+  updateChaseCamera(camera, truck.position.x, truck.position.z, dt);
+  if (!player.group.visible && allIn) startDriving();
+}
+
 function driveAway(dt) {
+  if (leave.boarding) { board(dt); return; }
   leave.t += dt;
   leave.v += 14 * dt;
   truck.position.z += leave.v * dt;
   const len = Math.max(0.01, truck.position.z - 1.4 - leave.z0);
   for (const m of [trackL, trackR]) { m.scale.y = len; m.position.z = leave.z0 + len / 2; }
-  if (leave.t > 2.2) ctxRef.go('farm');
+  updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
+  if (leave.t > 2.8) ctxRef.go('farm');
 }
 
 export const woodsScreen = {
@@ -79,7 +110,6 @@ export const woodsScreen = {
     const save = activeSave();
     const fx = save || { upgrades: {} };
     capacity = capacityOf(fx);
-    setCameraZoom(zoomMult(fx));
     haul = [];
     armed = false;
     scene = createScene();
@@ -87,10 +117,10 @@ export const woodsScreen = {
     grid = createGrid();
     truck = createTruck(scene, grid, 0, 0);
     leave = null;
-    buildForest(scene, grid, quality().trees, 10);
+    buildForest(scene, grid, quality().trees * 3, 10);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
-    animals = createAnimals(scene, grid, ANIMAL_COUNT, player, { tierCount: tierCount(fx), lure: lureMult(fx) });
+    animals = createAnimals(scene, grid, ANIMAL_COUNT, player);
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);

@@ -27,7 +27,4 @@ export const ANIMALS = [
 export const UPGRADES = [
   { id: 'bag', name: 'Bigger Bag', desc: '+1 carry capacity', costs: [50, 250, 1500, 10000, 60000] },
   { id: 'shoes', name: 'Running Shoes', desc: '+10% move speed', costs: [100, 600, 4000] },
-  { id: 'lure', name: 'Animal Lure', desc: 'Animals flee less', costs: [150, 900, 6000] },
-  { id: 'binoculars', name: 'Scout Binoculars', desc: 'Wider camera view', costs: [200, 2000, 15000] },
-  { id: 'zones', name: 'New Woods Zones', desc: 'Rarer animals appear', costs: [500, 5000, 50000] },
 ];

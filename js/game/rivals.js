@@ -1,5 +1,5 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { makeFarmer } from '../render/models.js';
+import { makeFarmer, animateFarmer } from '../render/models.js';
 import { mat } from '../render/materials.js';
 import { PLAYER_LIMIT } from './map.js';
 
@@ -38,7 +38,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
     const ang = Math.random() * 6.28;
     const dist = MIN_FROM_TRUCK + Math.sqrt(Math.random()) * (PLAYER_LIMIT - MIN_FROM_TRUCK - 2);
     const r = { group, mark, state: 'wander', x: Math.cos(ang) * dist, z: Math.sin(ang) * dist,
-      heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, alert: 0, lost: 0,
+      heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, alert: 0, lost: 0, run: 0, runT: 0,
       chaseSpeed: 4 + dist / PLAYER_LIMIT * 1.2, radius: RADIUS };
     grid.resolve(r, RADIUS);
     r.tx = r.x; r.tz = r.z;
@@ -100,8 +100,12 @@ export function createRivals(scene, grid, count, player, onAlert) {
         if (grid.resolve(r, RADIUS) && r.state === 'wander') r.wait = 0.3;
         r.x = clampLimit(r.x); r.z = clampLimit(r.z);
       }
-      r.group.position.set(r.x, speed ? Math.abs(Math.sin(performance.now() * 0.012)) * 0.05 : 0, r.z);
+      r.run += (Math.min(1, speed / 6) - r.run) * Math.min(1, 12 * dt);
+      r.runT += dt * (0.5 + r.run);
+      animateFarmer(r.group, r.runT, r.run);
+      r.group.position.set(r.x, r.run * Math.abs(Math.sin(r.runT * 12)) * 0.08, r.z);
       r.group.rotation.y = r.heading;
+      r.group.visible = Math.hypot(r.x - player.x, r.z - player.z) < 66;
     }
     return caught;
   }

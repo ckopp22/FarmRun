@@ -6,14 +6,14 @@ const RADIUS = 0.35;
 const PICKUP = 0.45 + 0.5;   // farmer radius + animal reach
 // Rarer tiers spawn farther from the truck; Rare and up flee the player.
 const TIERS = {
-  Common:    { weight: 5,   min: 8,  max: 25, speed: 1.7, flee: 0 },
-  Uncommon:  { weight: 3,   min: 18, max: 35, speed: 1.8, flee: 0 },
-  Rare:      { weight: 2,   min: 28, max: 42, speed: 2.0, flee: 3.5 },
-  Epic:      { weight: 1,   min: 35, max: 44, speed: 2.2, flee: 4.2 },
-  Legendary: { weight: 0.5, min: 40, max: 45, speed: 2.4, flee: 4.8 },
+  Common:    { weight: 5,   min: 8,  max: 50, speed: 1.7, flee: 0 },
+  Uncommon:  { weight: 3,   min: 36, max: 70, speed: 1.8, flee: 0 },
+  Rare:      { weight: 2,   min: 56, max: 84, speed: 2.0, flee: 3.5 },
+  Epic:      { weight: 1,   min: 72, max: 92, speed: 2.2, flee: 4.2 },
+  Legendary: { weight: 0.5, min: 80, max: 92, speed: 2.4, flee: 4.8 },
 };
 const FLEE_RANGE = 6;
-const TIER_ORDER = Object.keys(TIERS);
+const FOG_CULL = 66;   // past the fog's far plane (62) they are invisible, so skip drawing them
 
 function pickAnimal(pool, total) {
   let r = Math.random() * total;
@@ -26,13 +26,11 @@ function pickAnimal(pool, total) {
 
 const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 
-// opts: { tierCount: how many tiers can spawn, lure: multiplier on flee range/speed }
-export function createAnimals(scene, grid, count, player, opts) {
+export function createAnimals(scene, grid, count, player) {
   const list = [];
-  const allowed = TIER_ORDER.slice(0, opts.tierCount);
-  const pool = ANIMALS.filter((a) => allowed.includes(a.tier));
+  const pool = ANIMALS;
   const total = pool.reduce((s, a) => s + TIERS[a.tier].weight, 0);
-  const fleeRange = FLEE_RANGE * opts.lure;
+  const fleeRange = FLEE_RANGE;
   for (let i = 0; i < count; i++) {
     const a = pickAnimal(pool, total);
     const t = TIERS[a.tier];
@@ -58,8 +56,8 @@ export function createAnimals(scene, grid, count, player, opts) {
 
       if (c.t.flee && pd2 < fleeRange * fleeRange) {
         const d = Math.sqrt(pd2) || 0.001;
-        c.x = clampLimit(c.x - px / d * c.t.flee * opts.lure * dt);
-        c.z = clampLimit(c.z - pz / d * c.t.flee * opts.lure * dt);
+        c.x = clampLimit(c.x - px / d * c.t.flee * dt);
+        c.z = clampLimit(c.z - pz / d * c.t.flee * dt);
         c.heading = Math.atan2(-px, -pz);
         c.tx = c.x; c.tz = c.z; c.wait = 0.4;
         moving = true;
@@ -92,6 +90,7 @@ export function createAnimals(scene, grid, count, player, opts) {
 
       c.group.position.set(c.x, moving ? Math.abs(Math.sin(c.tm * 14)) * 0.06 : 0, c.z);
       c.group.rotation.y = c.heading;
+      c.group.visible = pd2 < FOG_CULL * FOG_CULL;
     }
     return picked;
   }

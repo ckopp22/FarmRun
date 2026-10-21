@@ -9,6 +9,7 @@ const LEASH_COLOR = 0x6b4a2b;
 // Picked-up animals trail behind the player in a chain, each tied to the one ahead.
 export function createFollowers(scene, player) {
   const list = [];
+  let boardT = 0;
 
   function add(animal) {
     const group = makeAnimal(animal);
@@ -51,5 +52,27 @@ export function createFollowers(scene, player) {
     }
   }
 
-  return { add, update };
+  // Each animal walks to (x, z) in turn and disappears there. Returns true once all are aboard.
+  function board(x, z, dt) {
+    const k = 1 - Math.exp(-FOLLOW * dt);
+    boardT += dt;
+    let done = true;
+    list.forEach((f, i) => {
+      if (!f.group.visible) return;
+      done = false;
+      if (boardT < i * 0.2) return;
+      const px = f.x, pz = f.z;
+      f.x += (x - f.x) * k * 0.8;
+      f.z += (z - f.z) * k * 0.8;
+      f.heading = Math.atan2(f.x - px, f.z - pz);
+      f.t += dt;
+      f.group.position.set(f.x, Math.abs(Math.sin(f.t * 14)) * 0.06, f.z);
+      f.group.rotation.y = f.heading;
+      f.leash.visible = false;
+      if (Math.hypot(x - f.x, z - f.z) < 0.4) f.group.visible = false;
+    });
+    return done;
+  }
+
+  return { add, update, board };
 }
