@@ -69,11 +69,12 @@ document.addEventListener('visibilitychange', () => {
   else if (!running && pauseEl.style.display === 'none') start();
 });
 
-for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music']]) {
+for (const [id, kind] of [['sound-btn', 'sound'], ['music-btn', 'music'], ['fps-btn', 'fps']]) {
   const btn = document.getElementById(id);
   const paint = () => {
     const on = audioSettings()[kind];
     btn.classList.toggle('off', !on);
+    if (kind === 'fps') fpsEl.style.display = on ? '' : 'none';
     if (kind === 'sound') btn.textContent = on ? '🔊 Sound' : '🔇 Sound';
   };
   btn.addEventListener('click', () => { unlockAudio(); toggle(kind); paint(); tapSound(); });
