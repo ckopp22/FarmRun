@@ -49,6 +49,6 @@ export const PEN_COSTS = [250, 450, 700, 1000, 1700, 2500, 3200, 4500, 6500, 900
 
 // costs[i] = price of level i+1. Effects live in systems/economy.js.
 export const UPGRADES = [
-  { id: 'bag', name: 'Bigger Bag', desc: '+1 carry capacity', costs: [50, 250, 1500, 10000, 60000] },
+  { id: 'bag', name: 'Bigger Bag', desc: '+1 carry capacity', costs: [50, 250, 1500, 10000, 60000, 150000, 400000, 1000000, 2500000] },
   { id: 'shoes', name: 'Running Shoes', desc: '+10% move speed', costs: [100, 600, 4000] },
 ];
