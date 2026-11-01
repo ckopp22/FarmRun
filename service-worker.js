@@ -1,5 +1,5 @@
 // Bump CACHE on each release so clients pick up new files.
-const CACHE = 'farmrun3d-v61';
+const CACHE = 'farmrun3d-v62';
 const SHELL = [
   './',
   'index.html',
@@ -15,6 +15,7 @@ const SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
+  'icons/kopp-studios-logo.png',
   'css/style.css',
   'lib/three.module.min.js',
   'js/main.js',
