@@ -87,16 +87,10 @@ initHelp();
 const dropEl = document.getElementById('menu-drop');
 const pauseBtn = document.getElementById('pause-btn');
 const pauseEl = document.getElementById('pause');
-const shopItem = document.getElementById('shop-menu-btn');
 document.getElementById('menu-btn').addEventListener('click', () => {
   tapSound();
   const open = dropEl.style.display === 'none';
-  shopItem.style.display = document.getElementById('farm-ui').style.display === 'none' ? 'none' : '';
   dropEl.style.display = open ? '' : 'none';
-});
-shopItem.addEventListener('click', () => {
-  dropEl.style.display = 'none';
-  document.getElementById('shop-btn').click();
 });
 const setPaused = (p) => {
   pauseEl.style.display = p ? '' : 'none';

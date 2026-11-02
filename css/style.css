@@ -136,7 +136,7 @@ button { touch-action: manipulation; }
 #sound.can-buy #menu-btn { position: relative; animation: shop-glow 1.2s ease-in-out infinite; }
 #sound.can-buy #menu-btn::before { content: '$'; color: #2e9e4f; font-weight: 900; text-shadow: 0 0 3px #fff, 0 0 3px #fff; position: absolute; left: 30px; top: -8px; font-size: 22px; animation: shop-bob 1s ease-in-out infinite; }
 #sound.can-buy #menu-btn::after { content: '✨'; position: absolute; left: -10px; top: -10px; font-size: 16px; animation: shop-twinkle 1.2s ease-in-out infinite; }
-#sound.can-buy #shop-menu-btn { animation: shop-glow 1.2s ease-in-out infinite; }
+#sound.can-buy ~ #farm-ui #shop-btn { animation: shop-glow 1.2s ease-in-out infinite; }
 @keyframes shop-glow { 0%, 100% { box-shadow: 0 0 4px 1px rgba(255, 220, 80, 0.5); } 50% { box-shadow: 0 0 14px 5px rgba(255, 220, 80, 0.95); } }
 @keyframes shop-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes shop-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(20deg); } }
@@ -301,10 +301,9 @@ button { touch-action: manipulation; }
 }
 
 #shop-btn {
-  display: none;
   position: absolute;
   left: calc(env(safe-area-inset-left) + 14px);
-  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  bottom: calc(env(safe-area-inset-bottom) + 34px);
   padding: 12px 18px;
   border: 0;
   border-radius: 24px;
