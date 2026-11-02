@@ -2,7 +2,7 @@ import { tapSound } from '../systems/audio.js';
 
 const CONTACT_EMAIL = 'koppstudioapps@outlook.com';
 const LEGAL_URL = 'https://farm-run-fun.netlify.app';
-const SHARE_URL = 'https://ckopp22.github.io/FarmRun/';
+const SHARE_URL = 'https://apps.apple.com/app/id6829609989';
 
 const helpEl = document.getElementById('help');
 const titleEl = document.getElementById('help-title');
