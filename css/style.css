@@ -132,7 +132,7 @@ button { touch-action: manipulation; }
 }
 .help-toast { position: absolute; bottom: 90px; padding: 8px 16px; border-radius: 16px; background: rgba(0, 0, 0, 0.7); font-weight: 700; }
 
-#menu-btn { width: 40px; height: 40px; border-radius: 50%; }
+#menu-btn { width: 54px; height: 54px; border-radius: 50%; font-size: 28px; }
 #sound.can-buy #menu-btn { position: relative; animation: shop-glow 1.2s ease-in-out infinite; }
 #sound.can-buy #menu-btn::before { content: '$'; color: #2e9e4f; font-weight: 900; text-shadow: 0 0 3px #fff, 0 0 3px #fff; position: absolute; left: 30px; top: -8px; font-size: 22px; animation: shop-bob 1s ease-in-out infinite; }
 #sound.can-buy #menu-btn::after { content: '✨'; position: absolute; left: -10px; top: -10px; font-size: 16px; animation: shop-twinkle 1.2s ease-in-out infinite; }
@@ -154,11 +154,11 @@ button { touch-action: manipulation; }
   position: fixed;
   right: calc(env(safe-area-inset-right) + 12px);
   top: calc(env(safe-area-inset-top) + 10px);
-  width: 40px;
-  height: 40px;
+  width: 54px;
+  height: 54px;
   border: 0;
   border-radius: 50%;
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 800;
   color: #fff;
   background: rgba(0, 0, 0, 0.3);
@@ -290,13 +290,13 @@ button { touch-action: manipulation; }
 
 #money {
   position: absolute;
-  left: calc(env(safe-area-inset-left) + 62px);
+  left: calc(env(safe-area-inset-left) + 76px);
   top: calc(env(safe-area-inset-top) + 10px);
-  height: 40px;
-  line-height: 40px;
-  padding: 0 14px;
-  border-radius: 20px;
-  font-size: 20px;
+  height: 54px;
+  line-height: 54px;
+  padding: 0 18px;
+  border-radius: 27px;
+  font-size: 28px;
   background: rgba(0, 0, 0, 0.3);
 }
 
@@ -304,13 +304,11 @@ button { touch-action: manipulation; }
   position: absolute;
   left: calc(env(safe-area-inset-left) + 14px);
   bottom: calc(env(safe-area-inset-bottom) + 34px);
-  padding: 12px 18px;
+  width: 76px;
+  height: 76px;
   border: 0;
-  border-radius: 24px;
-  font-size: 18px;
-  font-weight: 800;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45) url(../icons/cart.svg) center / 62% no-repeat;
 }
 
 #sell-btn {
