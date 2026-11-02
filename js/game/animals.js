@@ -60,11 +60,12 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
 
       if (c.t.flee && pd2 < c.t.range * c.t.range) {
         const d = Math.sqrt(pd2) || 0.001;
-        c.x = clampLimit(c.x - px / d * c.t.flee * dt);
-        c.z = clampLimit(c.z - pz / d * c.t.flee * dt);
-        // Against the map edge, slide along it instead of stopping (only a corner traps them).
-        if (Math.abs(c.x) >= PLAYER_LIMIT) c.z = clampLimit(c.z - Math.sign(pz) * c.t.flee * dt);
-        if (Math.abs(c.z) >= PLAYER_LIMIT) c.x = clampLimit(c.x - Math.sign(px) * c.t.flee * dt);
+        let vx = -px / d * c.t.flee, vz = -pz / d * c.t.flee;
+        // Against the map edge, slide along it at the same speed instead of stopping (only a corner traps them).
+        if (Math.abs(c.x) >= PLAYER_LIMIT && vx * c.x > 0) { vx = 0; vz = (vz < 0 || (vz === 0 && pz > 0) ? -1 : 1) * c.t.flee; }
+        if (Math.abs(c.z) >= PLAYER_LIMIT && vz * c.z > 0) { vz = 0; vx = (px > 0 ? -1 : 1) * c.t.flee; }
+        c.x = clampLimit(c.x + vx * dt);
+        c.z = clampLimit(c.z + vz * dt);
         c.heading = Math.atan2(-px, -pz);
         c.tx = c.x; c.tz = c.z; c.wait = 0.4;
         moving = true;
