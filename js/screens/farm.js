@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { createScene, addDirt } from '../render/renderer.js';
+import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
 import { makeBarn, makeFarmer, makeTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
-import { createTrees } from '../render/instancing.js';
+import { createTrees, createFlowers } from '../render/instancing.js';
 import { ANIMALS, UPGRADES } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
@@ -243,6 +243,27 @@ sellBtn.addEventListener('click', () => {
   checkWin();
 });
 
+// Flowers scattered over the grass (always); the dirt path around the pens appears once every pen is unlocked.
+function addFarmDecor(scene, complete, trees) {
+  const zMax = PEN_Z0 + (Math.ceil(ANIMALS.length / 2) - 1) * PEN_DZ + PEN / 2 + 1.5;
+  const hx = PEN_X + PEN / 2;
+  if (complete) addDirtRing(scene, { x0: -hx, x1: hx, z0: PEN_Z0 - PEN / 2, z1: zMax - 1.5 });
+  let seed = 4711;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const flowers = [];
+  for (let n = 0; n < 3000 && flowers.length < 560; n++) {
+    const x = (rnd() - 0.5) * 70, z = -26 + rnd() * (zMax + 52);
+    if (Math.abs(x) < 8 && z > 3.4 && z < zMax + 1.5) continue;           // pens and dirt path
+    if (Math.abs(x) < 7 && z <= 6) continue;                              // barn and farmer
+    if (Math.hypot(x + 7, z - 1) < 5.8) continue;                         // truck patch
+    const rx = x + 7, rz = z - 1, along = rx * 0.949 + rz * 0.315, perp = Math.abs(rx * 0.315 - rz * 0.949);
+    if (perp < 4.5 && along < 5) continue;                                // road
+    if (trees.some((t) => Math.hypot(x - t.x, z - t.z) < 1.6)) continue;
+    flowers.push({ x, z, s: 0.8 + rnd() * 0.7, c: Math.floor(rnd() * 5) });
+  }
+  createFlowers(scene, flowers);
+}
+
 export const farmScreen = {
   enter(ctx) {
     ctxRef = ctx;
@@ -270,12 +291,16 @@ export const farmScreen = {
       truck.add(track);
     }
     scene.add(truck);
-    createTrees(scene, [
+    const farmTrees = [
       { x: 8, z: 0, s: 1.2 }, { x: -9, z: 8, s: 1 }, { x: 9, z: 12, s: 1.1 },
       { x: -10, z: 20, s: 1.2 }, { x: 10, z: 24, s: 1 }, { x: -9, z: 31, s: 1.1 }, { x: 9, z: 35, s: 1.2 },
-    ]);
+      { x: -10, z: 42, s: 1 }, { x: 10, z: 46, s: 1.1 }, { x: -9, z: 52, s: 1.2 }, { x: 9, z: 57, s: 1 },
+      { x: -10, z: 63, s: 1.1 }, { x: 10, z: 68, s: 1.2 }, { x: -9, z: 73, s: 1 },
+    ];
+    createTrees(scene, farmTrees);
 
     const shown = ANIMALS.slice(0, penCount(save));
+    addFarmDecor(scene, shown.length >= ANIMALS.length, farmTrees);
     PAN_MAX = Math.max(PAN_MIN, PEN_Z0 + (Math.ceil(shown.length / 2) - 1) * PEN_DZ - 4);
     const pens = shown.map((_, i) => ({ x: (i % 2 ? 1 : -1) * PEN_X, z: PEN_Z0 + Math.floor(i / 2) * PEN_DZ }));
     makeFence(scene, pens, PEN);

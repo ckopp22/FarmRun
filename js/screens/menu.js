@@ -2,7 +2,7 @@ import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
 import { makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
-import { createTrees } from '../render/instancing.js';
+import { createTrees, createFlowers } from '../render/instancing.js';
 import { renderSlots } from './slots.js';
 import { startSlot } from '../systems/save.js';
 import { unlockAudio, tapSound, setMusic } from '../systems/audio.js';
@@ -84,6 +84,16 @@ export const menuScreen = {
     truck.rotation.y = TRUCK.rot;
     scene.add(truck);
     createTrees(scene, TREES);
+    let seed = 99;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const flowers = [];
+    for (let n = 0; n < 1200 && flowers.length < 320; n++) {
+      const a = rnd() * 6.2832, d = 4 + Math.sqrt(rnd()) * 26, x = Math.cos(a) * d, z = Math.sin(a) * d;
+      if (Math.abs(x) < BARN.hx + 0.8 && Math.abs(z) < BARN.hz + 0.8) continue;
+      if (CIRCLES.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + 0.3)) continue;
+      flowers.push({ x, z, s: 0.8 + rnd() * 0.7, c: Math.floor(rnd() * 5) });
+    }
+    createFlowers(scene, flowers);
     roamers = [];
     roamers = ['chicken', 'sheep', 'pig', 'cow', 'goat', 'duck'].map((id, i) => {
       const group = makeAnimal(ANIMALS.find((a) => a.id === id));

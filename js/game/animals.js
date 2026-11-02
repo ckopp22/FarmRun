@@ -29,7 +29,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
   const list = [];
   const total = pool.reduce((s, a) => s + TIERS[a.tier].weight, 0);
   for (let i = 0; i < count; i++) {
-    const a = pickAnimal(pool, total);
+    const a = i < pool.length ? pool[i] : pickAnimal(pool, total);   // one of every unlocked animal first, the rest random
     const t = TIERS[a.tier];
     const group = makeAnimal(a);
     scene.add(group);

@@ -4,7 +4,8 @@ import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '..
 import { animateFarmer } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
-import { buildForest, buildFence } from '../game/map.js';
+import { buildForest, buildFence, PLAYER_LIMIT } from '../game/map.js';
+import { createFlowers } from '../render/instancing.js';
 import { createTruck } from '../game/truck.js';
 import { createPlayer, updatePlayer } from '../game/player.js';
 import { createAnimals } from '../game/animals.js';
@@ -18,7 +19,7 @@ import { activeSave, saveActive } from '../systems/save.js';
 import { capacity as capacityOf, speedMult, penCount } from '../systems/economy.js';
 import { ANIMALS } from '../data/animals.js';
 
-const ANIMAL_COUNT = 28;
+const ANIMAL_EXTRA = 24;   // random spawns on top of one of every unlocked animal
 const RIVAL_COUNT = 10;
 const STEAL_REACH = 0.95;   // rival radius + animal radius: touching a caught animal steals it
 const STEAL_COOLDOWN = 1.2; // per rival, so a pack doesn't strip the whole line at once
@@ -213,9 +214,16 @@ export const woodsScreen = {
     leave = null;
     buildForest(scene, grid, quality().trees * 3, 10);
     buildFence(scene);
+    const flowers = [];
+    for (let n = 0; n < 600 && flowers.length < 150; n++) {   // sparse
+      const x = (Math.random() * 2 - 1) * PLAYER_LIMIT, z = (Math.random() * 2 - 1) * PLAYER_LIMIT;
+      if (Math.hypot(x, z) < 8 || grid.overlaps(x, z, 0.8)) continue;
+      flowers.push({ x, z, s: 0.8 + Math.random() * 0.7, c: Math.floor(Math.random() * 5) });
+    }
+    createFlowers(scene, flowers);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
-    animals = createAnimals(scene, grid, ANIMAL_COUNT, player, ANIMALS.slice(0, penCount(fx)));
+    animals = createAnimals(scene, grid, ANIMAL_EXTRA + penCount(fx), player, ANIMALS.slice(0, penCount(fx)));
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);

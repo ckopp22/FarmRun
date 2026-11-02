@@ -145,3 +145,27 @@ export function addDirt(scene, x, z, { radius, w, len, yaw = 0, y = 0.02 }) {
   m.rotation.y = yaw;
   scene.add(m);
 }
+
+// Ragged dirt path looping around a rectangle (x0..x1, z0..z1): `gap` clear of it, `width` wide. Grass stays inside.
+export function addDirtRing(scene, { x0, x1, z0, z1, gap = 0.8, width = 2.2, y = 0.015 }) {
+  const rim = (grow) => {
+    const a = x0 - grow, b = x1 + grow, c = z0 - grow, d = z1 + grow, pts = [], w = wobble(), step = 1.5;
+    const edge = (sx, sz, ex, ez, nx, nz) => {
+      const len = Math.hypot(ex - sx, ez - sz), n = Math.max(1, Math.round(len / step));
+      for (let i = 0; i < n; i++) {
+        const t = i / n, push = 0.45 * w((pts.length) * 0.9);
+        pts.push(new THREE.Vector2(sx + (ex - sx) * t + nx * push, -(sz + (ez - sz) * t + nz * push)));
+      }
+    };
+    edge(a, c, b, c, 0, -1);
+    edge(b, c, b, d, 1, 0);
+    edge(b, d, a, d, 0, 1);
+    edge(a, d, a, c, -1, 0);
+    return pts;
+  };
+  const shape = new THREE.Shape(rim(gap + width));
+  shape.holes.push(new THREE.Path(rim(gap)));
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2), dirtMat);
+  m.position.y = y;
+  scene.add(m);
+}
