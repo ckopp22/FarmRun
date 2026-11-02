@@ -223,7 +223,7 @@ button { touch-action: manipulation; }
 .slot-card {
   position: relative;
   flex: 0 0 auto;
-  padding: 14px 56px 14px 16px;
+  padding: 14px 104px 14px 16px;
   border-radius: 16px;
   background: rgba(30, 60, 30, 0.72);
   border: 2px solid rgba(255, 255, 255, 0.35);
@@ -233,6 +233,22 @@ button { touch-action: manipulation; }
 .slot-title { font-size: 20px; font-weight: 800; }
 .slot-info { font-size: 16px; margin-top: 2px; }
 .slot-date { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+.slot-edit {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+}
+.slot-card.empty .slot-edit { right: 8px; }
 
 .slot-del {
   position: absolute;

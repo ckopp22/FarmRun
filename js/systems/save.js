@@ -1,11 +1,12 @@
-// localStorage wrapper: 4 save slots + global settings. All access is try/catch'd.
+// localStorage wrapper: 3 save slots + global settings. All access is try/catch'd.
 import { ANIMALS, START_PENS } from '../data/animals.js';
 
 const VERSION = 1;
-const SLOTS = 4;
+const SLOTS = 3;
 const SETTINGS_KEY = 'farmrun_settings';
 
 const slotKey = (n) => 'farmrun_slot_' + n;
+const nameKey = (n) => 'farmrun_slotname_' + n;
 
 function read(key) {
   try {
@@ -56,8 +57,16 @@ export function saveActive() {
   write(slotKey(active.n), active.data);
 }
 
+export function slotName(n) { return read(nameKey(n)) || 'Slot ' + n; }
+
+export function setSlotName(n, name) {
+  const t = String(name || '').trim().slice(0, 20);
+  if (t) write(nameKey(n), t);
+  else try { localStorage.removeItem(nameKey(n)); } catch (e) { /* ignore */ }
+}
+
 export function deleteSlot(n) {
-  try { localStorage.removeItem(slotKey(n)); } catch (e) { /* ignore */ }
+  try { localStorage.removeItem(slotKey(n)); localStorage.removeItem(nameKey(n)); } catch (e) { /* ignore */ }
   if (active && active.n === n) active = null;
 }
 
