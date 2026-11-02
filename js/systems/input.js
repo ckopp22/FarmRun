@@ -18,7 +18,7 @@ export function createInput() {
   }
 
   // Let taps on buttons through so they still fire click.
-  const onUi = (e) => e.target.closest && e.target.closest('button, .slot-card, #shop-panel');
+  const onUi = (e) => e.target.closest && e.target.closest('button, a, .slot-card, #shop-panel');
 
   document.addEventListener('touchstart', (e) => {
     if (onUi(e)) return;

@@ -50,7 +50,7 @@ button { touch-action: manipulation; }
 
 #chickens {
   position: absolute;
-  left: calc(env(safe-area-inset-left) + 60px);
+  left: calc(env(safe-area-inset-left) + 76px);
   top: calc(env(safe-area-inset-top) + 10px);
   font-size: 22px;
   background: rgba(0, 0, 0, 0.25);
