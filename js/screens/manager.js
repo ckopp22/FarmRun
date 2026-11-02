@@ -18,6 +18,11 @@ export function createScreenManager(renderer, ctx) {
       current = screens.get(name);
       active = current.enter(ctx);
       fitRenderer(renderer, active.camera);
+      // Pre-compile shaders for hidden objects (e.g. off-screen rivals) so they don't hitch when first shown.
+      const hidden = [];
+      active.scene.traverse((o) => { if (!o.visible) { o.visible = true; hidden.push(o); } });
+      renderer.compile(active.scene, active.camera);
+      for (const o of hidden) o.visible = false;
       document.dispatchEvent(new CustomEvent('screenchange', { detail: name }));
     },
 
