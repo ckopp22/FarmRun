@@ -186,7 +186,7 @@ button { touch-action: manipulation; }
 
 .title {
   margin: 0;
-  font-size: 56px;
+  font-size: min(56px, 10vw);
   letter-spacing: 3px;
   text-align: center;
 }

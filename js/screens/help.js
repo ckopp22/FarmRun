@@ -28,9 +28,9 @@ const PAGES = {
   legal: {
     title: 'Legal',
     html: `<h3>Privacy</h3>
-      <p>Farm Run 3D does not collect, track, or share any personal information. Your farms, settings, and progress are saved only on your own device and are never sent anywhere.</p>
+      <p>Farm Run Fun does not collect, track, or share any personal information. Your farms, settings, and progress are saved only on your own device and are never sent anywhere.</p>
       <h3>Terms of Use</h3>
-      <p>Farm Run 3D is provided free of charge and "as is", without warranties of any kind. Progress is stored in your browser, so clearing your site data will erase it. By playing you agree to use the game for personal, non-commercial enjoyment.</p>
+      <p>Farm Run Fun is provided free of charge and "as is", without warranties of any kind. Progress is stored in your browser, so clearing your site data will erase it. By playing you agree to use the game for personal, non-commercial enjoyment.</p>
       <p><a href="${LEGAL_URL}/privacy.html" target="_blank" rel="noopener">Privacy Policy</a> · <a href="${LEGAL_URL}/terms.html" target="_blank" rel="noopener">Terms of Use</a> · <a href="${LEGAL_URL}/support.html" target="_blank" rel="noopener">Support</a></p>
       <h3>Credits</h3>
       <p>Built with three.js. Music and sound effects are used with permission of their creators.</p>`,
@@ -58,7 +58,7 @@ function render() {
 }
 
 async function share() {
-  const data = { title: 'Farm Run 3D', text: 'Catch animals, dodge rival farmers, and build your farm!', url: SHARE_URL };
+  const data = { title: 'Farm Run Fun', text: 'Catch animals, dodge rival farmers, and build your farm!', url: SHARE_URL };
   try {
     if (navigator.share) await navigator.share(data);
     else { await navigator.clipboard.writeText(SHARE_URL); toast('Link copied!'); }
@@ -75,7 +75,7 @@ function toast(msg) {
 
 function choose(id) {
   tapSound();
-  if (id === 'contact') { window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Farm Run 3D')}`; return; }
+  if (id === 'contact') { window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Farm Run Fun')}`; return; }
   if (id === 'share') { share(); return; }
   page = id;
   render();
