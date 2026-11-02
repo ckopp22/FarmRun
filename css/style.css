@@ -35,6 +35,8 @@ button { touch-action: manipulation; }
   touch-action: none;
 }
 
+.bag-icon { height: 1.5em; width: 1.5em; vertical-align: -0.35em; }
+
 #hud {
   position: fixed;
   inset: 0;

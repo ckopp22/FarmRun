@@ -71,7 +71,7 @@ function stealFollowers(dt) {
 }
 
 function paintHud() {
-  hud.innerHTML = `<span class="bag-icon">🎒</span>&nbsp;<span class="bag-num">${haul.length}/${capacity}</span>`;
+  hud.innerHTML = `<img class="bag-icon" src="icons/backpack.svg" alt="Bag">&nbsp;<span class="bag-num">${haul.length}/${capacity}</span>`;
 }
 
 // Bank the haul into the inventory and unlock colors. Selling happens on the farm.
