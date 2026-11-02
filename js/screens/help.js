@@ -1,6 +1,7 @@
 import { tapSound } from '../systems/audio.js';
 
 const CONTACT_EMAIL = 'koppstudioapps@outlook.com';
+const LEGAL_URL = 'https://farm-run-fun.netlify.app';
 const SHARE_URL = 'https://ckopp22.github.io/FarmRun/';
 
 const helpEl = document.getElementById('help');
@@ -30,6 +31,7 @@ const PAGES = {
       <p>Farm Run 3D does not collect, track, or share any personal information. Your farms, settings, and progress are saved only on your own device and are never sent anywhere.</p>
       <h3>Terms of Use</h3>
       <p>Farm Run 3D is provided free of charge and "as is", without warranties of any kind. Progress is stored in your browser, so clearing your site data will erase it. By playing you agree to use the game for personal, non-commercial enjoyment.</p>
+      <p><a href="${LEGAL_URL}/privacy.html" target="_blank" rel="noopener">Privacy Policy</a> · <a href="${LEGAL_URL}/terms.html" target="_blank" rel="noopener">Terms of Use</a> · <a href="${LEGAL_URL}/support.html" target="_blank" rel="noopener">Support</a></p>
       <h3>Credits</h3>
       <p>Built with three.js. Music and sound effects are used with permission of their creators.</p>`,
   },
