@@ -1,5 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { mat } from './materials.js';
+import { penFloorTexture } from './renderer.js';
 
 const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 10).rotateZ(Math.PI / 2);
@@ -202,7 +203,7 @@ export function silhouette(group) {
 export function makeFence(scene, pens, size) {
   const rails = new THREE.InstancedMesh(boxGeo, mat(0x8a5a2b), pens.length * 8);
   const posts = new THREE.InstancedMesh(boxGeo, mat(0x6b4a2b), pens.length * 4);
-  const floors = new THREE.InstancedMesh(boxGeo, mat(0xb08a5a), pens.length);
+  const floors = new THREE.InstancedMesh(boxGeo, new THREE.MeshLambertMaterial({ map: penFloorTexture(size) }), pens.length);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   let ri = 0, pi = 0, fi = 0;
   const put = (mesh, i, x, y, z, w, h, d) => { m.compose(p.set(x, y, z), q, sc.set(w, h, d)); mesh.setMatrixAt(i, m); };

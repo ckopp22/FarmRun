@@ -9,6 +9,46 @@ export function createRenderer(canvas) {
   return renderer;
 }
 
+// Pixel-speckled ground (same look as Step on the Farm): 8 pixels per tile, per-tile and per-pixel shade jitter.
+const PX = 8;
+export function speckleTexture([r, gr, b], tiles, seed, repeat) {
+  const N = tiles * PX;
+  const c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d');
+  const shades = [-0.07, -0.03, 0, 0.03, 0.07];
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (let ty = 0; ty < tiles; ty++) {
+    for (let tx = 0; tx < tiles; tx++) {
+      const tile = 1 + (rnd() - 0.5) * 0.08;
+      for (let y = 0; y < PX; y++) {
+        for (let x = 0; x < PX; x++) {
+          const k = tile + shades[Math.floor(rnd() * shades.length)];
+          g.fillStyle = `rgb(${Math.min(255, r * k) | 0},${Math.min(255, gr * k) | 0},${Math.min(255, b * k) | 0})`;
+          g.fillRect(tx * PX + x, ty * PX + y, 1, 1);
+        }
+      }
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = THREE.NearestFilter;
+  t.anisotropy = 4;
+  if (repeat) {
+    const [rx, ry] = Array.isArray(repeat) ? repeat : [repeat, repeat];
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx, ry);
+  }
+  return t;
+}
+
+let grassTex = null;
+const grassTexture = () => grassTex || (grassTex = speckleTexture([102, 184, 77], 16, 12345, 400 / 16));
+
+// One pen-sized floor texture (not tiled: box UVs span the whole face).
+let penTex = null;
+export const penFloorTexture = (size) => penTex || (penTex = speckleTexture([176, 138, 90], Math.round(size), 777));
+
 export function createScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(SKY);
@@ -21,7 +61,7 @@ export function createScene() {
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2),
-    new THREE.MeshLambertMaterial({ color: 0x5fa83f })
+    new THREE.MeshLambertMaterial({ map: grassTexture() })
   );
   scene.add(ground);
   return scene;
@@ -78,7 +118,7 @@ export function watchContext(canvas, onLost, onRestored) {
   canvas.addEventListener('webglcontextrestored', onRestored);
 }
 
-const dirtMat = new THREE.MeshLambertMaterial({ color: 0x9c7a4d });
+const dirtMat = new THREE.MeshLambertMaterial({ map: speckleTexture([156, 122, 77], 16, 4242, 1 / 16) });
 
 // Smooth random wobble in [-1, 1] along t.
 function wobble() {
@@ -87,7 +127,7 @@ function wobble() {
 }
 
 // Flat dirt patch (circle) or road (w x len strip, long axis along heading yaw) with ragged natural edges.
-export function addDirt(scene, x, z, { radius, w, len, yaw = 0 }) {
+export function addDirt(scene, x, z, { radius, w, len, yaw = 0, y = 0.02 }) {
   const pts = [];
   if (radius) {
     const n = wobble(), N = 48;
@@ -101,7 +141,7 @@ export function addDirt(scene, x, z, { radius, w, len, yaw = 0 }) {
     for (let i = N; i >= 0; i--) { const t = i / N * len; pts.push(new THREE.Vector2(-w / 2 * (1 + 0.3 * n2(t * 0.4)), t - len / 2)); }
   }
   const m = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts)).rotateX(-Math.PI / 2), dirtMat);
-  m.position.set(x, 0.02, z);
+  m.position.set(x, y, z);
   m.rotation.y = yaw;
   scene.add(m);
 }

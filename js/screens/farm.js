@@ -9,8 +9,8 @@ import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
-const PITCH = 55 * Math.PI / 180, DIST = 24;
-const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.9 : DIST * 0.75;   // zoom out in portrait, in on landscape
+const PITCH = 42 * Math.PI / 180, DIST = 24;
+const dist = () => window.innerHeight > window.innerWidth ? DIST * 1.65 : DIST * 0.65;   // zoom out in portrait, in on landscape
 const PEN = 3.6, PEN_Z0 = 9, PEN_DZ = 4.2, PEN_X = 2.2;
 const PAN_MIN = 6;
 let PAN_MAX = PAN_MIN;
@@ -209,8 +209,27 @@ function paintSell() {
   sellBtn.style.display = selected ? '' : 'none';
   if (selected) sellBtn.textContent = `SELL ${sellQty(selected)} = $${(sellQty(selected) * selected.a.value).toLocaleString()}`;
 }
+function splashCash() {
+  const r = sellBtn.getBoundingClientRect();
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.className = 'cash-splash';
+    el.textContent = '$';
+    el.style.left = r.left + r.width * (0.1 + Math.random() * 0.8) + 'px';
+    el.style.top = r.top + r.height / 2 + 'px';
+    document.body.appendChild(el);
+    const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 90;
+    const dx = Math.cos(a) * d, dy = Math.sin(a) * d - 30;
+    const s = 0.7 + Math.random() * 0.9;
+    el.animate(
+      [{ transform: 'translate(0, 0) scale(0.4)', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 1, offset: 0.35 }, { transform: `translate(${dx * 1.2}px, ${dy * 1.2 + 25}px) scale(${s})`, opacity: 0 }],
+      { duration: 1600 + Math.random() * 600, easing: 'ease-out' }
+    ).onfinish = () => el.remove();
+  }
+}
 sellBtn.addEventListener('click', () => {
   if (!selected || held(selected) < sellMin(selected)) return;
+  splashCash();
   const qty = sellQty(selected);
   save.money += qty * selected.a.value;
   save.owned[selected.a.id] -= qty;
@@ -239,7 +258,7 @@ export const farmScreen = {
     farmer.position.set(0, 0, 4.5);
     scene.add(farmer);
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
-    addDirt(scene, -7, 1, { radius: 3.5 });
+    addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
     const truck = makeTruck();
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;

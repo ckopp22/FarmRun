@@ -1,8 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { createScene } from '../render/renderer.js';
+import { createScene, speckleTexture } from '../render/renderer.js';
 import { makeTruck } from '../render/models.js';
 import { createTrees } from '../render/instancing.js';
-import { mat } from '../render/materials.js';
 import { sfx } from '../systems/audio.js';
 
 const DURATION = 2.6;
@@ -28,8 +27,11 @@ export const driveScreen = {
     timeout = 0;
     canvas = ctx.renderer.domElement;
     const scene = createScene();
-    const road = new THREE.Mesh(new THREE.BoxGeometry(6, 0.05, 260), mat(0x555555));
-    road.position.set(0, 0.03, -110);
+    const road = new THREE.Mesh(
+      new THREE.PlaneGeometry(6, 260).rotateX(-Math.PI / 2),
+      new THREE.MeshLambertMaterial({ map: speckleTexture([85, 85, 85], 16, 909, [6 / 16, 260 / 16]) })
+    );
+    road.position.set(0, 0.055, -110);
     scene.add(road);
     truck = makeTruck();
     truck.rotation.y = Math.PI;
