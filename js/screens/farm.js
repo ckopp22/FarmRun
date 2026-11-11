@@ -3,7 +3,7 @@ import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
 import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
-import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
+import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, animalTotal, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
@@ -246,7 +246,7 @@ function checkWin() {
     const found = Object.keys(save.discovered).length;
     document.getElementById('win-stats').innerHTML =
       `<div class="res-row"><span>Play time</span><span>${fmtTime(save.playTime)}</span></div>` +
-      `<div class="res-row"><span>Animals collected</span><span>${found}/${ALL_ANIMALS.length}</span></div>` +
+      `<div class="res-row"><span>Animals collected</span><span>${found}/${animalTotal(save)}</span></div>` +
       `<div class="res-row"><span>Runs made</span><span>${save.runs}</span></div>`;
     winEl.style.display = '';
     confetti.show(true);

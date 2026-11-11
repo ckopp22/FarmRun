@@ -34,6 +34,9 @@ export function buyPen(save) {
   return true;
 }
 
+// Animals available to collect: 24 per map owned (farm, +desert, +winter).
+export const animalTotal = (save) => ANIMALS.length + (save.desert ? SAFARI_ANIMALS.length : 0) + (save.winter ? WINTER_ANIMALS.length : 0);
+
 // Desert map: offered once every farm animal is discovered.
 export const desertAvailable = (save) => !save.desert && ANIMALS.every((a) => save.discovered[a.id]);
 
