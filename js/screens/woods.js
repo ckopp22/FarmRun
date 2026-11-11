@@ -23,7 +23,7 @@ const ANIMAL_EXTRA = 24;   // random spawns on top of one of every unlocked anim
 const RIVAL_COUNT = 10;
 const STEAL_REACH = 0.95;   // rival radius + animal radius: touching a caught animal steals it
 const STEAL_COOLDOWN = 1.2; // per rival, so a pack doesn't strip the whole line at once
-const DEPOSIT_RADIUS = 2.8;   // distance from the truck that counts as walking into it
+const DEPOSIT_RADIUS = 2.0;   // distance from the truck's body (front/back/sides) that counts as walking into it
 const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning next to it doesn't end the run
 
 let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
@@ -263,7 +263,7 @@ export const woodsScreen = {
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
-    else if (armed && d < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); }
+    else if (armed && Math.hypot(player.x, player.z - Math.max(-1.5, Math.min(1.5, player.z))) < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); }
   },
 
   exit() {
