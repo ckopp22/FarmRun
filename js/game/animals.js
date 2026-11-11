@@ -1,6 +1,7 @@
 import { makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { PLAYER_LIMIT } from './map.js';
+import * as THREE from '../../lib/three.module.min.js';
 
 const RADIUS = 0.35;
 const PICKUP = 0.45 + 0.5;   // farmer radius + animal reach
@@ -23,6 +24,25 @@ function pickAnimal(pool, total) {
   return pool[0];
 }
 
+// Faint green "$" floating over the newest unlocked animals, so the player knows which are worth more.
+let dollarMat = null;
+function addDollar(group) {
+  if (!dollarMat) {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 64;
+    const g = cv.getContext('2d');
+    g.font = 'bold 54px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 5; g.strokeStyle = 'rgba(0,60,0,0.6)'; g.strokeText('$', 32, 34);
+    g.fillStyle = '#5dff6a'; g.fillText('$', 32, 34);
+    dollarMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0.55, depthWrite: false });
+  }
+  const top = new THREE.Box3().setFromObject(group).max.y;
+  const sp = new THREE.Sprite(dollarMat);
+  sp.scale.setScalar(0.7);
+  sp.position.y = top - group.position.y + 0.5;
+  group.add(sp);
+}
+
 const clampLimit = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
 
 export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
@@ -32,6 +52,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
     const a = i < pool.length ? pool[i] : pickAnimal(pool, total);   // one of every unlocked animal first, the rest random
     const t = TIERS[a.tier];
     const group = makeAnimal(a);
+    if (pool.indexOf(a) >= pool.length - 3) addDollar(group);
     scene.add(group);
     const c = { a, t, group, x: 0, z: 0,
       heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, tm: Math.random() * 10 };
@@ -113,6 +134,7 @@ export function createAnimals(scene, grid, count, player, pool = ANIMALS) {
   // Set a stolen animal loose at (x, z), running away from (fromX, fromZ). It can't be grabbed again for a moment.
   function release(a, x, z, fromX, fromZ) {
     const group = makeAnimal(a);
+    if (pool.indexOf(a) >= pool.length - 3) addDollar(group);
     scene.add(group);
     const dx = x - fromX, dz = z - fromZ, d = Math.hypot(dx, dz) || 1;
     const c = { a, t: TIERS[a.tier], group, x, z, heading: Math.atan2(dx, dz),

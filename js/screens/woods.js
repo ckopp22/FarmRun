@@ -171,6 +171,7 @@ function board(dt) {
       animateFarmer(player.group, player.runT, 1);
     }
   }
+  animals.update(dt, true);   // keep wandering; full bag so nothing gets grabbed
   const allIn = followers.board(bx, bz, dt, truck);
   particles.update(dt);
   rivals.update(dt, truck.position, true);
@@ -187,6 +188,7 @@ function driveAway(dt) {
   truck.position.z += Math.cos(leave.heading) * leave.v * dt;
   truck.rotation.y = leave.heading;
   dropMarks();
+  animals.update(dt, true);
   rivals.update(dt, truck.position, true);
   updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
   if (leave.t > 2.2) greatJob.classList.add('show');
