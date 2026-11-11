@@ -65,6 +65,7 @@ const onBack = () => { tapSound(); show(slotsEl, false); show(menuEl, true); };
 function pick(n) {
   tapSound();
   startSlot(n);
+  ctxRef.map = 'farm';
   ctxRef.go('farm');
 }
 

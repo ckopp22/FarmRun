@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { makeBarn, makeAdobe, makeFarmer, makeTruck, makeSafariTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { animateFarmer, makeBarn, makeAdobe, makeFarmer, makeTruck, makeSafariTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, UPGRADES, DESERT_COST } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, safariPenCount, nextSafariPenCost, buySafariPen } from '../systems/economy.js';
@@ -81,6 +81,21 @@ shopList.addEventListener('click', (ev) => {
 
 let camera, canvas, scene, ctxRef, save, confetti, particles;
 let desert = false;   // which map is showing
+let farmer, swipe = null, arrive = null;   // swipe: farmer running off to the other map; arrive: farmer running in
+const SWIPE_PX = 70, RUN_SPEED = 9;
+const fadeEl = document.createElement('div');
+fadeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;z-index:5';
+document.body.appendChild(fadeEl);
+const mapBtn = document.createElement('button');
+mapBtn.style.cssText = 'position:fixed;top:50%;width:44px;height:64px;margin-top:-32px;border:0;border-radius:12px;background:rgba(0,0,0,.35);color:#fff;font:bold 34px sans-serif;display:none;z-index:4';
+document.body.appendChild(mapBtn);
+function startSwipe(dir) {
+  if (swipe || arrive || !save.desert || (dir > 0) === desert) return;   // right goes to the desert, left comes back
+  swipe = { dir, t: 0 };
+  showPop(null); selected = null; paintSell();
+  tapSound();
+}
+mapBtn.addEventListener('click', () => startSwipe(desert ? -1 : 1));
 const mapAnimals = () => desert ? SAFARI_ANIMALS : ANIMALS;
 let panZ, time, entries;   // entries: { a, group, x, z, owned, ph, reveal } (reveal = seconds until the color unlock, -1 = none)
 const ray = new THREE.Raycaster();
@@ -114,13 +129,16 @@ function showPop(e) {
 
 function onDown(ev) {
   if (drag) return;
-  drag = { id: ev.pointerId, y: ev.clientY, moved: 0, t: performance.now() };
+  drag = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, y: ev.clientY, moved: 0, t: performance.now() };
 }
 function onMove(ev) {
   if (!drag || ev.pointerId !== drag.id) return;
   const dy = ev.clientY - drag.y;
   drag.y = ev.clientY;
   drag.moved += Math.abs(dy);
+  const dx = ev.clientX - drag.x0;
+  if (Math.abs(dx) > SWIPE_PX && Math.abs(dx) > 1.5 * Math.abs(ev.clientY - drag.y0)) { drag.moved = 99; startSwipe(dx > 0 ? 1 : -1); }
+  if (swipe) return;
   const k = (2 * dist() * Math.tan(25 * Math.PI / 180)) / window.innerHeight / Math.sin(PITCH);
   panZ = Math.min(PAN_MAX, Math.max(PAN_MIN, panZ - dy * k));
 }
@@ -280,14 +298,14 @@ export const farmScreen = {
     ctxRef = ctx;
     canvas = ctx.renderer.domElement;
     save = activeSave() || { money: 0, owned: {}, discovered: {} };
-    desert = ctx.map === 'desert' || location.hash === '#desert';   // TODO phase 3: swipe sets ctx.map; drop the hash
+    desert = ctx.map === 'desert';
     scene = createScene(desert);
     scene.fog = null;
 
     const barn = desert ? makeAdobe() : makeBarn();
     barn.position.set(0, 0, -1);
     scene.add(barn);
-    const farmer = makeFarmer();
+    farmer = makeFarmer();
     farmer.position.set(0, 0, 4.5);
     scene.add(farmer);
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
@@ -352,6 +370,15 @@ export const farmScreen = {
       const e = entries.find((x) => x.a.id === newOrder[0]);
       panZ = Math.min(PAN_MAX, Math.max(PAN_MIN, e.z - 4));
     }
+    swipe = null;
+    arrive = ctx.arrive ? { dir: ctx.arrive, t: 0 } : null;
+    ctx.arrive = 0;
+    if (arrive) { farmer.position.x = -arrive.dir * 16; farmer.rotation.y = arrive.dir * Math.PI / 2; fadeEl.style.background = desert ? '#f3dcab' : '#9fd4f0'; fadeEl.style.opacity = 1; }
+    else fadeEl.style.opacity = 0;
+    mapBtn.style.display = save.desert ? '' : 'none';
+    mapBtn.textContent = desert ? '‹' : '›';
+    mapBtn.style[desert ? 'left' : 'right'] = '6px';
+    mapBtn.style[desert ? 'right' : 'left'] = 'auto';
     time = 0;
     moneyEl.textContent = '$' + save.money.toLocaleString();
     updateShopHint();
@@ -374,6 +401,23 @@ export const farmScreen = {
 
   update(dt) {
     time += dt;
+    if (swipe) {
+      swipe.t += dt;
+      farmer.position.x += swipe.dir * RUN_SPEED * dt;
+      farmer.rotation.y = swipe.dir * Math.PI / 2;
+      animateFarmer(farmer, time, 1);
+      fadeEl.style.background = desert ? '#9fd4f0' : '#f3dcab';
+      fadeEl.style.opacity = Math.max(0, Math.min(1, (swipe.t - 0.5) / 0.6));
+      if (swipe.t > 1.2) { ctxRef.map = desert ? 'farm' : 'desert'; ctxRef.arrive = swipe.dir; ctxRef.go('farm'); return; }
+    } else if (arrive) {
+      arrive.t += dt;
+      const fx = farmer.position.x, step = RUN_SPEED * dt;
+      farmer.position.x = Math.abs(fx) <= step ? 0 : fx - Math.sign(fx) * step;
+      farmer.rotation.y = arrive.dir * Math.PI / 2;
+      animateFarmer(farmer, time, 1);
+      fadeEl.style.opacity = Math.max(0, 1 - arrive.t / 0.5);
+      if (farmer.position.x === 0) { farmer.rotation.y = 0; animateFarmer(farmer, 0, 0); arrive = null; fadeEl.style.opacity = 0; }
+    }
     for (const e of entries) {
       if (e.reveal >= 0) {
         e.reveal -= dt;
@@ -414,13 +458,15 @@ export const farmScreen = {
     confetti.update(dt, time, 0, panZ);
     particles.update(dt);
     const sway = Math.sin(time * 0.4) * 0.4;
-    camera.position.set(sway, Math.sin(PITCH) * dist(), panZ + Math.cos(PITCH) * dist());
-    camera.lookAt(sway * 0.5, 0, panZ);
+    camera.position.set(sway + (swipe || arrive ? farmer.position.x : 0), Math.sin(PITCH) * dist(), panZ + Math.cos(PITCH) * dist());
+    camera.lookAt(sway * 0.5 + (swipe || arrive ? farmer.position.x : 0), 0, panZ);
   },
 
   exit() {
     soundEl.classList.remove('can-buy');
     ui.style.display = 'none';
+    mapBtn.style.display = 'none';
+    fadeEl.style.opacity = 0;
     winEl.style.display = 'none';
     canvas.removeEventListener('pointerdown', onDown);
     canvas.removeEventListener('pointermove', onMove);
