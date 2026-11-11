@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, speckleTexture } from '../render/renderer.js';
-import { makeTruck, makeSafariTruck } from '../render/models.js';
-import { createTrees, createDesertProps } from '../render/instancing.js';
+import { makeTruck, makeSafariTruck, makeSnowmobile } from '../render/models.js';
+import { createTrees, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { sfx } from '../systems/audio.js';
 
 const DURATION = 2.6;
@@ -26,15 +26,15 @@ export const driveScreen = {
     active = true;
     timeout = 0;
     canvas = ctx.renderer.domElement;
-    const desert = ctx.map === 'desert';
-    const scene = createScene(desert);
+    const winter = ctx.map === 'winter', desert = ctx.map === 'desert';
+    const scene = createScene(winter ? 'winter' : desert);
     const road = new THREE.Mesh(
       new THREE.PlaneGeometry(6, 260).rotateX(-Math.PI / 2),
       new THREE.MeshLambertMaterial({ map: speckleTexture([85, 85, 85], 16, 909, [6 / 16, 260 / 16]) })
     );
     road.position.set(0, 0.055, -110);
     scene.add(road);
-    truck = desert ? makeSafariTruck() : makeTruck();
+    truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     truck.rotation.y = Math.PI;
     scene.add(truck);
     const trees = [];
@@ -42,7 +42,8 @@ export const driveScreen = {
       trees.push({ x: -(6 + Math.random() * 8), z: z + Math.random() * 2, s: 0.8 + Math.random() * 0.6, t: 'cactus' });
       trees.push({ x: 6 + Math.random() * 8, z: z + Math.random() * 2, s: 0.8 + Math.random() * 0.6, t: Math.random() < 0.3 ? 'rock' : 'cactus' });
     }
-    if (desert) createDesertProps(scene, trees);
+    if (winter) createWinterProps(scene, trees.map((t) => ({ ...t, t: t.t === 'rock' ? 'rock' : 'pine' })));
+    else if (desert) createDesertProps(scene, trees);
     else createTrees(scene, trees);
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 150);
     t = 0;

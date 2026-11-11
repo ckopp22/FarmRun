@@ -116,24 +116,27 @@ export function makeSafariTruck() {
 // Snowmobile pulling a large open sled (the sled is the loading bed, at -z).
 export function makeSnowmobile() {
   const g = new THREE.Group();
+  const body = new THREE.Group();   // shifted so the whole rig is centred on the origin
+  body.position.z = 0.575;
+  g.add(body);
   const red = 0xc0392b, dark = 0x2a2a30, wood = 0x8a5a2b;
-  box(g, 1.2, 0.5, 2.2, red, 0, 0.75, 1.35);            // body
-  box(g, 1.0, 0.4, 0.9, red, 0, 1.05, 2.15);            // hood
-  box(g, 0.9, 0.35, 0.1, 0x9fd4f0, 0, 1.45, 1.75);      // windshield
-  box(g, 0.8, 0.2, 0.8, dark, 0, 1.1, 0.9);             // seat
-  box(g, 1.1, 0.1, 0.1, dark, 0, 1.4, 1.55);            // handlebars
-  box(g, 1.3, 0.3, 1.6, dark, 0, 0.35, 0.8);            // track
+  box(body, 1.2, 0.5, 2.2, red, 0, 0.75, 1.35);            // body
+  box(body, 1.0, 0.4, 0.9, red, 0, 1.05, 2.15);            // hood
+  box(body, 0.9, 0.35, 0.1, 0x9fd4f0, 0, 1.45, 1.75);      // windshield
+  box(body, 0.8, 0.2, 0.8, dark, 0, 1.1, 0.9);             // seat
+  box(body, 1.1, 0.1, 0.1, dark, 0, 1.4, 1.55);            // handlebars
+  box(body, 1.3, 0.3, 1.6, dark, 0, 0.35, 0.8);            // track
   for (const x of [-0.5, 0.5]) {
-    box(g, 0.15, 0.1, 1.6, 0xdddddd, x, 0.25, 2.2);     // skis
-    box(g, 0.08, 0.4, 0.08, dark, x, 0.5, 2.0);
+    box(body, 0.15, 0.1, 1.6, 0xdddddd, x, 0.25, 2.2);     // skis
+    box(body, 0.08, 0.4, 0.08, dark, x, 0.5, 2.0);
   }
-  box(g, 0.1, 0.1, 1.2, dark, 0, 0.6, -0.55);           // hitch
-  for (const x of [-1.1, 1.1]) box(g, 0.2, 0.15, 3.8, 0xdddddd, x, 0.2, -2.3);   // sled runners
-  box(g, 2.5, 0.12, 3.6, wood, 0, 0.4, -2.3);           // sled floor
-  for (const x of [-1.15, 1.15]) box(g, 0.1, 0.5, 3.6, 0x6b4a2b, x, 0.7, -2.3);  // sled sides
-  box(g, 2.5, 0.5, 0.1, 0x6b4a2b, 0, 0.7, -4.1);        // sled back
-  box(g, 2.5, 0.4, 0.1, 0x6b4a2b, 0, 0.65, -0.55);      // sled front
-  g.add(makeBlobShadow(3.4));
+  box(body, 0.1, 0.1, 1.2, dark, 0, 0.6, -0.55);           // hitch
+  for (const x of [-1.1, 1.1]) box(body, 0.2, 0.15, 3.8, 0xdddddd, x, 0.2, -2.3);   // sled runners
+  box(body, 2.5, 0.12, 3.6, wood, 0, 0.4, -2.3);           // sled floor
+  for (const x of [-1.15, 1.15]) box(body, 0.1, 0.5, 3.6, 0x6b4a2b, x, 0.7, -2.3);  // sled sides
+  box(body, 2.5, 0.5, 0.1, 0x6b4a2b, 0, 0.7, -4.1);        // sled back
+  box(body, 2.5, 0.4, 0.1, 0x6b4a2b, 0, 0.65, -0.55);      // sled front
+  g.add(makeBlobShadow(4));
   g.scale.setScalar(1.15);
   return g;
 }
