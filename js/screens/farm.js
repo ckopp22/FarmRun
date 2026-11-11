@@ -233,14 +233,20 @@ function makeGhost(renderer, a) {
   return g;
 }
 
+const ALL_ANIMALS = [...ANIMALS, ...SAFARI_ANIMALS, ...WINTER_ANIMALS];
 function checkWin() {
-  if (save.money >= WIN_MONEY && !save.won) {
+  const beat = !save.beat && ALL_ANIMALS.every((a) => save.discovered[a.id]);
+  const rich = !save.won && save.money >= WIN_MONEY;
+  if (beat || rich) {
     save.won = true;
+    if (beat) save.beat = true;
     saveActive();
+    document.getElementById('win-title').textContent = beat ? 'You Beat the Game!' : "You're A Millionaire";
+    document.getElementById('win-msg').textContent = beat ? 'You unlocked all 72 animals!' : 'You earned $1,000,000!';
     const found = Object.keys(save.discovered).length;
     document.getElementById('win-stats').innerHTML =
       `<div class="res-row"><span>Play time</span><span>${fmtTime(save.playTime)}</span></div>` +
-      `<div class="res-row"><span>Animals collected</span><span>${found}/${ANIMALS.length}</span></div>` +
+      `<div class="res-row"><span>Animals collected</span><span>${found}/${ALL_ANIMALS.length}</span></div>` +
       `<div class="res-row"><span>Runs made</span><span>${save.runs}</span></div>`;
     winEl.style.display = '';
     confetti.show(true);
