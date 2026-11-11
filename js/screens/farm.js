@@ -336,7 +336,7 @@ export const farmScreen = {
     const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
-    const trackMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
+    const trackMat = new THREE.MeshBasicMaterial({ color: winter ? 0x5a7f9f : 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
     for (const x of [-0.95, 0.95]) {
       const track = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 16), trackMat);
       track.rotation.x = -Math.PI / 2;

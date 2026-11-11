@@ -59,6 +59,7 @@ const snowTexture = () => snowTex || (snowTex = speckleTexture([198, 213, 231], 
 // theme: false/'farm', true/'desert' or 'winter'
 export function createScene(theme = false) {
   const winter = theme === 'winter', desert = theme === true || theme === 'desert';
+  icy = winter;
   setShadowOpacity(0.28);
   const scene = new THREE.Scene();
   const sky = winter ? WINTER_SKY : desert ? DESERT_SKY : SKY;
@@ -130,6 +131,8 @@ export function watchContext(canvas, onLost, onRestored) {
 }
 
 const dirtMat = new THREE.MeshLambertMaterial({ map: speckleTexture([156, 122, 77], 16, 4242, 1 / 16) });
+const iceMat = new THREE.MeshLambertMaterial({ map: speckleTexture([150, 200, 232], 16, 4243, 1 / 16) });   // winter: icy patches instead of dirt
+let icy = false;
 
 // Smooth random wobble in [-1, 1] along t.
 function wobble() {
@@ -151,7 +154,7 @@ export function addDirt(scene, x, z, { radius, w, len, yaw = 0, y = 0.02 }) {
     for (let i = 0; i <= N; i++) { const t = i / N * len; pts.push(new THREE.Vector2(w / 2 * (1 + 0.3 * n1(t * 0.4)), t - len / 2)); }
     for (let i = N; i >= 0; i--) { const t = i / N * len; pts.push(new THREE.Vector2(-w / 2 * (1 + 0.3 * n2(t * 0.4)), t - len / 2)); }
   }
-  const m = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts)).rotateX(-Math.PI / 2), dirtMat);
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts)).rotateX(-Math.PI / 2), icy ? iceMat : dirtMat);
   m.position.set(x, y, z);
   m.rotation.y = yaw;
   scene.add(m);
@@ -176,7 +179,7 @@ export function addDirtRing(scene, { x0, x1, z0, z1, gap = 0.8, width = 2.2, y =
   };
   const shape = new THREE.Shape(rim(gap + width));
   shape.holes.push(new THREE.Path(rim(gap)));
-  const m = new THREE.Mesh(new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2), dirtMat);
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2), icy ? iceMat : dirtMat);
   m.position.y = y;
   scene.add(m);
 }

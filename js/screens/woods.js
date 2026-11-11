@@ -107,7 +107,7 @@ function startDriving() {
   markX = truck.position.x; markZ = truck.position.z;
   marks = new THREE.InstancedMesh(
     new THREE.PlaneGeometry(0.35, 1).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: winter ? 0x5a7f9f : 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false }),
     400
   );
   marks.frustumCulled = false;
