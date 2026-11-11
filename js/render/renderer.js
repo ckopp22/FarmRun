@@ -59,7 +59,7 @@ const snowTexture = () => snowTex || (snowTex = speckleTexture([198, 213, 231], 
 // theme: false/'farm', true/'desert' or 'winter'
 export function createScene(theme = false) {
   const winter = theme === 'winter', desert = theme === true || theme === 'desert';
-  setShadowOpacity(winter ? 0.5 : 0.28);   // darker shadows help animals stand out on snow
+  setShadowOpacity(0.28);
   const scene = new THREE.Scene();
   const sky = winter ? WINTER_SKY : desert ? DESERT_SKY : SKY;
   scene.background = new THREE.Color(sky);
