@@ -87,16 +87,29 @@ const SWIPE_PX = 70, RUN_SPEED = 9;
 const fadeEl = document.createElement('div');
 fadeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;z-index:5';
 document.body.appendChild(fadeEl);
-const mapBtn = document.createElement('button');
-mapBtn.style.cssText = 'position:fixed;top:50%;width:44px;height:64px;margin-top:-32px;border:0;border-radius:12px;background:rgba(0,0,0,.35);color:#fff;font:bold 34px sans-serif;display:none;z-index:4';
-document.body.appendChild(mapBtn);
+const MAPS = ['farm', 'desert', 'winter'];   // left to right
+const MAP_SKY = { farm: '#9fd4f0', desert: '#f3dcab', winter: '#dbe8f2' };
+const mapUnlocked = (m) => m === 'farm' || (m === 'desert' && save.desert) || (m === 'winter' && save.winter);
+const curMap = () => winter ? 'winter' : desert ? 'desert' : 'farm';
+const mapBtns = [-1, 1].map((dir) => {
+  const b = document.createElement('button');
+  b.style.cssText = `position:fixed;top:50%;${dir < 0 ? 'left' : 'right'}:6px;width:44px;height:64px;margin-top:-32px;border:0;border-radius:12px;background:rgba(0,0,0,.35);color:#fff;font:bold 34px sans-serif;display:none;z-index:4`;
+  b.textContent = dir < 0 ? '‹' : '›';
+  b.addEventListener('click', () => startSwipe(dir));
+  document.body.appendChild(b);
+  return b;
+});
+const nextMap = (dir) => {
+  const to = MAPS[MAPS.indexOf(curMap()) + dir];
+  return to && mapUnlocked(to) ? to : null;
+};
 function startSwipe(dir) {
-  if (swipe || arrive || !save.desert || (dir > 0) === desert) return;   // right goes to the desert, left comes back
-  swipe = { dir, t: 0 };
+  const to = nextMap(dir);
+  if (swipe || arrive || !to) return;   // right moves toward the desert/winter, left comes back
+  swipe = { dir, t: 0, to };
   showPop(null); selected = null; paintSell();
   tapSound();
 }
-mapBtn.addEventListener('click', () => startSwipe(desert ? -1 : 1));
 const mapAnimals = () => winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS;
 const mapPenCount = () => winter ? winterPenCount(save) : desert ? safariPenCount(save) : penCount(save);
 const nextMapPenCost = () => winter ? nextWinterPenCost(save) : desert ? nextSafariPenCost(save) : nextPenCost(save);
@@ -301,7 +314,7 @@ export const farmScreen = {
     ctxRef = ctx;
     canvas = ctx.renderer.domElement;
     save = activeSave() || { money: 0, owned: {}, discovered: {} };
-    winter = ctx.map === 'winter' || location.hash === '#winter';   // TODO phase 3: swipe sets ctx.map; drop the hash
+    winter = ctx.map === 'winter';
     desert = ctx.map === 'desert';
     scene = createScene(winter ? 'winter' : desert);
     scene.fog = null;
@@ -378,12 +391,9 @@ export const farmScreen = {
     swipe = null;
     arrive = ctx.arrive ? { dir: ctx.arrive, t: 0 } : null;
     ctx.arrive = 0;
-    if (arrive) { farmer.position.x = -arrive.dir * 16; farmer.rotation.y = arrive.dir * Math.PI / 2; fadeEl.style.background = desert ? '#f3dcab' : '#9fd4f0'; fadeEl.style.opacity = 1; }
+    if (arrive) { farmer.position.x = -arrive.dir * 16; farmer.rotation.y = arrive.dir * Math.PI / 2; fadeEl.style.background = MAP_SKY[curMap()]; fadeEl.style.opacity = 1; }
     else fadeEl.style.opacity = 0;
-    mapBtn.style.display = save.desert ? '' : 'none';
-    mapBtn.textContent = desert ? '‹' : '›';
-    mapBtn.style[desert ? 'left' : 'right'] = '6px';
-    mapBtn.style[desert ? 'right' : 'left'] = 'auto';
+    mapBtns.forEach((b, i) => { b.style.display = nextMap(i ? 1 : -1) ? '' : 'none'; });
     time = 0;
     moneyEl.textContent = '$' + save.money.toLocaleString();
     updateShopHint();
@@ -411,9 +421,9 @@ export const farmScreen = {
       farmer.position.x += swipe.dir * RUN_SPEED * dt;
       farmer.rotation.y = swipe.dir * Math.PI / 2;
       animateFarmer(farmer, time, 1);
-      fadeEl.style.background = desert ? '#9fd4f0' : '#f3dcab';
+      fadeEl.style.background = MAP_SKY[swipe.to];
       fadeEl.style.opacity = Math.max(0, Math.min(1, (swipe.t - 0.5) / 0.6));
-      if (swipe.t > 1.2) { ctxRef.map = desert ? 'farm' : 'desert'; ctxRef.arrive = swipe.dir; ctxRef.go('farm'); return; }
+      if (swipe.t > 1.2) { ctxRef.map = swipe.to; ctxRef.arrive = swipe.dir; ctxRef.go('farm'); return; }
     } else if (arrive) {
       arrive.t += dt;
       const fx = farmer.position.x, step = RUN_SPEED * dt;
@@ -470,7 +480,7 @@ export const farmScreen = {
   exit() {
     soundEl.classList.remove('can-buy');
     ui.style.display = 'none';
-    mapBtn.style.display = 'none';
+    mapBtns.forEach((b) => { b.style.display = 'none'; });
     fadeEl.style.opacity = 0;
     winEl.style.display = 'none';
     canvas.removeEventListener('pointerdown', onDown);
