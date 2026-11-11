@@ -162,7 +162,6 @@ export function makeIgloo() {
   box(g, 2, 1.7, 2.2, 0xe4eef5, 0, 0.85, 2.7);          // entrance tunnel
   box(g, 1.1, 1.3, 0.1, 0x2a3a4a, 0, 0.7, 3.82);        // doorway
   box(g, 1.2, 0.2, 0.1, 0x9fd4f0, 0, 2.0, 2.9);
-  g.add(makeBlobShadow(4.4));
   return g;
 }
 
