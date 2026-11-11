@@ -6,7 +6,7 @@ const BASE_CAPACITY = 3;
 export const level = (save, id) => (save.upgrades && save.upgrades[id]) || 0;
 
 export const capacity = (save) => BASE_CAPACITY + level(save, 'bag');
-export const speedMult = (save) => 1 + 0.1 * level(save, 'shoes');
+export const speedMult = (save) => 1 + 0.1 * Math.min(3, level(save, 'shoes')) + 0.05 * Math.max(0, level(save, 'shoes') - 3);
 
 export function nextCost(save, id) {
   const u = UPGRADES.find((x) => x.id === id);

@@ -29,26 +29,26 @@ export const ANIMALS = [
   { id: 'alpaca', name: 'Alpaca', tier: 'Epic', value: 10000, k: 'quad', w: 0.55, h: 0.65, l: 0.9, leg: 0.6, neck: 0.55, ear: 0.22, c: 0xcaa57a },
   { id: 'panda', name: 'Panda', tier: 'Epic', value: 15000, k: 'quad', w: 0.9, h: 0.8, l: 1.1, leg: 0.35, ear: 0.12, c: 0xffffff, hc: 0xf2f2f2, sn: 0x222222,
     x: [[0.94, 0.4, 0.3, 0x222222, 0, 0.75, 0.35]] },
-  { id: 'peacock', name: 'Peacock', tier: 'Epic', value: 25000, k: 'bird', s: 1.3, c: 0x1f6fb5, b: 0xf0c040, tc: 0x1a9a6a, plume: true },
-  { id: 'giraffe', name: 'Giraffe', tier: 'Epic', value: 35000, k: 'quad', w: 0.6, h: 0.8, l: 1.2, leg: 1.1, neck: 1.3, ear: 0.12, c: 0xe8b84a, sn: 0x8a5a20,
+  { id: 'peacock', name: 'Peacock', tier: 'Epic', value: 20000, k: 'bird', s: 1.3, c: 0x1f6fb5, b: 0xf0c040, tc: 0x1a9a6a, plume: true },
+  { id: 'giraffe', name: 'Giraffe', tier: 'Epic', value: 25000, k: 'quad', w: 0.6, h: 0.8, l: 1.2, leg: 1.1, neck: 1.3, ear: 0.12, c: 0xe8b84a, sn: 0x8a5a20,
     x: [[0.62, 0.18, 0.18, 0x8a5a20, 0, 1.5, -0.3], [0.62, 0.18, 0.18, 0x8a5a20, 0, 1.6, 0.15], [0.34, 0.2, 0.34, 0x8a5a20, 0, 2.4, 0.5], [0.34, 0.2, 0.34, 0x8a5a20, 0, 2.9, 0.5]] },
-  { id: 'highland', name: 'Highland Cow', tier: 'Epic', value: 50000, k: 'quad', w: 1, h: 0.9, l: 1.5, leg: 0.5, ear: 0.15, c: 0xb5651d, sn: 0x6b3a10,
+  { id: 'highland', name: 'Highland Cow', tier: 'Epic', value: 30000, k: 'quad', w: 1, h: 0.9, l: 1.5, leg: 0.5, ear: 0.15, c: 0xb5651d, sn: 0x6b3a10,
     x: [[0.08, 0.3, 0.08, 0xf3e9c7, -0.4, 1.7, 0.7], [0.08, 0.3, 0.08, 0xf3e9c7, 0.4, 1.7, 0.7]] },
-  { id: 'goose', name: 'Golden Goose', tier: 'Legendary', value: 100000, k: 'bird', s: 1.2, c: 0xffd24a, b: 0xf39c12, tc: 0xe6b422 },
-  { id: 'phoenix', name: 'Phoenix', tier: 'Legendary', value: 150000, k: 'bird', s: 1.4, c: 0xff6a1a, b: 0xf0c040, tc: 0xffd23a, plume: true, crest: 0xffd23a },
-  { id: 'unicorn', name: 'Unicorn Pony', tier: 'Legendary', value: 250000, k: 'quad', w: 0.6, h: 0.7, l: 1.3, leg: 0.7, neck: 0.4, ear: 0.15, c: 0xffffff, tc: 0xff7ac8,
+  { id: 'goose', name: 'Golden Goose', tier: 'Legendary', value: 35000, k: 'bird', s: 1.2, c: 0xffd24a, b: 0xf39c12, tc: 0xe6b422 },
+  { id: 'phoenix', name: 'Phoenix', tier: 'Legendary', value: 40000, k: 'bird', s: 1.4, c: 0xff6a1a, b: 0xf0c040, tc: 0xffd23a, plume: true, crest: 0xffd23a },
+  { id: 'unicorn', name: 'Unicorn Pony', tier: 'Legendary', value: 45000, k: 'quad', w: 0.6, h: 0.7, l: 1.3, leg: 0.7, neck: 0.4, ear: 0.15, c: 0xffffff, tc: 0xff7ac8,
     x: [[0.08, 0.45, 0.08, 0xffd700, 0, 2.0, 0.85], [0.1, 0.45, 0.15, 0xff7ac8, 0, 1.6, 0.5]] },
-  { id: 'dragon', name: 'Dragon', tier: 'Legendary', value: 500000, k: 'quad', w: 0.8, h: 0.8, l: 1.6, leg: 0.45, neck: 0.5, c: 0x2e9e4f, hc: 0x1f7a3a, sn: 0x1f7a3a,
+  { id: 'dragon', name: 'Dragon', tier: 'Legendary', value: 50000, k: 'quad', w: 0.8, h: 0.8, l: 1.6, leg: 0.45, neck: 0.5, c: 0x2e9e4f, hc: 0x1f7a3a, sn: 0x1f7a3a,
     x: [[0.9, 0.08, 0.7, 0x7a2a8a, -0.85, 1.5, -0.1], [0.9, 0.08, 0.7, 0x7a2a8a, 0.85, 1.5, -0.1], [0.07, 0.3, 0.07, 0xf3e9c7, -0.15, 2.18, 0.93], [0.07, 0.3, 0.07, 0xf3e9c7, 0.15, 2.18, 0.93],
       [0.2, 0.2, 0.9, 0x2e9e4f, 0, 0.7, -1.2], [0.1, 0.2, 0.1, 0xffd23a, 0, 1.35, 0.3], [0.1, 0.2, 0.1, 0xffd23a, 0, 1.35, -0.1], [0.1, 0.2, 0.1, 0xffd23a, 0, 1.35, -0.5]] },
 ];
 
 // The first START_PENS animals have pens from the start; each later pen is bought in order.
 export const START_PENS = 4;
-export const PEN_COSTS = [250, 450, 700, 1000, 1700, 2500, 3200, 4500, 6500, 9000, 13000, 30000, 45000, 70000, 100000, 150000, 300000, 450000, 600000, 800000];
+export const PEN_COSTS = [250, 450, 700, 1000, 1700, 2500, 3200, 4500, 6500, 9000, 13000, 30000, 45000, 60000, 75000, 90000, 105000, 120000, 135000, 150000];
 
 // costs[i] = price of level i+1. Effects live in systems/economy.js.
 export const UPGRADES = [
   { id: 'bag', name: 'Bigger Bag', desc: '+1 carry capacity', costs: [50, 250, 1500, 10000, 50000, 100000, 200000, 400000, 800000] },
-  { id: 'shoes', name: 'Running Shoes', desc: '+10% move speed', costs: [100, 600, 4000] },
+  { id: 'shoes', name: 'Running Shoes', desc: '+10% move speed (final level +5%)', costs: [100, 600, 4000, 15000] },
 ];
