@@ -138,7 +138,6 @@ export function makeSnowmobile() {
   for (const x of [-1.15, 1.15]) box(body, 0.1, 0.5, 3.6, 0x6b4a2b, x, 0.7, -2.3);  // sled sides
   box(body, 2.5, 0.5, 0.1, 0x6b4a2b, 0, 0.7, -4.1);        // sled back
   box(body, 2.5, 0.4, 0.1, 0x6b4a2b, 0, 0.65, -0.55);      // sled front
-  g.add(makeBlobShadow(4));
   g.scale.setScalar(1.15);
   return g;
 }
