@@ -44,7 +44,7 @@ function updateShopHint() {
 
 function renderShop() {
   const penCost = nextPenCost(save);
-  const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : ANIMALS[penCount(save)].name + ' in the woods'} · ${penCount(save)}/${ANIMALS.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
+  const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : ANIMALS[penCount(save)].name} · ${penCount(save)}/${ANIMALS.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
   shopList.innerHTML = penRow + UPGRADES.map((u) => {
     const lv = level(save, u.id), cost = nextCost(save, u.id);
     const action = cost === undefined ? '<span>MAX</span>'
