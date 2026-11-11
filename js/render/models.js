@@ -87,6 +87,46 @@ export function makeTruck() {
   return g;
 }
 
+// Larger open-sided safari jeep with a striped canopy.
+export function makeSafariTruck() {
+  const g = new THREE.Group();
+  const tan = 0xd8b878, dark = 0x9a7a40;
+  box(g, 2.0, 0.7, 4.6, tan, 0, 0.85, 0);               // chassis
+  box(g, 1.8, 0.6, 1.3, tan, 0, 1.45, 1.5);             // hood/cab
+  box(g, 1.8, 0.5, 0.1, 0x9fd4f0, 0, 1.95, 0.85);       // windshield
+  box(g, 1.7, 0.4, 2.2, dark, 0, 1.3, -1.0);            // bed walls
+  box(g, 2.0, 0.2, 0.2, 0x333333, 0, 0.6, 2.4);         // bumper
+  for (const [x, z] of [[-0.9, 0.8], [0.9, 0.8], [-0.9, -2.0], [0.9, -2.0]]) box(g, 0.12, 1.5, 0.12, 0x5a4a30, x, 1.95, z);   // roll cage
+  for (let i = 0; i < 4; i++) box(g, 2.2, 0.12, 0.7, i % 2 ? 0xf4efe4 : 0x2e7d4a, 0, 2.75, 0.5 - i * 0.7 - 0.35 + 0.35);   // striped canopy
+  const spare = new THREE.Mesh(wheelGeo, mat(0x222222));
+  spare.rotation.set(Math.PI / 2, 0, 0);
+  spare.position.set(0, 1.4, -2.45);
+  g.add(spare);
+  for (const [x, z] of [[-1.0, 1.4], [1.0, 1.4], [-1.0, -1.4], [1.0, -1.4]]) {
+    const w = new THREE.Mesh(wheelGeo, mat(0x222222));
+    w.position.set(x, 0.4, z);
+    w.scale.set(1, 1.2, 1.2);
+    g.add(w);
+  }
+  g.add(makeBlobShadow(3));
+  g.scale.setScalar(1.3);
+  return g;
+}
+
+export function makeAdobe() {
+  const g = new THREE.Group();
+  const wall = 0xd9b57a, trim = 0xc79a5c;
+  box(g, 6, 3.2, 5, wall, 0, 1.6, 0);
+  box(g, 6.4, 0.3, 5.4, trim, 0, 3.35, 0);
+  box(g, 2.2, 1.6, 2.2, wall, 2.2, 4.1, -1);            // tower
+  box(g, 2.5, 0.25, 2.5, trim, 2.2, 5.0, -1);
+  box(g, 1.7, 2.3, 0.14, 0x4a3220, 0, 1.15, 2.55);      // door
+  for (const x of [-2, 2]) box(g, 0.9, 0.9, 0.14, 0x4a3220, x, 2.0, 2.55);
+  box(g, 6.1, 0.14, 5.1, trim, 0, 0.07, 0);
+  g.add(makeBlobShadow(4.5));
+  return g;
+}
+
 export function makeBarn() {
   const g = new THREE.Group();
   const red = 0xb83a2e, white = 0xf4efe4, roof = 0x5a5a62;

@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { pixelRatio } from './quality.js';
 
-const SKY = 0x9fd4f0;
+const SKY = 0x9fd4f0, DESERT_SKY = 0xf3dcab;
 
 export function createRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -49,19 +49,23 @@ const grassTexture = () => grassTex || (grassTex = speckleTexture([102, 184, 77]
 let penTex = null;
 export const penFloorTexture = (size) => penTex || (penTex = speckleTexture([176, 138, 90], Math.round(size), 777));
 
-export function createScene() {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(SKY);
-  scene.fog = new THREE.Fog(SKY, 18, 62);
+let sandTex = null;
+const sandTexture = () => sandTex || (sandTex = speckleTexture([226, 190, 120], 16, 2468, 400 / 16));
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x5a7a3a, 1.0));
+export function createScene(desert = false) {
+  const scene = new THREE.Scene();
+  const sky = desert ? DESERT_SKY : SKY;
+  scene.background = new THREE.Color(sky);
+  scene.fog = new THREE.Fog(sky, 18, 62);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, desert ? 0xb89a5a : 0x5a7a3a, 1.0));
   const sun = new THREE.DirectionalLight(0xfff2d6, 1.6);
   sun.position.set(-20, 40, 15);
   scene.add(sun);
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2),
-    new THREE.MeshLambertMaterial({ map: grassTexture() })
+    new THREE.MeshLambertMaterial({ map: desert ? sandTexture() : grassTexture() })
   );
   scene.add(ground);
   return scene;

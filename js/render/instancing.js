@@ -52,3 +52,25 @@ export function createFlowers(scene, flowers) {
   heads.computeBoundingSphere();
   scene.add(stems, heads);
 }
+
+// items: [{ x, z, s, t: 'cactus' | 'rock' }] -> instanced speckled cacti (body + 2 arm parts) and rocks.
+let cactusMat = null, rockMat = null;
+export function createDesertProps(scene, items) {
+  const cacti = items.filter((i) => i.t === 'cactus'), rocks = items.filter((i) => i.t === 'rock');
+  const cm = (cactusMat ||= speckled([70, 140, 70], 4, 91, [1, 1]));
+  const parts = [
+    new THREE.CylinderGeometry(0.3, 0.35, 2.4, 6).translate(0, 1.2, 0),
+    new THREE.CylinderGeometry(0.2, 0.2, 0.9, 6).translate(0.55, 1.6, 0),
+    new THREE.CylinderGeometry(0.2, 0.2, 0.55, 6).rotateZ(Math.PI / 2).translate(0.3, 1.15, 0),
+  ].map((geo) => new THREE.InstancedMesh(geo, cm, Math.max(1, cacti.length)));
+  const rockMesh = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.8, 0).translate(0, 0.35, 0), (rockMat ||= speckled([170, 130, 95], 4, 77, [1, 1])), Math.max(1, rocks.length));
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  const place = (mesh, list, flat) => list.forEach((t, i) => {
+    q.setFromAxisAngle(up, t.x * 13.37);
+    m.compose(pos.set(t.x, 0, t.z), q, scl.set(t.s, t.s * (flat ? 0.7 : 1), t.s));
+    mesh.setMatrixAt(i, m);
+  });
+  parts.forEach((p) => place(p, cacti));
+  place(rockMesh, rocks, true);
+  for (const mesh of [...parts, rockMesh]) { mesh.count = mesh === rockMesh ? rocks.length : cacti.length; mesh.computeBoundingSphere(); scene.add(mesh); }
+}
