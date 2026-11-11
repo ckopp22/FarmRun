@@ -16,8 +16,8 @@ import { createParticles } from '../render/particles.js';
 import { sfx, setLoop, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
-import { capacity as capacityOf, speedMult, penCount } from '../systems/economy.js';
-import { ANIMALS } from '../data/animals.js';
+import { capacity as capacityOf, speedMult, penCount, safariPenCount } from '../systems/economy.js';
+import { ANIMALS, SAFARI_ANIMALS } from '../data/animals.js';
 
 const ANIMAL_EXTRA = 24;   // random spawns on top of one of every unlocked animal
 const RIVAL_COUNT = 10;
@@ -29,6 +29,7 @@ const ARM_DISTANCE = 8;       // must leave the truck area first, so spawning ne
 let input, grid, player, animals, followers, rivals, particles, footsteps, indicators, camera, ctxRef;
 const greatJob = document.getElementById('great-job');
 let swipeCd = 0;
+let desert = false, bodyHalf = 1.5;   // bodyHalf: half the truck's length along z
 let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -123,13 +124,13 @@ function steerTruck(dt) {
   const consider = (ox, oz, r) => {
     const dx = ox - px, dz = oz - pz, ahead = dx * fx + dz * fz;
     if (ahead < 0.5 || ahead > look) return;
-    const reach = r + TRUCK_HALF, side = dx * sx + dz * sz;
+    const reach = r + TRUCK_HALF * (desert ? 1.3 : 1), side = dx * sx + dz * sz;
     if (Math.abs(side) > reach) return;
     const w = (1 - ahead / look) * (0.4 + 0.6 * (1 - Math.abs(side) / reach));
     steer += (side === 0 ? (px >= ox ? 1 : -1) : -Math.sign(side)) * w;
   };
   grid.each(px + fx * look / 2, pz + fz * look / 2, look / 2 + 3, (x, z, r) => {
-    if (Math.hypot(x - leave.x0, z - leave.z0) < 3.5) return;   // the parked truck's own collision circles
+    if (Math.hypot(x - leave.x0, z - leave.z0) < (desert ? 4.6 : 3.5)) return;   // the parked truck's own collision circles
     consider(x, z, r);
   });
   for (const c of animals.list) consider(c.x, c.z, 0.5);
@@ -155,7 +156,7 @@ function dropMarks() {
 
 // Farmer and animals climb into the bed (back of the truck, -z side).
 function board(dt) {
-  const bx = truck.position.x, bz = truck.position.z - 1.2;
+  const bx = truck.position.x, bz = truck.position.z - (desert ? 1.6 : 1.2);
   const dx = bx - player.x, dz = bz - player.z;
   const d = Math.hypot(dx, dz);
   if (player.group.visible) {
@@ -207,14 +208,16 @@ export const woodsScreen = {
     capacity = capacityOf(fx);
     haul = [];
     armed = false;
-    scene = createScene();
+    desert = ctx.map === 'desert';
+    bodyHalf = desert ? 1.95 : 1.5;
+    scene = createScene(desert);
     scene.fog = null;
     camera = createChaseCamera(window.innerWidth / window.innerHeight);
     grid = createGrid();
     addDirt(scene, 0, 0, { radius: 7 });
-    truck = createTruck(scene, grid, 0, 0);
+    truck = createTruck(scene, grid, 0, 0, desert);
     leave = null;
-    buildForest(scene, grid, quality().trees * 3, 10);
+    buildForest(scene, grid, quality().trees * 3, 10, desert);
     buildFence(scene);
     const flowers = [];
     for (let n = 0; n < 600 && flowers.length < 150; n++) {   // sparse
@@ -222,10 +225,11 @@ export const woodsScreen = {
       if (Math.hypot(x, z) < 8 || grid.overlaps(x, z, 0.8)) continue;
       flowers.push({ x, z, s: 0.8 + Math.random() * 0.7, c: Math.floor(Math.random() * 5) });
     }
-    createFlowers(scene, flowers);
+    if (!desert) createFlowers(scene, flowers);
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
-    animals = createAnimals(scene, grid, ANIMAL_EXTRA + penCount(fx), player, ANIMALS.slice(0, penCount(fx)));
+    const pool = desert ? SAFARI_ANIMALS : ANIMALS, pens = desert ? safariPenCount(fx) : penCount(fx);
+    animals = createAnimals(scene, grid, ANIMAL_EXTRA + pens, player, pool.slice(0, pens));
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);
@@ -263,7 +267,7 @@ export const woodsScreen = {
 
     const d = Math.hypot(player.x, player.z);
     if (d > ARM_DISTANCE) armed = true;
-    else if (armed && Math.hypot(player.x, player.z - Math.max(-1.5, Math.min(1.5, player.z))) < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); }
+    else if (armed && Math.hypot(player.x, player.z - Math.max(-bodyHalf, Math.min(bodyHalf, player.z))) < DEPOSIT_RADIUS) { busted = true; bankHaul(); startLeave(); }
   },
 
   exit() {

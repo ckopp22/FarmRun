@@ -1,22 +1,23 @@
 import * as THREE from '../../lib/three.module.min.js';
-import { createTrees } from '../render/instancing.js';
+import { createTrees, createDesertProps } from '../render/instancing.js';
 
 export const WORLD_HALF = 100;    // trees are scattered within +/- this
 export const PLAYER_LIMIT = 92;  // farmer/chickens stay inside +/- this
 const TRUNK_RADIUS = 0.35;
 
 // Scatter trees, keeping a clearing around (0, 0) where the truck and farmer spawn.
-export function buildForest(scene, grid, count, clearRadius) {
+export function buildForest(scene, grid, count, clearRadius, desert = false) {
   const trees = [];
   while (trees.length < count) {
     const x = (Math.random() * 2 - 1) * WORLD_HALF;
     const z = (Math.random() * 2 - 1) * WORLD_HALF;
     if (x * x + z * z < clearRadius * clearRadius) continue;
     const s = 0.8 + Math.random() * 0.7;
-    trees.push({ x, z, s });
+    trees.push({ x, z, s, t: Math.random() < 0.3 ? 'rock' : 'cactus' });
     grid.add(x, z, TRUNK_RADIUS * s);
   }
-  createTrees(scene, trees);
+  if (desert) createDesertProps(scene, trees);
+  else createTrees(scene, trees);
 }
 
 // Wooden fence just outside PLAYER_LIMIT so the edge of the map is visible.
