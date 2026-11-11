@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
-import { animateFarmer } from '../render/models.js';
+import { animateFarmer, makeSeatedFarmer } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
 import { buildForest, buildFence, PLAYER_LIMIT } from '../game/map.js';
@@ -101,6 +101,7 @@ let marks, markCount, markX, markZ;
 
 function startDriving() {
   leave.boarding = false;
+  if (winter) truck.add(makeSeatedFarmer());
   leave.heading = 0;
   sfx('drive');
   markCount = 0;

@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, speckleTexture } from '../render/renderer.js';
-import { makeTruck, makeSafariTruck, makeSnowmobile } from '../render/models.js';
+import { makeTruck, makeSafariTruck, makeSnowmobile, makeSeatedFarmer } from '../render/models.js';
 import { createTrees, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { sfx } from '../systems/audio.js';
 
@@ -35,6 +35,7 @@ export const driveScreen = {
     road.position.set(0, 0.055, -110);
     scene.add(road);
     truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
+    if (winter) truck.add(makeSeatedFarmer());
     truck.rotation.y = Math.PI;
     scene.add(truck);
     const trees = [];

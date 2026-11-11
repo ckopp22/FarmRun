@@ -52,6 +52,18 @@ export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a) {
   return g;
 }
 
+// Farmer sitting on the snowmobile seat (add to the makeSnowmobile group), legs and arms forward.
+export function makeSeatedFarmer() {
+  const g = makeFarmer();
+  g.children.forEach((o) => { if (o.userData.shadow) o.visible = false; });
+  const [lL, lR, aL, aR] = g.userData.limbs;
+  lL.rotation.x = lR.rotation.x = -1.3;
+  aL.rotation.x = aR.rotation.x = -1.1;
+  g.scale.setScalar(0.6);
+  g.position.set(0, 0.8, 1.4);
+  return g;
+}
+
 // Run cycle: opposite legs/arms swing, body bobs. amount 0..1 eases back to idle.
 export function animateFarmer(g, time, amount) {
   const [lL, lR, aL, aR] = g.userData.limbs;
