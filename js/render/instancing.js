@@ -54,6 +54,28 @@ export function createFlowers(scene, flowers) {
 }
 
 // items: [{ x, z, s, t: 'cactus' | 'rock' }] -> instanced speckled cacti (body + 2 arm parts) and rocks.
+// items: [{ x, z, s, t: 'pine' | 'rock' }] -> snowy pines (trunk, body, snow cap) and frosty rocks.
+let pineMat = null, snowCapMat = null, iceRockMat = null;
+export function createWinterProps(scene, items) {
+  const pines = items.filter((i) => i.t === 'pine'), rocks = items.filter((i) => i.t === 'rock');
+  const n = Math.max(1, pines.length);
+  const meshes = [
+    new THREE.InstancedMesh(new THREE.CylinderGeometry(0.22, 0.3, 1.2, 6).translate(0, 0.6, 0), (trunkMat ||= speckled([107, 74, 43], 2, 31, [1, 1])), n),
+    new THREE.InstancedMesh(new THREE.ConeGeometry(1.5, 3.8, 7).translate(0, 3.0, 0), (pineMat ||= speckled([34, 94, 62], 6, 63, [2, 1])), n),
+    new THREE.InstancedMesh(new THREE.ConeGeometry(0.95, 1.5, 7).translate(0, 4.5, 0), (snowCapMat ||= speckled([245, 249, 252], 3, 17, [1, 1])), n),
+  ];
+  const rockMesh = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.8, 0).translate(0, 0.35, 0), (iceRockMat ||= speckled([185, 200, 215], 4, 29, [1, 1])), Math.max(1, rocks.length));
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  const place = (mesh, list, flat) => list.forEach((t, i) => {
+    q.setFromAxisAngle(up, t.x * 13.37);
+    m.compose(pos.set(t.x, 0, t.z), q, scl.set(t.s, t.s * (flat ? 0.7 : 1), t.s));
+    mesh.setMatrixAt(i, m);
+  });
+  meshes.forEach((p) => place(p, pines));
+  place(rockMesh, rocks, true);
+  for (const mesh of [...meshes, rockMesh]) { mesh.count = mesh === rockMesh ? rocks.length : pines.length; mesh.computeBoundingSphere(); scene.add(mesh); }
+}
+
 let cactusMat = null, rockMat = null;
 export function createDesertProps(scene, items) {
   const cacti = items.filter((i) => i.t === 'cactus'), rocks = items.filter((i) => i.t === 'rock');

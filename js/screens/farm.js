@@ -1,9 +1,9 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { animateFarmer, makeBarn, makeAdobe, makeFarmer, makeTruck, makeSafariTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
-import { createTrees, createFlowers, createDesertProps } from '../render/instancing.js';
-import { ANIMALS, SAFARI_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
-import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen } from '../systems/economy.js';
+import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
+import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
+import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
@@ -37,13 +37,13 @@ const shopList = document.getElementById('shop-list');
 
 const soundEl = document.getElementById('sound');
 function updateShopHint() {
-  const pen = desert ? nextSafariPenCost(save) : nextPenCost(save);
+  const pen = nextMapPenCost();
   const can = (pen !== undefined && save.money >= pen) || UPGRADES.some((u) => { const c = nextCost(save, u.id); return c !== undefined && save.money >= c; });
   soundEl.classList.toggle('can-buy', can);
 }
 
 function renderShop() {
-  const penCost = desert ? nextSafariPenCost(save) : nextPenCost(save), list = mapAnimals(), pc = desert ? safariPenCount(save) : penCount(save);
+  const penCost = nextMapPenCost(), list = mapAnimals(), pc = mapPenCount();
   const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : list[pc].name} · ${pc}/${list.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
   const desertRow = desertAvailable(save) ? `<div class="shop-row"><div><div class="sn">Desert Map</div><div class="sd">A new safari farm with 24 new animals</div></div><button data-id="desert" ${save.money < DESERT_COST ? 'disabled' : ''}>$${DESERT_COST.toLocaleString()}</button></div>` : '';
   const winterRow = winterAvailable(save) ? `<div class="shop-row"><div><div class="sn">Winter Wonderland</div><div class="sd">A snowy farm with 24 cold-weather animals</div></div><button data-id="winter" ${save.money < WINTER_COST ? 'disabled' : ''}>$${WINTER_COST.toLocaleString()}</button></div>` : '';
@@ -58,7 +58,7 @@ function renderShop() {
 shopList.addEventListener('click', (ev) => {
   const id = ev.target.dataset && ev.target.dataset.id;
   if (id === 'pen') {
-    if (!(desert ? buySafariPen(save) : buyPen(save))) return;
+    if (!(winter ? buyWinterPen(save) : desert ? buySafariPen(save) : buyPen(save))) return;
     sfx('cash');
     closeShop();
     ctxRef.go('farm');
@@ -81,7 +81,7 @@ shopList.addEventListener('click', (ev) => {
 });
 
 let camera, canvas, scene, ctxRef, save, confetti, particles;
-let desert = false;   // which map is showing
+let desert = false, winter = false;   // which map is showing (both false = the farm)
 let farmer, swipe = null, arrive = null;   // swipe: farmer running off to the other map; arrive: farmer running in
 const SWIPE_PX = 70, RUN_SPEED = 9;
 const fadeEl = document.createElement('div');
@@ -97,7 +97,9 @@ function startSwipe(dir) {
   tapSound();
 }
 mapBtn.addEventListener('click', () => startSwipe(desert ? -1 : 1));
-const mapAnimals = () => desert ? SAFARI_ANIMALS : ANIMALS;
+const mapAnimals = () => winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS;
+const mapPenCount = () => winter ? winterPenCount(save) : desert ? safariPenCount(save) : penCount(save);
+const nextMapPenCost = () => winter ? nextWinterPenCost(save) : desert ? nextSafariPenCost(save) : nextPenCost(save);
 let panZ, time, entries;   // entries: { a, group, x, z, owned, ph, reveal } (reveal = seconds until the color unlock, -1 = none)
 const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
@@ -291,7 +293,7 @@ function addFarmDecor(scene, complete, trees, total = ANIMALS.length) {
     if (trees.some((t) => Math.hypot(x - t.x, z - t.z) < 1.6)) continue;
     flowers.push({ x, z, s: 0.8 + rnd() * 0.7, c: Math.floor(rnd() * 5) });
   }
-  if (!desert) createFlowers(scene, flowers);
+  if (!desert && !winter) createFlowers(scene, flowers);
 }
 
 export const farmScreen = {
@@ -299,11 +301,12 @@ export const farmScreen = {
     ctxRef = ctx;
     canvas = ctx.renderer.domElement;
     save = activeSave() || { money: 0, owned: {}, discovered: {} };
+    winter = ctx.map === 'winter' || location.hash === '#winter';   // TODO phase 3: swipe sets ctx.map; drop the hash
     desert = ctx.map === 'desert';
-    scene = createScene(desert);
+    scene = createScene(winter ? 'winter' : desert);
     scene.fog = null;
 
-    const barn = desert ? makeAdobe() : makeBarn();
+    const barn = winter ? makeIgloo() : desert ? makeAdobe() : makeBarn();
     barn.position.set(0, 0, -1);
     scene.add(barn);
     farmer = makeFarmer();
@@ -311,7 +314,7 @@ export const farmScreen = {
     scene.add(farmer);
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
     addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
-    const truck = desert ? makeSafariTruck() : makeTruck();
+    const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
     const trackMat = new THREE.MeshBasicMaterial({ color: 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
@@ -328,12 +331,13 @@ export const farmScreen = {
       { x: -10, z: 42, s: 1 }, { x: 10, z: 46, s: 1.1 }, { x: -9, z: 52, s: 1.2 }, { x: 9, z: 57, s: 1 },
       { x: -10, z: 63, s: 1.1 }, { x: 10, z: 68, s: 1.2 }, { x: -9, z: 73, s: 1 },
     ];
-    if (desert) createDesertProps(scene, farmTrees.map((t, i) => ({ x: t.x, z: t.z, s: t.s, t: i % 3 === 2 ? 'rock' : 'cactus' })));
+    if (winter) createWinterProps(scene, farmTrees.map((t, i) => ({ x: t.x, z: t.z, s: t.s, t: i % 3 === 2 ? 'rock' : 'pine' })));
+    else if (desert) createDesertProps(scene, farmTrees.map((t, i) => ({ x: t.x, z: t.z, s: t.s, t: i % 3 === 2 ? 'rock' : 'cactus' })));
     else createTrees(scene, farmTrees);
 
     const list = mapAnimals();
-    const shown = list.slice(0, desert ? safariPenCount(save) : penCount(save));
-    addFarmDecor(scene, shown.length >= list.length, desert ? [] : farmTrees, list.length);
+    const shown = list.slice(0, mapPenCount());
+    addFarmDecor(scene, shown.length >= list.length, desert || winter ? [] : farmTrees, list.length);
     PAN_MAX = Math.max(PAN_MIN, PEN_Z0 + (Math.ceil(shown.length / 2) - 1) * PEN_DZ - 4);
     const pens = shown.map((_, i) => ({ x: (i % 2 ? 1 : -1) * PEN_X, z: PEN_Z0 + Math.floor(i / 2) * PEN_DZ }));
     makeFence(scene, pens, PEN);

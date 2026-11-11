@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { pixelRatio } from './quality.js';
 
-const SKY = 0x9fd4f0, DESERT_SKY = 0xf3dcab;
+const SKY = 0x9fd4f0, DESERT_SKY = 0xf3dcab, WINTER_SKY = 0xdbe8f2;
 
 export function createRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -52,20 +52,25 @@ export const penFloorTexture = (size) => penTex || (penTex = speckleTexture([176
 let sandTex = null;
 const sandTexture = () => sandTex || (sandTex = speckleTexture([226, 190, 120], 16, 2468, 400 / 16));
 
-export function createScene(desert = false) {
+let snowTex = null;
+const snowTexture = () => snowTex || (snowTex = speckleTexture([238, 243, 250], 16, 1357, 400 / 16));
+
+// theme: false/'farm', true/'desert' or 'winter'
+export function createScene(theme = false) {
+  const winter = theme === 'winter', desert = theme === true || theme === 'desert';
   const scene = new THREE.Scene();
-  const sky = desert ? DESERT_SKY : SKY;
+  const sky = winter ? WINTER_SKY : desert ? DESERT_SKY : SKY;
   scene.background = new THREE.Color(sky);
   scene.fog = new THREE.Fog(sky, 18, 62);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, desert ? 0xb89a5a : 0x5a7a3a, 1.0));
+  scene.add(new THREE.HemisphereLight(0xffffff, winter ? 0x9fb4cc : desert ? 0xb89a5a : 0x5a7a3a, 1.0));
   const sun = new THREE.DirectionalLight(0xfff2d6, 1.6);
   sun.position.set(-20, 40, 15);
   scene.add(sun);
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2),
-    new THREE.MeshLambertMaterial({ map: desert ? sandTexture() : grassTexture() })
+    new THREE.MeshLambertMaterial({ map: winter ? snowTexture() : desert ? sandTexture() : grassTexture() })
   );
   scene.add(ground);
   return scene;
