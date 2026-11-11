@@ -20,7 +20,7 @@ function write(key, value) {
 }
 
 export function newSave() {
-  return { v: VERSION, money: 0, owned: {}, discovered: {}, upgrades: {}, pens: 0, desert: false, pens2: 0, runs: 0, playTime: 0, lastPlayed: Date.now() };
+  return { v: VERSION, money: 0, owned: {}, discovered: {}, upgrades: {}, pens: 0, desert: false, pens2: 0, winter: false, pens3: 0, runs: 0, playTime: 0, lastPlayed: Date.now() };
 }
 
 export function loadSlot(n) {

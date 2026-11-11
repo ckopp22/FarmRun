@@ -2,8 +2,8 @@ import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
 import { animateFarmer, makeBarn, makeAdobe, makeFarmer, makeTruck, makeSafariTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps } from '../render/instancing.js';
-import { ANIMALS, SAFARI_ANIMALS, UPGRADES, DESERT_COST } from '../data/animals.js';
-import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, safariPenCount, nextSafariPenCost, buySafariPen } from '../systems/economy.js';
+import { ANIMALS, SAFARI_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
+import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
@@ -46,7 +46,8 @@ function renderShop() {
   const penCost = desert ? nextSafariPenCost(save) : nextPenCost(save), list = mapAnimals(), pc = desert ? safariPenCount(save) : penCount(save);
   const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : list[pc].name} · ${pc}/${list.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
   const desertRow = desertAvailable(save) ? `<div class="shop-row"><div><div class="sn">Desert Map</div><div class="sd">A new safari farm with 24 new animals</div></div><button data-id="desert" ${save.money < DESERT_COST ? 'disabled' : ''}>$${DESERT_COST.toLocaleString()}</button></div>` : '';
-  shopList.innerHTML = desertRow + penRow + UPGRADES.map((u) => {
+  const winterRow = winterAvailable(save) ? `<div class="shop-row"><div><div class="sn">Winter Wonderland</div><div class="sd">A snowy farm with 24 cold-weather animals</div></div><button data-id="winter" ${save.money < WINTER_COST ? 'disabled' : ''}>$${WINTER_COST.toLocaleString()}</button></div>` : '';
+  shopList.innerHTML = winterRow + desertRow + penRow + UPGRADES.map((u) => {
     const lv = level(save, u.id), cost = nextCost(save, u.id);
     const action = cost === undefined ? '<span>MAX</span>'
       : `<button data-id="${u.id}" ${save.money < cost ? 'disabled' : ''}>$${cost.toLocaleString()}</button>`;
@@ -63,8 +64,8 @@ shopList.addEventListener('click', (ev) => {
     ctxRef.go('farm');
     return;
   }
-  if (id === 'desert') {
-    if (!buyDesert(save)) return;
+  if (id === 'desert' || id === 'winter') {
+    if (!(id === 'desert' ? buyDesert(save) : buyWinter(save))) return;
     sfx('cash');
     moneyEl.textContent = '$' + save.money.toLocaleString();
     updateShopHint();
