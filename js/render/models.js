@@ -201,16 +201,18 @@ function makeQuad(a) {
 
 function makeBird(a) {
   const g = new THREE.Group();
-  box(g, 0.5, 0.4, 0.65, a.c, 0, 0.45, 0);
-  if (a.plume) box(g, 0.7, 0.8, 0.1, a.tc, 0, 0.85, -0.45);
-  else box(g, 0.3, 0.1, 0.25, a.tc, 0, 0.7, -0.38);
-  box(g, 0.26, 0.3, 0.26, a.c, 0, 0.8, 0.3);
-  box(g, 0.12, 0.08, 0.15, a.b, 0, 0.78, 0.5);
-  if (a.crest) box(g, 0.08, 0.1, 0.16, a.crest, 0, 0.99, 0.3);
+  const L = a.leg || 0, N = a.neck || 0;   // extra leg and neck length (flamingo, ostrich)
+  box(g, 0.5, 0.4, 0.65, a.c, 0, 0.45 + L, 0);
+  if (a.plume) box(g, 0.7, 0.8, 0.1, a.tc, 0, 0.85 + L, -0.45);
+  else box(g, 0.3, 0.1, 0.25, a.tc, 0, 0.7 + L, -0.38);
+  if (N) box(g, 0.1, N + 0.15, 0.1, a.c, 0, 0.65 + L + N / 2, 0.3);
+  box(g, 0.26, 0.3, 0.26, a.c, 0, 0.8 + L + N, 0.3);
+  box(g, 0.12, 0.08, 0.15, a.b, 0, 0.78 + L + N, 0.5);
+  if (a.crest) box(g, 0.08, 0.1, 0.16, a.crest, 0, 0.99 + L + N, 0.3);
   g.userData.legs = [-1, 1].map((side) => {
     const pivot = new THREE.Group();
-    pivot.position.set(side * 0.12, 0.26, 0);
-    box(pivot, 0.06, 0.25, 0.06, a.b, 0, -0.13, 0);
+    pivot.position.set(side * 0.12, 0.26 + L, 0);
+    box(pivot, L ? 0.04 : 0.06, 0.25 + L, L ? 0.04 : 0.06, a.legc || a.b, 0, -(0.25 + L) / 2 - 0.005, 0);
     g.add(pivot);
     return [pivot, side];
   });
