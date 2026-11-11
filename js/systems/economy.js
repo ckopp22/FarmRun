@@ -1,4 +1,4 @@
-import { UPGRADES, ANIMALS, START_PENS, PEN_COSTS } from '../data/animals.js';
+import { UPGRADES, ANIMALS, START_PENS, PEN_COSTS, DESERT_COST, SAFARI_ANIMALS, SAFARI_PEN_COSTS } from '../data/animals.js';
 import { saveActive } from './save.js';
 
 const BASE_CAPACITY = 3;
@@ -30,6 +30,29 @@ export function buyPen(save) {
   if (cost === undefined || save.money < cost) return false;
   save.money -= cost;
   save.pens = (save.pens || 0) + 1;
+  saveActive();
+  return true;
+}
+
+// Desert map: offered once every farm animal is discovered.
+export const desertAvailable = (save) => !save.desert && ANIMALS.every((a) => save.discovered[a.id]);
+
+export function buyDesert(save) {
+  if (!desertAvailable(save) || save.money < DESERT_COST) return false;
+  save.money -= DESERT_COST;
+  save.desert = true;
+  saveActive();
+  return true;
+}
+
+export const safariPenCount = (save) => Math.min(SAFARI_ANIMALS.length, START_PENS + (save.pens2 || 0));
+export const nextSafariPenCost = (save) => SAFARI_PEN_COSTS[save.pens2 || 0];
+
+export function buySafariPen(save) {
+  const cost = nextSafariPenCost(save);
+  if (!save.desert || cost === undefined || save.money < cost) return false;
+  save.money -= cost;
+  save.pens2 = (save.pens2 || 0) + 1;
   saveActive();
   return true;
 }

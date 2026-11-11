@@ -2,8 +2,8 @@ import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
 import { makeBarn, makeFarmer, makeTruck, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers } from '../render/instancing.js';
-import { ANIMALS, UPGRADES } from '../data/animals.js';
-import { level, nextCost, buy, penCount, nextPenCost, buyPen } from '../systems/economy.js';
+import { ANIMALS, UPGRADES, DESERT_COST } from '../data/animals.js';
+import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
@@ -45,7 +45,8 @@ function updateShopHint() {
 function renderShop() {
   const penCost = nextPenCost(save);
   const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : ANIMALS[penCount(save)].name} · ${penCount(save)}/${ANIMALS.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
-  shopList.innerHTML = penRow + UPGRADES.map((u) => {
+  const desertRow = desertAvailable(save) ? `<div class="shop-row"><div><div class="sn">Desert Map</div><div class="sd">A new safari farm with 24 new animals</div></div><button data-id="desert" ${save.money < DESERT_COST ? 'disabled' : ''}>$${DESERT_COST.toLocaleString()}</button></div>` : '';
+  shopList.innerHTML = desertRow + penRow + UPGRADES.map((u) => {
     const lv = level(save, u.id), cost = nextCost(save, u.id);
     const action = cost === undefined ? '<span>MAX</span>'
       : `<button data-id="${u.id}" ${save.money < cost ? 'disabled' : ''}>$${cost.toLocaleString()}</button>`;
@@ -60,6 +61,14 @@ shopList.addEventListener('click', (ev) => {
     sfx('cash');
     closeShop();
     ctxRef.go('farm');
+    return;
+  }
+  if (id === 'desert') {
+    if (!buyDesert(save)) return;
+    sfx('cash');
+    moneyEl.textContent = '$' + save.money.toLocaleString();
+    updateShopHint();
+    renderShop();
     return;
   }
   if (id && buy(save, id)) {
