@@ -18,6 +18,8 @@ function box(parent, w, h, d, color, x, y, z) {
   return m;
 }
 
+export const setShadowOpacity = (o) => { shadowMat.opacity = o; };   // shared by every blob shadow
+
 export function makeBlobShadow(radius) {
   const m = new THREE.Mesh(shadowGeo, shadowMat);
   m.scale.set(radius, 1, radius);

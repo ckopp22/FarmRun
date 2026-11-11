@@ -88,7 +88,7 @@ const fadeEl = document.createElement('div');
 fadeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;z-index:5';
 document.body.appendChild(fadeEl);
 const MAPS = ['farm', 'desert', 'winter'];   // left to right
-const MAP_SKY = { farm: '#9fd4f0', desert: '#f3dcab', winter: '#dbe8f2' };
+const MAP_SKY = { farm: '#9fd4f0', desert: '#f3dcab', winter: '#c8d8ea' };
 const mapUnlocked = (m) => m === 'farm' || (m === 'desert' && save.desert) || (m === 'winter' && save.winter);
 const curMap = () => winter ? 'winter' : desert ? 'desert' : 'farm';
 const mapBtns = [-1, 1].map((dir) => {

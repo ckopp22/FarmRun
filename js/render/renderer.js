@@ -1,7 +1,8 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { pixelRatio } from './quality.js';
+import { setShadowOpacity } from './models.js';
 
-const SKY = 0x9fd4f0, DESERT_SKY = 0xf3dcab, WINTER_SKY = 0xdbe8f2;
+const SKY = 0x9fd4f0, DESERT_SKY = 0xf3dcab, WINTER_SKY = 0xc8d8ea;
 
 export function createRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -53,11 +54,12 @@ let sandTex = null;
 const sandTexture = () => sandTex || (sandTex = speckleTexture([226, 190, 120], 16, 2468, 400 / 16));
 
 let snowTex = null;
-const snowTexture = () => snowTex || (snowTex = speckleTexture([238, 243, 250], 16, 1357, 400 / 16));
+const snowTexture = () => snowTex || (snowTex = speckleTexture([198, 213, 231], 16, 1357, 400 / 16));
 
 // theme: false/'farm', true/'desert' or 'winter'
 export function createScene(theme = false) {
   const winter = theme === 'winter', desert = theme === true || theme === 'desert';
+  setShadowOpacity(winter ? 0.5 : 0.28);   // darker shadows help animals stand out on snow
   const scene = new THREE.Scene();
   const sky = winter ? WINTER_SKY : desert ? DESERT_SKY : SKY;
   scene.background = new THREE.Color(sky);
