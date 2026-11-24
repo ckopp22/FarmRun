@@ -500,7 +500,7 @@ button { touch-action: manipulation; }
   position: relative;
   filter: grayscale(1); opacity: 0.35;
 }
-#presents i::before, #presents i::after { content: ''; position: absolute; top: -6px; width: 11px; height: 8px; border-radius: 50%; background: #2ecc40; }
+#presents i::before, #presents i::after { content: ''; position: absolute; top: -4px; width: 8px; height: 6px; border-radius: 50%; background: #2ecc40; }
 #presents i::before { left: 1px; transform: rotate(-25deg); }
 #presents i::after { right: 1px; transform: rotate(25deg); }
 #presents i.got { filter: none; opacity: 1; }

@@ -154,7 +154,7 @@ export const menuScreen = {
         r.lx = p.x; r.lz = p.z; r.sk = 0;
       }
       if (r.un > 0) { r.un -= dt; const c = Math.cos(1.5 * r.us), sn = Math.sin(1.5 * r.us); [dx, dz] = [dx * c - dz * sn, dx * sn + dz * c]; }
-      const sp = r.it ? 2.1 : (r.buddy.tag > 3.5 ? 0.4 : 1.5);
+      const sp = r.it ? 1.4 : (r.buddy.tag > 3.5 ? 0.3 : 1.0);
       [dx, dz] = steer(p, dx, dz);
       const want = Math.atan2(dx, dz);
       if (r.h === undefined) r.h = want;
@@ -163,8 +163,8 @@ export const menuScreen = {
       p.z += Math.cos(r.h) * sp * dt;
       collide(p, p);
       r.group.rotation.y = r.h;
-      p.y = Math.abs(Math.sin(clock * 9 + r.ph)) * 0.12;
-      animateAnimal(r.group, clock * 0.8 + r.ph, 1);
+      p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.1;
+      animateAnimal(r.group, clock * 0.55 + r.ph, 1);
     }
     angle += dt * 0.12;
     const z = window.innerHeight > window.innerWidth ? 1.6 : 1.25;
