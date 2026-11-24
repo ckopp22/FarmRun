@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
-import { animateFarmer, makeSeatedFarmer, makeSanta, animateSanta, makeReindeer, makePresent } from '../render/models.js';
+import { animateFarmer, makeSeatedFarmer, makeSanta, animateSanta, makeReindeer, animateReindeer, makePresent } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
 import { buildForest, buildFence, PLAYER_LIMIT } from '../game/map.js';
@@ -196,6 +196,13 @@ function updateSanta(dt) {
   } else {
     if (s.group.parent !== s.deer) { s.deer.add(s.group); s.group.position.set(0, 1.3, -0.1); s.group.rotation.set(0, 0, 0); s.group.scale.setScalar(1); }
     const f = t - 1.6;
+    animateReindeer(s.deer, s.t);
+    s.trail = (s.trail || 0) - dt;
+    if (s.trail <= 0) {   // sparkles and snow stream behind the flying reindeer
+      s.trail = 0.03;
+      const dp = s.deer.position;
+      particles.burst(dp.x - 0.3 + (Math.random() - 0.5) * 0.8, dp.y + 0.8 + Math.random() * 0.8, dp.z + (Math.random() - 0.5) * 0.8, Math.random() < 0.5 ? 0xffffff : 0xffe066, 2, 1.5);
+    }
     s.deer.position.x += f * 2.5 * dt * 2;
     s.deer.position.y += f * f * 1.5 * dt;
     s.deer.position.z -= f * dt * 3;

@@ -141,6 +141,12 @@ export function animateSanta(santa, t, amount) {
   al.rotation.z = 0.15; ar.rotation.z = -0.15;
 }
 
+// Gallop: front and back legs swing in opposite pairs.
+export function animateReindeer(g, t) {
+  const s = Math.sin(t * 14) * 0.9;
+  g.userData.legs.forEach((l, i) => { l.rotation.x = (i < 2 ? s : -s) * (i % 2 ? -1 : 1) * -1; });
+}
+
 export function makePresent(size = 0.4) {
   const g = new THREE.Group();
   box(g, size, size, size, 0xd62d20, 0, size / 2, 0);
@@ -166,7 +172,13 @@ export function makeReindeer() {
   box(g, 0.14, 0.14, 0.14, 0xff2020, 0, 1.8, 1.24);    // red nose
   box(g, 0.05, 0.5, 0.05, 0xd8c8a0, -0.15, 2.2, 0.9).rotation.z = 0.4;   // antlers
   box(g, 0.05, 0.5, 0.05, 0xd8c8a0, 0.15, 2.2, 0.9).rotation.z = -0.4;
-  for (const [x, z] of [[-0.2, 0.5], [0.2, 0.5], [-0.2, -0.5], [0.2, -0.5]]) box(g, 0.14, 0.7, 0.14, 0x5e3b20, x, 0.35, z);
+  g.userData.legs = [[-0.2, 0.5], [0.2, 0.5], [-0.2, -0.5], [0.2, -0.5]].map(([x, z]) => {   // hip pivots so the legs can gallop
+    const pv = new THREE.Group();
+    pv.position.set(x, 0.7, z);
+    box(pv, 0.14, 0.7, 0.14, 0x5e3b20, 0, -0.35, 0);
+    g.add(pv);
+    return pv;
+  });
   box(g, 0.2, 0.2, 0.2, 0xffffff, 0, 1.15, -0.72);     // tail
   return g;
 }
