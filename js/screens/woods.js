@@ -293,7 +293,7 @@ export const woodsScreen = {
       flowers.push({ x, z, s: 0.8 + Math.random() * 0.7, c: Math.floor(Math.random() * 5) });
     }
     if (!desert && !winter) createFlowers(scene, flowers);
-    player = createPlayer(scene, 3.5, 3);
+    player = createPlayer(scene, 3.5, 3, save && save.shirt);
     player.speedMult = speedMult(fx);
     const pool = winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS, pens = winter ? winterPenCount(fx) : desert ? safariPenCount(fx) : penCount(fx);
     santaRun = !!ctx.santaRun && !desert && !winter;

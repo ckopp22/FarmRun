@@ -7,7 +7,7 @@ import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, b
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
-import { isHoliday } from '../systems/holiday.js';
+import { claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 42 * Math.PI / 180, DIST = 24;
@@ -18,6 +18,42 @@ let PAN_MAX = PAN_MIN;
 
 const ui = document.getElementById('farm-ui');
 const moneyEl = document.getElementById('money');
+const presentsEl = document.getElementById('presents');
+const unwrapEl = document.getElementById('unwrap'), unwrapBox = document.getElementById('unwrap-box'), unwrapText = document.getElementById('unwrap-text');
+function paintPresents() {
+  const save = activeSave(), on = isHoliday() && save;
+  presentsEl.style.display = on ? '' : 'none';
+  if (!on) return;
+  const n = presentsToday(save);
+  [...presentsEl.children].forEach((el, i) => el.classList.toggle('got', i < n));
+  presentsEl.classList.toggle('ready', n >= PRESENT_GOAL && !claimedToday(save));
+}
+let unwrapped = false;
+presentsEl.addEventListener('click', () => {
+  if (!presentsEl.classList.contains('ready')) return;
+  tapSound();
+  unwrapped = false;
+  unwrapBox.classList.remove('open');
+  unwrapText.textContent = 'Unwrap';
+  unwrapEl.style.display = '';
+});
+unwrapEl.addEventListener('click', () => {
+  const save = activeSave();
+  if (!unwrapped) {
+    unwrapped = true;
+    const prize = claimPrize(save, penCount(save) < ANIMALS.length);
+    saveActive();
+    unwrapBox.classList.add('open');
+    unwrapText.innerHTML = `You got<br>${prize.text}`;
+    if (prize.color) unwrapText.style.color = prize.color;
+    moneyEl.textContent = '$' + save.money.toLocaleString();
+    sfx('cash');
+  } else {
+    unwrapEl.style.display = 'none';
+    unwrapText.style.color = '';
+    ctxRef.go('farm');
+  }
+});
 const popEl = document.getElementById('animal-pop');
 const shopEl = document.getElementById('shop-panel');
 const winEl = document.getElementById('win');
@@ -341,7 +377,7 @@ export const farmScreen = {
     const barn = winter ? makeIgloo() : desert ? makeAdobe() : makeBarn();
     barn.position.set(0, 0, -1);
     scene.add(barn);
-    farmer = makeFarmer();
+    farmer = makeFarmer(save.shirt);
     farmer.position.set(0, 0, 4.5);
     scene.add(farmer);
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
@@ -421,6 +457,7 @@ export const farmScreen = {
       b.classList.toggle('map-buy', !!buy && save.money >= buyCost());
     });
     time = 0;
+    paintPresents();
     moneyEl.textContent = '$' + save.money.toLocaleString();
     updateShopHint();
     showPop(null);
