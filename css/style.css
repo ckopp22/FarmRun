@@ -490,9 +490,13 @@ button { touch-action: manipulation; }
   top: calc(env(safe-area-inset-top) + 70px);
   display: flex;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 16px 18px 12px;   /* generous, steady tap area around the bouncing presents */
+  margin: -10px -8px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 #presents i {
+  pointer-events: none;
   width: 24px; height: 24px; border-radius: 4px;
   background: linear-gradient(90deg, transparent 40%, #f1c40f 40% 60%, transparent 60%), linear-gradient(0deg, transparent 40%, #f1c40f 40% 60%, transparent 60%), #d62d20;
   position: relative;
