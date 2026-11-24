@@ -518,7 +518,14 @@ button { touch-action: manipulation; }
 #unwrap-box { position: relative; width: 150px; height: 150px; cursor: pointer; animation: present-pop 1.1s ease-in-out infinite; }
 #unwrap-box .base, #unwrap-box .lid {
   position: absolute; left: 0; right: 0;
-  background: linear-gradient(90deg, transparent 42%, #d62d20 42% 58%, transparent 58%), #2e9e4a;
+  background: linear-gradient(90deg, transparent 42%, #f1c40f 42% 58%, transparent 58%), #d62d20;
+}
+#unwrap-box .lid::before {   /* green bow, rides off with the lid */
+  content: ''; position: absolute; left: 50%; top: -44px; width: 110px; height: 56px; transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 50% 62%, #1e8e2e 0 13px, transparent 14px),
+    radial-gradient(circle at 24% 55%, transparent 0 8px, #2ecc40 9px 21px, transparent 22px),
+    radial-gradient(circle at 76% 55%, transparent 0 8px, #2ecc40 9px 21px, transparent 22px);
 }
 #unwrap-box .base { top: 40px; bottom: 0; border-radius: 0 0 8px 8px; }
 #unwrap-box .lid { top: 0; height: 44px; left: -8px; right: -8px; border-radius: 8px; transition: transform 0.6s ease-in, opacity 0.6s; }
