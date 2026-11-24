@@ -106,8 +106,13 @@ function spawnSanta() {
   const group = makeSanta();
   group.scale.setScalar(1.5);
   group.position.set(x, 0, z);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(72), 3));
+  const flakes = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.22, transparent: true, depthWrite: false }));
+  flakes.frustumCulled = false;
+  group.add(flakes);
   scene.add(group);
-  santa = { group, x, z, tx: x, tz: z, wait: 0, heading: 0, phase: 'idle', t: 0, deer: null };
+  santa = { flakes, fph: Array.from({ length: 24 }, Math.random), fang: Array.from({ length: 24 }, () => Math.random() * 6.28), fr: Array.from({ length: 24 }, () => 0.5 + Math.random() * 0.7), group, x, z, tx: x, tz: z, wait: 0, heading: 0, phase: 'idle', t: 0, deer: null };
 }
 
 // Santa wanders the woods like an Epic animal: strolls to random spots, then sprints away when the player gets close.
@@ -146,7 +151,12 @@ function runSanta(dt) {
   s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.t * 14)) * 0.12 : 0, s.z);
   animateSanta(s.group, s.t, moving ? 1 : 0);
   s.group.rotation.y = moving ? s.heading : Math.atan2(player.x - s.x, player.z - s.z);
-  s.snow = (s.snow || 0) - dt;
+  const a = s.flakes.geometry.attributes.position;
+  for (let k = 0; k < 24; k++) {   // snowflakes swirl down around him
+    const fall = (s.t * 0.5 + s.fph[k]) % 1, ang = s.fang[k] + s.t * 0.8;
+    a.setXYZ(k, Math.cos(ang) * s.fr[k], 1.9 - fall * 2.0, Math.sin(ang) * s.fr[k]);
+  }
+  a.needsUpdate = true;
   if (moving && s.snow <= 0) { s.snow = 0.05; particles.burst(s.x - Math.sin(s.heading) * 0.3, 0.5 + Math.random() * 0.8, s.z - Math.cos(s.heading) * 0.3, 0xffffff, 2, 1.2); }   // snowflake trail
 }
 
@@ -162,6 +172,7 @@ function updateSanta(dt) {
       s.deer.position.set(s.x + 1.4, 0, s.z);
       s.deer.rotation.y = Math.PI / 2;
       scene.add(s.deer);
+      s.group.remove(s.flakes);
       carrying = true;
       const present = makePresent(0.35);
       present.position.set(0, 0.95, 0.4);
