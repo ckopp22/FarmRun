@@ -155,7 +155,32 @@ export function toggle(kind) {
   return settings[kind];
 }
 
-document.addEventListener('visibilitychange', () => {
+// Backgrounded or locked: stop the music and drop the media source so iOS removes the lock-screen player.
+let resume = null;
+function suspendAudio() {
   if (!actx) return;
-  if (document.hidden) { actx.suspend(); player.pause(); } else { actx.resume(); if (settings.music && TRACKS[musicName]) player.play().catch(() => {}); }
-});
+  actx.suspend();
+  clearInterval(fadeTimer);
+  if (!resume && player.getAttribute('src')) {
+    resume = { idx: trackIdx, time: player.currentTime, wasPlaying: !player.paused };
+    player.pause();
+    player.removeAttribute('src');
+    player.load();
+  }
+}
+function resumeAudio() {
+  if (!actx) return;
+  actx.resume();
+  const track = TRACKS[musicName], r = resume;
+  resume = null;
+  if (!r || !r.wasPlaying || !settings.music || !track) return;
+  trackIdx = r.idx;
+  player.src = track.files[trackIdx];
+  player.volume = track.vol * (ducked ? DUCK : 1);
+  player.addEventListener('loadedmetadata', () => { try { player.currentTime = r.time; } catch (e) { /* ignore */ } }, { once: true });
+  player.play().catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) suspendAudio(); else resumeAudio(); });
+window.addEventListener('pagehide', suspendAudio);
+window.addEventListener('pageshow', () => { if (!document.hidden) resumeAudio(); });
+

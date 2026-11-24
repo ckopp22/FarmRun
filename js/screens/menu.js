@@ -124,7 +124,7 @@ export const menuScreen = {
       animateAnimal(r.group, clock * 0.5 + r.ph, 1);   // slower stride for a walk
     }
     angle += dt * 0.12;
-    const z = window.innerHeight > window.innerWidth ? 1.3 : 1;
+    const z = window.innerHeight > window.innerWidth ? 1.6 : 1.25;
     camera.position.set(Math.sin(angle) * RADIUS * z, HEIGHT * z, Math.cos(angle) * RADIUS * z);
     camera.lookAt(0, 2, 0);
   },
