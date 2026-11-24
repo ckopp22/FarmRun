@@ -174,7 +174,7 @@ export function addSantaDecor(truck, kind = 'truck') {
     truck.add(santa);
     return;
   }
-  for (let i = 0; i <= 8; i++) { const z = -3 + i * 0.5; bulb(-0.96, 1.22, z * 0.9 - 0.2); bulb(0.96, 1.22, z * 0.9 - 0.2); }   // chassis edge
+  for (let i = 0; i <= 8; i++) { const z = -2.1 + i * 0.525; bulb(-0.96, 1.22, z); bulb(0.96, 1.22, z); }   // chassis edge
   for (let i = 0; i <= 4; i++) { const x = -0.9 + i * 0.45; bulb(x, 2.03, 1.6); bulb(x, 2.03, 0.2); }                         // cab roof
   for (let i = 1; i < 3; i++) { bulb(-0.9, 2.03, 1.6 - i * 0.47); bulb(0.9, 2.03, 1.6 - i * 0.47); }
   for (let i = 0; i <= 4; i++) bulb(-0.85 + i * 0.425, 1.62, -2.2);                                                           // bed rim
