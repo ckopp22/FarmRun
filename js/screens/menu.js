@@ -136,11 +136,24 @@ export const menuScreen = {
       let dx = o.x - p.x, dz = o.z - p.z;
       const d = Math.hypot(dx, dz) || 1e-6;
       r.tag = r.it ? (r.tag || 0) + dt : 0;
-      if (r.it && (d < 1.25 || (r.tag > 6 && d < 3.5))) { r.tag = 0; r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
+      r.grace = Math.max(0, (r.grace || 0) - dt);
+      if (r.it && !r.grace && (d < 1.25 || (r.tag > 5 && d < 3.5))) {
+        r.tag = 0; r.it = false; r.buddy.it = true;
+        r.pause = 0.6; r.buddy.pause = 1.1;   // old chaser hops, runner gets a head start
+        r.grace = r.buddy.grace = 2.5;
+        continue;
+      }
       if (!r.it) {   // run away, curving back toward the middle near the edges
         dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 1.5 + r.ph) * 0.25;
       }
-      const sp = r.it ? 2.1 : 1.5;
+      // Stuck check: barely moved in a second -> turn sideways for a moment to break free.
+      r.sk = (r.sk || 0) + dt;
+      if (r.sk > 1) {
+        if (Math.hypot(p.x - (r.lx ?? 1e9), p.z - (r.lz ?? 1e9)) < 0.5) { r.un = 0.8; r.us = Math.random() < 0.5 ? 1 : -1; }
+        r.lx = p.x; r.lz = p.z; r.sk = 0;
+      }
+      if (r.un > 0) { r.un -= dt; const c = Math.cos(1.5 * r.us), sn = Math.sin(1.5 * r.us); [dx, dz] = [dx * c - dz * sn, dx * sn + dz * c]; }
+      const sp = r.it ? 2.1 : (r.buddy.tag > 3.5 ? 0.4 : 1.5);
       [dx, dz] = steer(p, dx, dz);
       const want = Math.atan2(dx, dz);
       if (r.h === undefined) r.h = want;
