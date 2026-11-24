@@ -7,7 +7,7 @@ import { sfx } from '../systems/audio.js';
 const DURATION = 2.6;
 const fadeEl = document.getElementById('fade');
 
-let camera, truck, t, canvas, ctxRef, active, timeout;
+let mapZoom = 1, camera, truck, t, canvas, ctxRef, active, timeout;
 
 function finish() {
   if (!active || timeout) return;
@@ -34,6 +34,7 @@ export const driveScreen = {
     );
     road.position.set(0, 0.055, -110);
     scene.add(road);
+    mapZoom = winter || desert ? 1.3 : 1;
     truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     if (winter) truck.add(makeSeatedFarmer());
     truck.rotation.y = Math.PI;
@@ -57,7 +58,8 @@ export const driveScreen = {
     t += dt;
     const k = Math.min(1, t / DURATION);
     truck.position.z = -(k * k * 70 + k * 6);
-    camera.position.set(9, 5.5, truck.position.z + 12);
+    const zm = mapZoom;
+    camera.position.set(9 * zm, 5.5 * zm, truck.position.z + 12 * zm);
     camera.lookAt(0, 1.2, truck.position.z - 2);
     if (t >= DURATION - 0.3) finish();
   },

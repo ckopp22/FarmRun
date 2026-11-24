@@ -122,7 +122,7 @@ export function makeSafariTruck() {
     w.scale.set(1, 1.2, 1.2);
     g.add(w);
   }
-  g.add(makeBlobShadow(3));
+  g.add(makeBlobShadow(2));
   g.scale.setScalar(1.3);
   return g;
 }
@@ -247,7 +247,7 @@ function makeQuad(a) {
   if (a.ear) for (const sx of [-1, 1]) box(g, hs * 0.2, a.ear, hs * 0.2, hc, sx * hs * 0.35, hy + hs * 0.5 + a.ear / 2, hz);
   box(g, 0.1, 0.1, 0.25, a.tc || a.c, 0, leg + h * 0.8, -l / 2 - 0.1);
   if (a.x) for (const e of a.x) box(g, e[0], e[1], e[2], e[3], e[4], e[5], e[6]);
-  g.add(makeBlobShadow(Math.max(w, l) * 0.8));
+  g.add(makeBlobShadow(Math.max(w, l) * (a.id === 'croc' ? 0.45 : 0.8)));
   return g;
 }
 
