@@ -25,8 +25,9 @@ function paintPresents() {
   presentsEl.style.display = on ? '' : 'none';
   if (!on) return;
   const n = presentsToday(save);
-  [...presentsEl.children].forEach((el, i) => el.classList.toggle('got', i < n));
+  presentsEl.querySelectorAll('i').forEach((el, i) => el.classList.toggle('got', i < n));
   presentsEl.classList.toggle('ready', n >= PRESENT_GOAL && !claimedToday(save));
+  presentsEl.classList.toggle('done', claimedToday(save));   // "Completed" until midnight
 }
 const shirtEl = document.getElementById('shirt-panel'), shirtList = document.getElementById('shirt-list');
 const hex = (c) => '#' + c.toString(16).padStart(6, '0');
@@ -47,7 +48,7 @@ shirtList.addEventListener('click', (ev) => {
   ctxRef.go('farm');
 });
 document.getElementById('shirt-close').addEventListener('click', () => { tapSound(); shirtEl.style.display = 'none'; });
-let unwrapped = false;
+let unwrapped = false, recheck = 0;
 presentsEl.addEventListener('click', () => {
   if (!presentsEl.classList.contains('ready')) return;
   tapSound();
@@ -499,6 +500,7 @@ export const farmScreen = {
 
   update(dt) {
     time += dt;
+    if ((recheck -= dt) < 0) { recheck = 20; paintPresents(); }   // picks up the midnight reset while the app stays open
     if (swipe) {
       swipe.t += dt;
       farmer.position.x += swipe.dir * RUN_SPEED * dt;

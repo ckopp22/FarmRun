@@ -509,6 +509,9 @@ button { touch-action: manipulation; }
     radial-gradient(circle at 25% 55%, transparent 0 1.5px, #2ecc40 2px 4px, transparent 4.5px),
     radial-gradient(circle at 75% 55%, transparent 0 1.5px, #2ecc40 2px 4px, transparent 4.5px);
 }
+#presents-done { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #ffe066; text-shadow: 0 0 4px #000, 0 2px 4px #000, 0 0 8px rgba(0,0,0,0.8); pointer-events: none; }
+#presents.done #presents-done { display: flex; }
+#presents.done i { opacity: 0.55; }
 #presents i.got { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45)); opacity: 1; }
 #presents.ready { cursor: pointer; }
 #presents.ready i { animation: present-pop 0.9s ease-in-out infinite; }
