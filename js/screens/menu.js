@@ -137,15 +137,17 @@ export const menuScreen = {
       const d = Math.hypot(dx, dz) || 1e-6;
       if (r.it && d < 1.25) { r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
       if (!r.it) {   // run away, curving back toward the middle near the edges
-        dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 3 + r.ph) * 0.4;
+        dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 1.5 + r.ph) * 0.25;
       }
       const sp = r.it ? 1.5 : 1.7;
       [dx, dz] = steer(p, dx, dz);
-      p.x += dx * sp * dt;
-      p.z += dz * sp * dt;
+      const want = Math.atan2(dx, dz);
+      if (r.h === undefined) r.h = want;
+      r.h += Math.atan2(Math.sin(want - r.h), Math.cos(want - r.h)) * Math.min(1, dt * 4);   // low-pass so squeezed animals can't flip direction each frame
+      p.x += Math.sin(r.h) * sp * dt;
+      p.z += Math.cos(r.h) * sp * dt;
       collide(p, p);
-      const dr = Math.atan2(Math.sin(Math.atan2(dx, dz) - r.group.rotation.y), Math.cos(Math.atan2(dx, dz) - r.group.rotation.y));
-      r.group.rotation.y += dr * Math.min(1, dt * 8);
+      r.group.rotation.y = r.h;
       p.y = Math.abs(Math.sin(clock * 9 + r.ph)) * 0.12;
       animateAnimal(r.group, clock * 0.8 + r.ph, 1);
     }
