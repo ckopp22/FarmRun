@@ -174,8 +174,9 @@ function updateSanta(dt) {
       scene.add(s.deer);
       s.group.remove(s.flakes);
       carrying = true;
-      const present = makePresent(0.35);
-      present.position.set(0, 0.95, 0.4);
+      const present = makePresent(0.75);
+      present.position.set(0, 0.98, 0.7);
+      player.group.userData.carry = true;
       present.name = 'present';
       player.group.add(present);
       rivals.huntAll();

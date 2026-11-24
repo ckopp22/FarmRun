@@ -70,6 +70,7 @@ export function animateFarmer(g, time, amount) {
   const s = Math.sin(time * 12) * 0.9 * amount;
   lL.rotation.x = s; lR.rotation.x = -s;
   aL.rotation.x = -s * 0.9; aR.rotation.x = s * 0.9;
+  if (g.userData.carry) { aL.rotation.x = aR.rotation.x = -1.4; aL.rotation.z = 0.12; aR.rotation.z = -0.12; }   // arms out front holding a present
 }
 
 export function makeChicken() {
@@ -142,10 +143,13 @@ export function animateSanta(santa, t, amount) {
 
 export function makePresent(size = 0.4) {
   const g = new THREE.Group();
-  box(g, size, size, size, 0x2e9e4a, 0, size / 2, 0);
-  box(g, size * 1.04, size * 1.04, size * 0.18, 0xd62d20, 0, size / 2, 0);
-  box(g, size * 0.18, size * 1.04, size * 1.04, 0xd62d20, 0, size / 2, 0);
-  box(g, size * 0.35, size * 0.2, size * 0.2, 0xd62d20, 0, size * 1.1, 0);
+  box(g, size, size, size, 0xd62d20, 0, size / 2, 0);
+  box(g, size * 1.04, size * 1.04, size * 0.18, 0xf1c40f, 0, size / 2, 0);
+  box(g, size * 0.18, size * 1.04, size * 1.04, 0xf1c40f, 0, size / 2, 0);
+  const bw = size * 0.3, by = size + size * 0.1;   // green bow
+  box(g, bw, size * 0.16, size * 0.14, 0x2ecc40, -size * 0.17, by, 0).rotation.z = 0.5;
+  box(g, bw, size * 0.16, size * 0.14, 0x2ecc40, size * 0.17, by, 0).rotation.z = -0.5;
+  box(g, size * 0.15, size * 0.15, size * 0.15, 0x1e8e2e, 0, by - size * 0.03, 0);
   return g;
 }
 
