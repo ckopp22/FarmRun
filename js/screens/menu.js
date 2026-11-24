@@ -113,7 +113,6 @@ export const menuScreen = {
       return r;
     });
     for (const r of roamers) { collide(r.group.position, r.group.position); r.pause = 0; }
-    for (let i = 0; i < roamers.length; i += 2) { roamers[i].buddy = roamers[i + 1]; roamers[i + 1].buddy = roamers[i]; roamers[i].it = true; roamers[i + 1].it = false; }
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 150);
     angle = 0.6;
     setMusic('farm');
@@ -125,49 +124,40 @@ export const menuScreen = {
   update(dt) {
     clock += dt;
     if (isHoliday()) { twinkleLights(clock); if (menuTruck) moveSanta(menuTruck, clock); }
-    // Cute tag: each pair chases; when the chaser catches up it hops, then the roles swap.
+    // Animals stroll between random spots, pausing now and then, steering around the obstacles.
     for (const r of roamers) {
-      const p = r.group.position, o = r.buddy.group.position;
-      if (r.pause > 0) {
-        r.pause -= dt;
-        p.y = Math.abs(Math.sin(r.pause * 12)) * 0.25;   // happy hop
+      const p = r.group.position;
+      if (r.wait > 0) {
+        r.wait -= dt;
+        p.y = 0;
         animateAnimal(r.group, 0, 0);
         continue;
       }
-      let dx = o.x - p.x, dz = o.z - p.z;
-      const d = Math.hypot(dx, dz) || 1e-6;
-      r.tag = r.it ? (r.tag || 0) + dt : 0;
-      r.grace = Math.max(0, (r.grace || 0) - dt);
-      if (r.it && !r.grace && (d < 1.25 || (r.tag > 5 && d < 3.5))) {
-        r.tag = 0; r.it = false; r.buddy.it = true;
-        r.pause = 0.6; r.buddy.pause = 1.1;   // old chaser hops, runner gets a head start
-        r.grace = r.buddy.grace = 2.5;
+      let dx = r.tx - p.x, dz = r.tz - p.z;
+      const d = Math.hypot(dx, dz);
+      r.sk = (r.sk || 0) + dt;
+      const stuck = r.sk > 1.5 && Math.hypot(p.x - (r.lx ?? 1e9), p.z - (r.lz ?? 1e9)) < 0.4;
+      if (r.sk > 1.5) { r.lx = p.x; r.lz = p.z; r.sk = 0; }
+      if (d < 0.5 || stuck || r.tx === undefined) {   // arrived (or stuck): rest, then pick a new spot
+        r.wait = 1 + Math.random() * 2.5;
+        const a = Math.random() * 6.28, rad = 3 + Math.random() * 9;
+        r.tx = Math.max(-14, Math.min(14, p.x + Math.cos(a) * rad));
+        r.tz = Math.max(-14, Math.min(14, p.z + Math.sin(a) * rad));
         continue;
       }
-      if (!r.it) {   // run away, curving back toward the middle near the edges
-        dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 1.5 + r.ph) * 0.25;
-      }
-      // Stuck check: barely moved in a second -> turn sideways for a moment to break free.
-      r.sk = (r.sk || 0) + dt;
-      if (r.sk > 1) {
-        if (Math.hypot(p.x - (r.lx ?? 1e9), p.z - (r.lz ?? 1e9)) < 0.5) { r.un = 0.8; r.us = Math.random() < 0.5 ? 1 : -1; }
-        r.lx = p.x; r.lz = p.z; r.sk = 0;
-      }
-      if (r.un > 0) { r.un -= dt; const c = Math.cos(1.5 * r.us), sn = Math.sin(1.5 * r.us); [dx, dz] = [dx * c - dz * sn, dx * sn + dz * c]; }
-      const sp = r.it ? 1.4 : (r.buddy.tag > 3.5 ? 0.3 : 1.0);
       [dx, dz] = steer(p, dx, dz);
       const want = Math.atan2(dx, dz);
       if (r.h === undefined) r.h = want;
-      r.h += Math.atan2(Math.sin(want - r.h), Math.cos(want - r.h)) * Math.min(1, dt * 4);   // low-pass so squeezed animals can't flip direction each frame
-      p.x += Math.sin(r.h) * sp * dt;
-      p.z += Math.cos(r.h) * sp * dt;
+      r.h += Math.atan2(Math.sin(want - r.h), Math.cos(want - r.h)) * Math.min(1, dt * 4);
+      p.x += Math.sin(r.h) * 0.9 * dt;
+      p.z += Math.cos(r.h) * 0.9 * dt;
       collide(p, p);
       r.group.rotation.y = r.h;
-      p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.1;
-      animateAnimal(r.group, clock * 0.55 + r.ph, 1);
+      p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.08;
+      animateAnimal(r.group, clock * 0.5 + r.ph, 1);
     }
     angle += dt * 0.12;
-    const z = window.innerHeight > window.innerWidth ? 1.6 : 1.25;
+    const z = window.innerHeight > window.innerWidth ? 2.1 : 1.6;
     camera.position.set(Math.sin(angle) * RADIUS * z, HEIGHT * z, Math.cos(angle) * RADIUS * z);
     camera.lookAt(0, 2, 0);
   },
