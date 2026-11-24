@@ -2,7 +2,7 @@ import * as THREE from '../../lib/three.module.min.js';
 import { createScene, speckleTexture } from '../render/renderer.js';
 import { addSantaDecor, twinkleLights, moveSanta, makeTruck, makeSafariTruck, makeSnowmobile, makeSeatedFarmer } from '../render/models.js';
 import { createTrees, createDesertProps, createWinterProps } from '../render/instancing.js';
-import { sfx } from '../systems/audio.js';
+import { sfx, setMusic } from '../systems/audio.js';
 
 const DURATION = 2.6;
 const fadeEl = document.getElementById('fade');
@@ -53,6 +53,7 @@ export const driveScreen = {
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 150);
     t = 0;
     sfx('engine');
+    setMusic('woods');   // start the big chase track during the cutscene, not once play begins
     canvas.addEventListener('pointerdown', finish);
     return { scene, camera };
   },
