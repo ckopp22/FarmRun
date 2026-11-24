@@ -94,7 +94,7 @@ function bankHaul() {
   ctxRef.newlyFound = found;
 }
 
-// Santa waits somewhere in the woods under a red beam. Touch him for a present; he hops on a reindeer and flies off.
+// Santa waits somewhere in the woods in the woods. Touch him for a present; he hops on a reindeer and flies off.
 function spawnSanta() {
   let x = 0, z = 0;
   for (let i = 0; i < 40; i++) {
@@ -106,10 +106,8 @@ function spawnSanta() {
   const group = makeSanta();
   group.scale.setScalar(1.5);
   group.position.set(x, 0, z);
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.25, depthWrite: false }));
-  beam.position.set(x, 20, z);
-  scene.add(group, beam);
-  santa = { group, beam, x, z, tx: x, tz: z, wait: 0, heading: 0, phase: 'idle', t: 0, deer: null };
+  scene.add(group);
+  santa = { group, x, z, tx: x, tz: z, wait: 0, heading: 0, phase: 'idle', t: 0, deer: null };
 }
 
 // Santa wanders the woods like an Epic animal: strolls to random spots, then sprints away when the player gets close.
@@ -147,7 +145,8 @@ function runSanta(dt) {
   }
   s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.t * 14)) * 0.12 : 0, s.z);
   s.group.rotation.y = moving ? s.heading : Math.atan2(player.x - s.x, player.z - s.z);
-  s.beam.position.set(s.x, 20, s.z);
+  s.snow = (s.snow || 0) - dt;
+  if (moving && s.snow <= 0) { s.snow = 0.05; particles.burst(s.x - Math.sin(s.heading) * 0.3, 0.5 + Math.random() * 0.8, s.z - Math.cos(s.heading) * 0.3, 0xffffff, 2, 1.2); }   // snowflake trail
 }
 
 function updateSanta(dt) {
@@ -162,7 +161,6 @@ function updateSanta(dt) {
       s.deer.position.set(s.x + 1.4, 0, s.z);
       s.deer.rotation.y = Math.PI / 2;
       scene.add(s.deer);
-      scene.remove(s.beam);
       carrying = true;
       const present = makePresent(0.35);
       present.position.set(0, 0.95, 0.4);
