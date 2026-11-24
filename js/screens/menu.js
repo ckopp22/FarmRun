@@ -135,11 +135,12 @@ export const menuScreen = {
       }
       let dx = o.x - p.x, dz = o.z - p.z;
       const d = Math.hypot(dx, dz) || 1e-6;
-      if (r.it && d < 1.25) { r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
+      r.tag = r.it ? (r.tag || 0) + dt : 0;
+      if (r.it && (d < 1.25 || (r.tag > 6 && d < 3.5))) { r.tag = 0; r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
       if (!r.it) {   // run away, curving back toward the middle near the edges
         dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 1.5 + r.ph) * 0.25;
       }
-      const sp = r.it ? 1.5 : 1.7;
+      const sp = r.it ? 2.1 : 1.5;
       [dx, dz] = steer(p, dx, dz);
       const want = Math.atan2(dx, dz);
       if (r.h === undefined) r.h = want;
