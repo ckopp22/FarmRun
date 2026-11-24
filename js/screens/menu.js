@@ -86,6 +86,7 @@ export const menuScreen = {
   enter(ctx) {
     ctxRef = ctx;
     const scene = createScene();
+    if (scene.fog) { scene.fog.near = 45; scene.fog.far = 130; }   // lighter fog on the menu
     const barn = makeBarn();
     scene.add(barn);
     const truck = makeTruck();
