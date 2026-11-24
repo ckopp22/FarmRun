@@ -183,6 +183,25 @@ export function makeReindeer() {
   return g;
 }
 
+// "Daily Challenge" tag floating above Santa so players know to tap the vehicle.
+export function addDailyLabel(truck) {
+  const s = truck.userData.santa;
+  if (!s) return;
+  const cv = document.createElement('canvas');
+  cv.width = 320; cv.height = 80;
+  const x = cv.getContext('2d');
+  x.fillStyle = 'rgba(20,40,20,0.8)';
+  x.beginPath(); x.roundRect(4, 4, 312, 72, 36); x.fill();
+  x.lineWidth = 4; x.strokeStyle = '#ffe066'; x.stroke();
+  x.font = 'bold 40px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = '#ffe066'; x.fillText('Daily Challenge', 160, 42);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false }));
+  const k = 1 / (s.scale.x * truck.scale.x);
+  sp.scale.set(2.6 * k, 0.65 * k, 1);
+  sp.position.y = 2.2;
+  s.add(sp);
+}
+
 function addFlakes(truck) {
   const n = 16, geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));

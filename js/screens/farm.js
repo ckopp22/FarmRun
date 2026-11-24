@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, moveSanta, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, moveSanta, addDailyLabel, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, animalTotal, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
@@ -404,7 +404,7 @@ export const farmScreen = {
     addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
     const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     const santaTruck = isHoliday();
-    if (santaTruck) addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');
+    if (santaTruck) { addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck'); if (!claimedToday(save)) addDailyLabel(truck); }
     truckObj = santaTruck ? truck : null;
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
