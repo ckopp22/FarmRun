@@ -101,6 +101,44 @@ export function makeTruck() {
   return g;
 }
 
+// Holiday dressing for the red truck: Santa on the cab roof and twinkling lights.
+const bulbMats = [0xff3030, 0x30e050, 0xffd830, 0x40a0ff].map((c) => ({ c, m: new THREE.MeshBasicMaterial({ color: c }) }));
+export function twinkleLights(t) {
+  bulbMats.forEach((b, i) => b.m.color.setHex(b.c).multiplyScalar(0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 4 + i * 1.6))));
+}
+export function addSantaDecor(truck) {
+  const bulbGeo = new THREE.SphereGeometry(0.09, 6, 5);
+  let n = 0;
+  const bulb = (x, y, z) => {
+    const m = new THREE.Mesh(bulbGeo, bulbMats[n++ % 4].m);
+    m.position.set(x, y, z);
+    truck.add(m);
+  };
+  for (let i = 0; i <= 8; i++) { const z = -3 + i * 0.5; bulb(-0.96, 1.22, z * 0.9 - 0.2); bulb(0.96, 1.22, z * 0.9 - 0.2); }   // chassis edge
+  for (let i = 0; i <= 4; i++) { const x = -0.9 + i * 0.45; bulb(x, 2.03, 1.6); bulb(x, 2.03, 0.2); }                         // cab roof
+  for (let i = 1; i < 3; i++) { bulb(-0.9, 2.03, 1.6 - i * 0.47); bulb(0.9, 2.03, 1.6 - i * 0.47); }
+  for (let i = 0; i <= 4; i++) bulb(-0.85 + i * 0.425, 1.62, -2.2);                                                           // bed rim
+  const santa = new THREE.Group();
+  box(santa, 0.18, 0.5, 0.2, 0x222222, -0.12, 0.25, 0);          // boots/legs
+  box(santa, 0.18, 0.5, 0.2, 0x222222, 0.12, 0.25, 0);
+  box(santa, 0.5, 0.55, 0.34, 0xd62d20, 0, 0.75, 0);             // coat
+  box(santa, 0.52, 0.08, 0.36, 0x111111, 0, 0.68, 0);            // belt
+  box(santa, 0.1, 0.1, 0.02, 0xf1c40f, 0, 0.68, 0.19);           // buckle
+  box(santa, 0.52, 0.06, 0.36, 0xffffff, 0, 0.47, 0);            // coat trim
+  box(santa, 0.14, 0.45, 0.16, 0xd62d20, -0.34, 0.8, 0).rotation.z = -0.5;   // waving arms
+  box(santa, 0.14, 0.45, 0.16, 0xd62d20, 0.34, 0.85, 0).rotation.z = 0.5;
+  box(santa, 0.16, 0.16, 0.16, 0xffffff, -0.44, 1.02, 0);
+  box(santa, 0.16, 0.16, 0.16, 0xffffff, 0.44, 1.07, 0);
+  box(santa, 0.34, 0.3, 0.32, 0xf2c9a0, 0, 1.2, 0);              // head
+  box(santa, 0.38, 0.22, 0.12, 0xffffff, 0, 1.12, 0.14);         // beard
+  box(santa, 0.38, 0.2, 0.36, 0xd62d20, 0, 1.42, 0);             // hat
+  box(santa, 0.4, 0.07, 0.38, 0xffffff, 0, 1.33, 0);             // hat trim
+  box(santa, 0.1, 0.1, 0.1, 0xffffff, 0, 1.58, -0.05);           // pom
+  santa.position.set(0, 2.0, 0.9);
+  santa.scale.setScalar(1.2);
+  truck.add(santa);
+}
+
 // Larger open-sided safari jeep with a striped canopy.
 export function makeSafariTruck() {
   const g = new THREE.Group();

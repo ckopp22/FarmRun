@@ -1,6 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
-import { makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
+import { isHoliday } from '../systems/holiday.js';
+import { addSantaDecor, twinkleLights, makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { createTrees, createFlowers } from '../render/instancing.js';
 import { startSlot, activeSave } from '../systems/save.js';
@@ -87,6 +88,7 @@ export const menuScreen = {
     const barn = makeBarn();
     scene.add(barn);
     const truck = makeTruck();
+    if (isHoliday()) addSantaDecor(truck);
     truck.position.set(TRUCK.x, 0, TRUCK.z);
     truck.rotation.y = TRUCK.rot;
     scene.add(truck);
@@ -121,6 +123,7 @@ export const menuScreen = {
 
   update(dt) {
     clock += dt;
+    if (isHoliday()) twinkleLights(clock);
     // Cute tag: each pair chases; when the chaser catches up it hops, then the roles swap.
     for (const r of roamers) {
       const p = r.group.position, o = r.buddy.group.position;

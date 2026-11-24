@@ -1,12 +1,13 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, animalTotal, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
+import { isHoliday } from '../systems/holiday.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 42 * Math.PI / 180, DIST = 24;
@@ -80,7 +81,7 @@ shopList.addEventListener('click', (ev) => {
 
 let camera, canvas, scene, ctxRef, save, confetti, particles;
 let desert = false, winter = false;   // which map is showing (both false = the farm)
-let farmer, swipe = null, arrive = null;   // swipe: farmer running off to the other map; arrive: farmer running in
+let truckObj = null, farmer, swipe = null, arrive = null;   // swipe: farmer running off to the other map; arrive: farmer running in
 const SWIPE_PX = 70, RUN_SPEED = 9;
 const fadeEl = document.createElement('div');
 fadeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;z-index:5';
@@ -176,6 +177,7 @@ function onUp(ev) {
   ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(entries.flatMap((e) => [e.group, e.cash, e.sign, ...e.extras].filter((g) => g.visible)), true);
+  if (truckObj && ray.intersectObject(truckObj, true).length && !hits.length) { onRun(); return; }
   let e;
   if (hits.length) {
     let o = hits[0].object;
@@ -345,6 +347,9 @@ export const farmScreen = {
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
     addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
     const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
+    const santaTruck = isHoliday() && !winter && !desert;
+    if (santaTruck) addSantaDecor(truck);
+    truckObj = santaTruck ? truck : null;
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
     const trackMat = new THREE.MeshBasicMaterial({ color: winter ? 0x5a7f9f : 0x3b2a1a, transparent: true, opacity: 0.4, depthWrite: false });
@@ -491,6 +496,7 @@ export const farmScreen = {
         g.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8) + Math.sin(time * 14 + i) * 0.5 * k;
       });
     }
+    if (truckObj) twinkleLights(time);
     confetti.update(dt, time, 0, panZ);
     particles.update(dt);
     const sway = Math.sin(time * 0.4) * 0.4;
