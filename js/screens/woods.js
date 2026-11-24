@@ -31,7 +31,7 @@ let input, grid, player, animals, followers, rivals, particles, footsteps, indic
 const greatJob = document.getElementById('great-job');
 let swipeCd = 0;
 let desert = false, winter = false, bodyHalf = 1.5;   // bodyHalf: half the truck's length along z
-let santa = null, carrying = false, santaRun = false;
+let sparkle = 0, santa = null, carrying = false, santaRun = false;
 let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -375,6 +375,14 @@ export const woodsScreen = {
     if (animals.blocked && swipeCd <= 0) { sfx('deny'); swipeCd = 0.7; flashFull(); }
     if (got) { haul.push(got); followers.add(got); paintHud(); sfx('pickup'); particles.burst(player.x, 0.8, player.z, 0xffe066, 8, 3); }
     updateSanta(dt);
+    if (carrying) {   // sparkle around the held present
+      sparkle -= dt;
+      if (sparkle <= 0) {
+        sparkle = 0.12;
+        const h = player.heading;
+        particles.burst(player.x + Math.sin(h) * 0.7 + (Math.random() - 0.5) * 0.7, 1.2 + Math.random() * 0.7, player.z + Math.cos(h) * 0.7 + (Math.random() - 0.5) * 0.7, Math.random() < 0.5 ? 0xffe066 : 0xffffff, 1, 0.8);
+      }
+    }
     particles.update(dt);
     followers.update(dt);
     updateChaseCamera(camera, player.x, player.z, dt);
