@@ -305,6 +305,7 @@ function driveAway(dt) {
   if (leave.boarding) { board(dt); return; }
   leave.t += dt;
   leave.v += 14 * dt;
+  particles.update(dt);
   steerTruck(dt);
   truck.position.x += Math.sin(leave.heading) * leave.v * dt;
   truck.position.z += Math.cos(leave.heading) * leave.v * dt;
@@ -375,7 +376,7 @@ export const woodsScreen = {
 
   update(dt) {
     setLoop('walk', !leave && !busted && player.run > 0.3);
-    if (leave) { driveAway(dt); return; }
+    if (leave) { if (santa && santa.phase === 'leaving') updateSanta(dt); driveAway(dt); return; }
     if (busted) return;
     input.update();
     updatePlayer(player, input, grid, dt, CAMERA_YAW);
