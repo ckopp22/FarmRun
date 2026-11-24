@@ -7,7 +7,7 @@ import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, b
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
-import { claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
+import { DEFAULT_SHIRT, claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 42 * Math.PI / 180, DIST = 24;
@@ -28,6 +28,25 @@ function paintPresents() {
   [...presentsEl.children].forEach((el, i) => el.classList.toggle('got', i < n));
   presentsEl.classList.toggle('ready', n >= PRESENT_GOAL && !claimedToday(save));
 }
+const shirtEl = document.getElementById('shirt-panel'), shirtList = document.getElementById('shirt-list');
+const hex = (c) => '#' + c.toString(16).padStart(6, '0');
+function openShirts() {
+  const save = activeSave();
+  tapSound();
+  const cur = save.shirt || DEFAULT_SHIRT;
+  shirtList.innerHTML = [DEFAULT_SHIRT, ...(save.shirts || [])].map((c) => `<b data-c="${c}" class="${c === cur ? 'sel' : ''}" style="background:${hex(c)}"></b>`).join('');
+  shirtEl.style.display = '';
+}
+shirtList.addEventListener('click', (ev) => {
+  const c = ev.target.dataset && ev.target.dataset.c;
+  if (!c) return;
+  const save = activeSave();
+  save.shirt = +c === DEFAULT_SHIRT ? undefined : +c;
+  saveActive();
+  shirtEl.style.display = 'none';
+  ctxRef.go('farm');
+});
+document.getElementById('shirt-close').addEventListener('click', () => { tapSound(); shirtEl.style.display = 'none'; });
 let unwrapped = false;
 presentsEl.addEventListener('click', () => {
   if (!presentsEl.classList.contains('ready')) return;
@@ -213,6 +232,7 @@ function onUp(ev) {
   ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(entries.flatMap((e) => [e.group, e.cash, e.sign, ...e.extras].filter((g) => g.visible)), true);
+  if (farmer && !swipe && !arrive && ray.intersectObject(farmer, true).length) { openShirts(); return; }
   if (truckObj && ray.intersectObject(truckObj, true).length && !hits.length) { onRun(true); return; }
   let e;
   if (hits.length) {
