@@ -188,16 +188,16 @@ export function addDailyLabel(truck) {
   const s = truck.userData.santa;
   if (!s) return;
   const cv = document.createElement('canvas');
-  cv.width = 320; cv.height = 80;
+  cv.width = 256; cv.height = 128;
   const x = cv.getContext('2d');
-  x.font = 'bold 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.lineJoin = 'round'; x.lineWidth = 9; x.strokeStyle = 'rgba(40,20,0,0.85)'; x.strokeText('Daily Challenge', 160, 42);   // dark outline keeps the text readable without a pill
-  x.fillStyle = '#ffe066'; x.fillText('Daily Challenge', 160, 42);
+  x.font = 'bold 52px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.lineJoin = 'round'; x.lineWidth = 9; x.strokeStyle = 'rgba(40,20,0,0.85)'; x.fillStyle = '#ffe066';   // dark outline keeps the text readable without a pill
+  [['Daily', 36], ['Challenge', 92]].forEach(([t, y]) => { x.strokeText(t, 128, y); x.fillText(t, 128, y); });
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false }));
   const k = 1 / truck.scale.x, p = s.userData.path;
-  sp.scale.set(4.4 * k, 1.1 * k, 1);
+  sp.scale.set(3.4 * k, 1.7 * k, 1);
   sp.userData.base = p.y + 2.8;
-  sp.position.set(0, sp.userData.base, p.z);
+  sp.position.set(0.7 * k, sp.userData.base, p.z);
   truck.userData.label = sp;
   truck.add(sp);
 }
