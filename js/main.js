@@ -57,6 +57,9 @@ function frame(now) {
   }
 }
 
+// Building a new screen blocks one long frame; don't let it count as a dt spike or drag the fps readout / adaptive quality down.
+document.addEventListener('screenchange', () => { last = performance.now(); frames = 0; fpsTime = 0; });
+
 function start() {
   running = true;
   last = performance.now();
