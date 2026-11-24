@@ -190,10 +190,8 @@ export function addDailyLabel(truck) {
   const cv = document.createElement('canvas');
   cv.width = 320; cv.height = 80;
   const x = cv.getContext('2d');
-  x.fillStyle = 'rgba(20,40,20,0.8)';
-  x.beginPath(); x.roundRect(4, 4, 312, 72, 36); x.fill();
-  x.lineWidth = 4; x.strokeStyle = '#ffe066'; x.stroke();
-  x.font = 'bold 40px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'bold 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.lineJoin = 'round'; x.lineWidth = 9; x.strokeStyle = 'rgba(40,20,0,0.85)'; x.strokeText('Daily Challenge', 160, 42);   // dark outline keeps the text readable without a pill
   x.fillStyle = '#ffe066'; x.fillText('Daily Challenge', 160, 42);
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false }));
   const k = 1 / truck.scale.x, p = s.userData.path;
