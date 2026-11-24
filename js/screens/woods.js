@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
-import { animateFarmer, makeSeatedFarmer, makeSanta, makeReindeer, makePresent } from '../render/models.js';
+import { animateFarmer, makeSeatedFarmer, makeSanta, animateSanta, makeReindeer, makePresent } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
 import { buildForest, buildFence, PLAYER_LIMIT } from '../game/map.js';
@@ -144,6 +144,7 @@ function runSanta(dt) {
     }
   }
   s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.t * 14)) * 0.12 : 0, s.z);
+  animateSanta(s.group, s.t, moving ? 1 : 0);
   s.group.rotation.y = moving ? s.heading : Math.atan2(player.x - s.x, player.z - s.z);
   s.snow = (s.snow || 0) - dt;
   if (moving && s.snow <= 0) { s.snow = 0.05; particles.burst(s.x - Math.sin(s.heading) * 0.3, 0.5 + Math.random() * 0.8, s.z - Math.cos(s.heading) * 0.3, 0xffffff, 2, 1.2); }   // snowflake trail

@@ -108,22 +108,36 @@ export function twinkleLights(t) {
 }
 export function makeSanta() {
   const santa = new THREE.Group();
-  box(santa, 0.24, 0.5, 0.26, 0x222222, -0.2, 0.25, 0);          // boots/legs
-  box(santa, 0.24, 0.5, 0.26, 0x222222, 0.2, 0.25, 0);
+  const limb = (x, y, w, h, d, color, handColor) => {
+    const pv = new THREE.Group();
+    pv.position.set(x, y, 0);
+    box(pv, w, h, d, color, 0, -h / 2, 0);
+    if (handColor) box(pv, w, 0.18, d, handColor, 0, -h - 0.05, 0);   // glove
+    santa.add(pv);
+    return pv;
+  };
+  santa.userData.limbs = [
+    limb(-0.2, 0.5, 0.24, 0.5, 0.26, 0x222222), limb(0.2, 0.5, 0.24, 0.5, 0.26, 0x222222),                    // legs
+    limb(-0.5, 1.05, 0.18, 0.45, 0.2, 0xd62d20, 0xffffff), limb(0.5, 1.05, 0.18, 0.45, 0.2, 0xd62d20, 0xffffff),   // arms
+  ];
   box(santa, 0.8, 0.62, 0.58, 0xd62d20, 0, 0.78, 0);             // round coat
   box(santa, 0.84, 0.09, 0.62, 0x111111, 0, 0.7, 0);             // belt
   box(santa, 0.12, 0.12, 0.02, 0xf1c40f, 0, 0.7, 0.32);          // buckle
   box(santa, 0.84, 0.06, 0.62, 0xffffff, 0, 0.47, 0);            // coat trim
-  box(santa, 0.18, 0.45, 0.2, 0xd62d20, -0.5, 0.8, 0).rotation.z = -0.5;   // waving arms
-  box(santa, 0.18, 0.45, 0.2, 0xd62d20, 0.5, 0.85, 0).rotation.z = 0.5;
-  box(santa, 0.18, 0.18, 0.18, 0xffffff, -0.62, 1.02, 0);
-  box(santa, 0.18, 0.18, 0.18, 0xffffff, 0.62, 1.07, 0);
   box(santa, 0.4, 0.3, 0.36, 0xf2c9a0, 0, 1.25, 0);              // head
   box(santa, 0.46, 0.26, 0.14, 0xffffff, 0, 1.15, 0.17);         // beard
   box(santa, 0.42, 0.2, 0.4, 0xd62d20, 0, 1.47, 0);              // hat
   box(santa, 0.44, 0.07, 0.42, 0xffffff, 0, 1.38, 0);            // hat trim
   box(santa, 0.1, 0.1, 0.1, 0xffffff, 0, 1.63, -0.05);           // pom
   return santa;
+}
+
+// Swing Santa's legs and arms against each other; amount 0 = standing still.
+export function animateSanta(santa, t, amount) {
+  const [ll, lr, al, ar] = santa.userData.limbs, sw = Math.sin(t * 9) * 0.8 * amount;
+  ll.rotation.x = sw; lr.rotation.x = -sw;
+  al.rotation.x = -sw * 1.1; ar.rotation.x = sw * 1.1;
+  al.rotation.z = 0.15; ar.rotation.z = -0.15;
 }
 
 export function makePresent(size = 0.4) {
@@ -155,6 +169,7 @@ export function moveSanta(truck, t) {
   if (!s) return;
   const p = s.userData.path, a = t * 0.7;
   s.position.set(Math.sin(a * 0.6) * p.x, p.y + Math.abs(Math.sin(t * 5)) * 0.06, p.z + Math.sin(a) * p.amp);
+  animateSanta(s, t, 1);
   s.rotation.y = Math.atan2(Math.cos(a * 0.6) * 0.6 * p.x, Math.cos(a) * p.amp) * 1;
 }
 
