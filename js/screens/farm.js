@@ -45,9 +45,7 @@ function updateShopHint() {
 function renderShop() {
   const penCost = nextMapPenCost(), list = mapAnimals(), pc = mapPenCount();
   const penRow = `<div class="shop-row"><div><div class="sn">+1 Animal Pen</div><div class="sd">Unlocks ${penCost === undefined ? 'nothing more' : list[pc].name} · ${pc}/${list.length} pens</div></div>${penCost === undefined ? '<span>MAX</span>' : `<button data-id="pen" ${save.money < penCost ? 'disabled' : ''}>$${penCost.toLocaleString()}</button>`}</div>`;
-  const desertRow = desertAvailable(save) ? `<div class="shop-row"><div><div class="sn">Desert Map</div><div class="sd">A new safari farm with 24 new animals</div></div><button data-id="desert" ${save.money < DESERT_COST ? 'disabled' : ''}>$${DESERT_COST.toLocaleString()}</button></div>` : '';
-  const winterRow = winterAvailable(save) ? `<div class="shop-row"><div><div class="sn">Winter Wonderland</div><div class="sd">A snowy farm with 24 cold-weather animals</div></div><button data-id="winter" ${save.money < WINTER_COST ? 'disabled' : ''}>$${WINTER_COST.toLocaleString()}</button></div>` : '';
-  shopList.innerHTML = winterRow + desertRow + penRow + UPGRADES.map((u) => {
+  shopList.innerHTML = penRow + UPGRADES.map((u) => {
     const lv = level(save, u.id), cost = nextCost(save, u.id);
     const action = cost === undefined ? '<span>MAX</span>'
       : `<button data-id="${u.id}" ${save.money < cost ? 'disabled' : ''}>$${cost.toLocaleString()}</button>`;
@@ -95,10 +93,22 @@ const mapBtns = [-1, 1].map((dir) => {
   const b = document.createElement('button');
   b.style.cssText = `position:fixed;top:50%;${dir < 0 ? 'left' : 'right'}:6px;width:44px;height:64px;margin-top:-32px;border:0;border-radius:12px;background:rgba(0,0,0,.35);color:#fff;font:bold 34px sans-serif;display:none;z-index:4`;
   b.textContent = dir < 0 ? '‹' : '›';
-  b.addEventListener('click', () => startSwipe(dir));
+  b.addEventListener('click', () => dir > 0 && buyable() ? buyMap() : startSwipe(dir));
   document.body.appendChild(b);
   return b;
 });
+const buyable = () => !winter && (desert ? winterAvailable(save) : desertAvailable(save));   // next map not yet owned
+const buyCost = () => desert ? WINTER_COST : DESERT_COST;
+function buyMap() {
+  if (swipe || arrive) return;
+  const cost = buyCost(), name = desert ? 'Winter Wonderland' : 'Desert';
+  if (save.money < cost) { alert(`Unlock ${name} for $${cost.toLocaleString()}. You need $${(cost - save.money).toLocaleString()} more.`); return; }
+  if (!confirm(`Buy ${name} for $${cost.toLocaleString()}?`)) return;
+  if (!(desert ? buyWinter(save) : buyDesert(save))) return;
+  sfx('cash');
+  moneyEl.textContent = '$' + save.money.toLocaleString();
+  startSwipe(1);
+}
 const nextMap = (dir) => {
   const to = MAPS[MAPS.indexOf(curMap()) + dir];
   return to && mapUnlocked(to) ? to : null;
@@ -118,8 +128,8 @@ const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 let drag = null;
 let selected = null;   // pen entry picked for selling
-const sellMin = (e) => e.a.tier === 'Common' ? 5 : 2;   // Common sells from 5 (all of them), others from 2
-const sellQty = (e) => e.a.tier === 'Common' ? held(e) : held(e) - 1;   // others always keep one in the pen
+const sellMin = () => 2;
+const sellQty = (e) => held(e) - 1;   // always keep one in the pen
 const PEN_SPOTS = [[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]];   // offsets for animals 2-5 (max 5 shown per pen)
 const held = (e) => save.owned[e.a.id] || 0;
 const cashTex = (() => {
@@ -322,6 +332,7 @@ export const farmScreen = {
     save = activeSave() || { money: 0, owned: {}, discovered: {} };
     winter = ctx.map === 'winter';
     desert = ctx.map === 'desert';
+    if (save.lastMap !== ctx.map) { save.lastMap = ctx.map; saveActive(); }   // reopen on this map next launch
     scene = createScene(winter ? 'winter' : desert);
     scene.fog = null;
 
@@ -399,7 +410,11 @@ export const farmScreen = {
     ctx.arrive = 0;
     if (arrive) { farmer.position.x = -arrive.dir * 16; farmer.rotation.y = arrive.dir * Math.PI / 2; fadeEl.style.background = MAP_SKY[curMap()]; fadeEl.style.opacity = 1; }
     else fadeEl.style.opacity = 0;
-    mapBtns.forEach((b, i) => { b.style.display = nextMap(i ? 1 : -1) ? '' : 'none'; });
+    mapBtns.forEach((b, i) => {
+      const buy = i && buyable();
+      b.style.display = buy || nextMap(i ? 1 : -1) ? '' : 'none';
+      b.classList.toggle('map-buy', !!buy && save.money >= buyCost());
+    });
     time = 0;
     moneyEl.textContent = '$' + save.money.toLocaleString();
     updateShopHint();

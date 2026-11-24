@@ -478,3 +478,6 @@ button { touch-action: manipulation; }
   0%, 70% { opacity: 1; visibility: visible; }
   100% { opacity: 0; visibility: hidden; }
 }
+.map-buy { animation: shop-glow 1.2s ease-in-out infinite; }
+.map-buy::before { content: '✨'; position: absolute; left: -8px; top: -8px; font-size: 20px; animation: shop-twinkle 1.2s ease-in-out infinite; }
+.map-buy::after { content: '✨'; position: absolute; right: -8px; bottom: -8px; font-size: 20px; animation: shop-twinkle 1.2s ease-in-out 0.6s infinite; }

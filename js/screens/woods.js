@@ -191,6 +191,7 @@ function driveAway(dt) {
   truck.rotation.y = leave.heading;
   dropMarks();
   animals.update(dt, true);
+  followers.ride(dt);
   rivals.update(dt, truck.position, true);
   updateChaseCamera(camera, truck.position.x, leave.z0 + Math.min(4, leave.t * 3), dt);
   if (leave.t > 2.2) greatJob.classList.add('show');

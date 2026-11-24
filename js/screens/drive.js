@@ -57,7 +57,7 @@ export const driveScreen = {
     t += dt;
     const k = Math.min(1, t / DURATION);
     truck.position.z = -(k * k * 70 + k * 6);
-    camera.position.set(7, 4, truck.position.z + 9);
+    camera.position.set(9, 5.5, truck.position.z + 12);
     camera.lookAt(0, 1.2, truck.position.z - 2);
     if (t >= DURATION - 0.3) finish();
   },

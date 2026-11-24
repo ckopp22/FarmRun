@@ -3,7 +3,7 @@ import { createScene } from '../render/renderer.js';
 import { makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { createTrees, createFlowers } from '../render/instancing.js';
-import { startSlot } from '../systems/save.js';
+import { startSlot, activeSave } from '../systems/save.js';
 import { unlockAudio, tapSound, setMusic } from '../systems/audio.js';
 
 const menuEl = document.getElementById('menu');
@@ -63,7 +63,8 @@ const onPlay = () => { unlockAudio(); pick(1); };
 function pick(n) {
   tapSound();
   startSlot(n);
-  ctxRef.map = 'farm';
+  const sv = activeSave(), last = sv && sv.lastMap;
+  ctxRef.map = (last === 'desert' && sv.desert) || (last === 'winter' && sv.winter) ? last : 'farm';
   ctxRef.go('farm');
 }
 

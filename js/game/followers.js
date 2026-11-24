@@ -77,7 +77,7 @@ export function createFollowers(scene, player) {
     boardT += dt;
     let done = true;
     list.forEach((f, i) => {
-      if (f.aboard) return;
+      if (f.aboard) { f.t += dt; animateAnimal(f.group, f.t, 1); return; }   // keep moving in place
       done = false;
       if (boardT < i * 0.2) return;
       const px = f.x, pz = f.z;
@@ -99,5 +99,8 @@ export function createFollowers(scene, player) {
     return done;
   }
 
-  return { add, update, board, remove, list };
+  // Animals riding in the truck keep moving but stay put.
+  function ride(dt) { for (const f of list) if (f.aboard) { f.t += dt; animateAnimal(f.group, f.t, 1); } }
+
+  return { add, update, board, ride, remove, list };
 }
