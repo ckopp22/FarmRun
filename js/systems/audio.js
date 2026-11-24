@@ -115,7 +115,15 @@ function startTrack() {
   player.src = track.files[0];
   player.volume = 0;
   player.play().catch(() => {});
-  fadeTo(track.vol, 2500);
+  fadeTo(track.vol * (ducked ? DUCK : 1), 2500);
+}
+
+const DUCK = 0.25;
+let ducked = false;
+export function duckMusic(on) {
+  ducked = on;
+  const track = TRACKS[musicName];
+  if (track && !player.paused) fadeTo(track.vol * (on ? DUCK : 1), 400);
 }
 
 function applyMusic(fade) {

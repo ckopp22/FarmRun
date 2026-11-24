@@ -3,7 +3,6 @@ import { createScene } from '../render/renderer.js';
 import { makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { createTrees, createFlowers } from '../render/instancing.js';
-import { renderSlots } from './slots.js';
 import { startSlot } from '../systems/save.js';
 import { unlockAudio, tapSound, setMusic } from '../systems/audio.js';
 
@@ -60,8 +59,7 @@ function pickTarget(r) {
 
 const show = (el, on) => { el.style.display = on ? '' : 'none'; };
 
-const onPlay = () => { unlockAudio(); tapSound(); show(menuEl, false); show(slotsEl, true); renderSlots(slotsEl, pick); };
-const onBack = () => { tapSound(); show(slotsEl, false); show(menuEl, true); };
+const onPlay = () => { unlockAudio(); pick(1); };
 function pick(n) {
   tapSound();
   startSlot(n);
@@ -70,9 +68,7 @@ function pick(n) {
 }
 
 const playBtn = document.getElementById('play-btn');
-const backBtn = document.getElementById('slots-back');
 playBtn.addEventListener('click', onPlay);
-backBtn.addEventListener('click', onBack);
 
 export const menuScreen = {
   enter(ctx) {

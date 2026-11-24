@@ -8,7 +8,7 @@ import { driveScreen } from './screens/drive.js';
 import { getQuality, setQuality } from './render/quality.js';
 import { menuScreen } from './screens/menu.js';
 import { initHelp } from './screens/help.js';
-import { audioSettings, toggle, unlockAudio, tapSound } from './systems/audio.js';
+import { audioSettings, toggle, unlockAudio, tapSound, duckMusic } from './systems/audio.js';
 
 const canvas = document.getElementById('game');
 const fpsEl = document.getElementById('fps');
@@ -92,19 +92,27 @@ document.getElementById('menu-btn').addEventListener('click', () => {
   const open = dropEl.style.display === 'none';
   dropEl.style.display = open ? '' : 'none';
 });
+const pauseMenuBtn = document.getElementById('pause-menu-btn');
+let curScreen = 'menu';
 const setPaused = (p) => {
+  const inRun = curScreen === 'woods';
+  pauseMenuBtn.textContent = inRun ? 'Leave' : 'Main Menu';
+  pauseMenuBtn.style.background = inRun ? '#d62d20' : '';
   pauseEl.style.display = p ? '' : 'none';
+  duckMusic(p);
   if (p) running = false;
   else if (!running) start();
 };
 pauseBtn.addEventListener('click', () => { tapSound(); dropEl.style.display = 'none'; setPaused(true); });
 document.getElementById('resume-btn').addEventListener('click', () => { tapSound(); setPaused(false); });
-document.getElementById('pause-menu-btn').addEventListener('click', () => {
+pauseMenuBtn.addEventListener('click', () => {
   tapSound();
+  const leaving = curScreen === 'woods';
   setPaused(false);
-  screens.go('menu');
+  screens.go(leaving ? 'farm' : 'menu');
 });
 document.addEventListener('screenchange', (e) => {
+  curScreen = e.detail;
   pauseBtn.style.display = e.detail === 'menu' ? 'none' : '';
   document.documentElement.style.setProperty('--top', e.detail === 'menu' ? '#9fd4f0' : '#5fa83f');
 });
