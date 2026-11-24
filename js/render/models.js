@@ -192,8 +192,12 @@ export function moveSanta(truck, t) {
     f.pts.material.opacity = Math.min(1, Math.max(0, Math.sin(t * 0.5) * 1.6));
   }
   const p = s.userData.path, a = t * 0.7;
-  s.position.set(Math.sin(a * 0.6) * p.x, p.y + Math.abs(Math.sin(t * 5)) * 0.06, p.z + Math.sin(a) * p.amp);
-  animateSanta(s, t, 1);
+  const x = Math.sin(a * 0.6) * p.x, z = p.z + Math.sin(a) * p.amp, u = s.userData;
+  const dist = u.lx === undefined ? 0 : Math.hypot(x - u.lx, z - u.lz);   // steps follow the distance he actually covers
+  u.lx = x; u.lz = z; u.stride = (u.stride || 0) + dist;
+  const walking = dist > 0.004;
+  s.position.set(x, p.y + (walking ? Math.abs(Math.sin(u.stride * 6)) * 0.04 : 0), z);
+  animateSanta(s, u.stride * 0.7, walking ? Math.min(1, dist * 40) * 0.7 : 0);
   s.rotation.y = Math.atan2(Math.cos(a * 0.6) * 0.6 * p.x, Math.cos(a) * p.amp) * 1;
 }
 

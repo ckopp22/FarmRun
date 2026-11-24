@@ -148,8 +148,10 @@ function runSanta(dt) {
       if (grid.resolve(s, SANTA_R)) { s.wait = 0.3; s.tx = s.x; s.tz = s.z; }
     }
   }
-  s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.t * 14)) * 0.12 : 0, s.z);
-  animateSanta(s.group, s.t, moving ? 1 : 0);
+  s.stride = (s.stride || 0) + (moving ? Math.hypot(s.x - (s.lx ?? s.x), s.z - (s.lz ?? s.z)) : 0);   // steps follow the distance covered
+  s.lx = s.x; s.lz = s.z;
+  s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.stride * 2.6)) * 0.12 : 0, s.z);
+  animateSanta(s.group, s.stride * 0.65, moving ? 1 : 0);
   s.group.rotation.y = moving ? s.heading : Math.atan2(player.x - s.x, player.z - s.z);
   const a = s.flakes.geometry.attributes.position;
   for (let k = 0; k < 24; k++) {   // snowflakes swirl down around him
