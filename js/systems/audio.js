@@ -24,6 +24,8 @@ const buffers = {};
 const loops = {};
 const player = new Audio();
 let fadeTimer = 0;
+let startTimer = 0;
+const warmed = [];
 let trackIdx = 0;
 player.addEventListener('ended', () => {
   const track = TRACKS[musicName];
@@ -110,12 +112,17 @@ function fadeTo(vol, ms, done) {
 function startTrack() {
   const track = TRACKS[musicName];
   player.pause();
+  clearTimeout(startTimer);
   if (!settings.music || !track || !actx) return;
-  trackIdx = 0;
-  player.src = track.files[0];
-  player.volume = 0;
-  player.play().catch(() => {});
-  fadeTo(track.vol * (ducked ? DUCK : 1), 2500);
+  // Defer so the mp3 load/decode doesn't land in the frames that build the scene.
+  startTimer = setTimeout(() => {
+    if (TRACKS[musicName] !== track) return;
+    trackIdx = 0;
+    player.src = track.files[0];
+    player.volume = 0;
+    player.play().catch(() => {});
+    fadeTo(track.vol * (ducked ? DUCK : 1), 2500);
+  }, 700);
 }
 
 const DUCK = 0.25;
@@ -144,6 +151,7 @@ export function unlockAudio() {
     if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
     if (actx.state === 'suspended') actx.resume();
     loadSamples();
+    if (!warmed.length) for (const t of Object.values(TRACKS)) for (const f of t.files) { const a = new Audio(); a.preload = 'auto'; a.src = f; warmed.push(a); }
     if (player.paused) applyMusic();
   } catch (e) { /* no audio available */ }
 }
