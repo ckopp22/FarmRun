@@ -163,10 +163,30 @@ export function makeReindeer() {
   return g;
 }
 
+function addFlakes(truck) {
+  const n = 16, geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.16, transparent: true, opacity: 0, depthWrite: false }));
+  pts.frustumCulled = false;
+  truck.add(pts);
+  truck.userData.flakes = { pts, n, ph: [], ang: [], r: [] };
+  for (let i = 0; i < n; i++) { const f = truck.userData.flakes; f.ph.push(Math.random()); f.ang.push(Math.random() * 6.28); f.r.push(0.5 + Math.random() * 0.9); }
+}
+
 // Santa strolls back and forth (and side to side) across the vehicle's roof or sled, bobbing as he walks.
 export function moveSanta(truck, t) {
   const s = truck.userData.santa;
   if (!s) return;
+  const f = truck.userData.flakes;
+  if (f) {   // snowflakes swirl down around him in waves
+    const a = f.pts.geometry.attributes.position, sc = 1 / truck.scale.x;
+    for (let i = 0; i < f.n; i++) {
+      const fall = (t * 0.35 + f.ph[i]) % 1, ang = f.ang[i] + t * 0.6;
+      a.setXYZ(i, s.position.x + Math.cos(ang) * f.r[i] * sc, s.position.y + (2.4 - fall * 2.6) * sc, s.position.z + Math.sin(ang) * f.r[i] * sc);
+    }
+    a.needsUpdate = true;
+    f.pts.material.opacity = Math.min(1, Math.max(0, Math.sin(t * 0.5) * 1.6));
+  }
   const p = s.userData.path, a = t * 0.7;
   s.position.set(Math.sin(a * 0.6) * p.x, p.y + Math.abs(Math.sin(t * 5)) * 0.06, p.z + Math.sin(a) * p.amp);
   animateSanta(s, t, 1);
@@ -197,6 +217,7 @@ export function addSantaDecor(truck, kind = 'truck') {
     }
     santa.userData.path = kind === 'safari' ? { z: -0.55, amp: 1.0, x: 0.5, y: 2.85 } : { z: -1.9, amp: 1.3, x: 0.6, y: 0.46 };
     truck.userData.santa = santa;
+    addFlakes(truck);
     truck.add(santa);
     return;
   }
@@ -209,6 +230,7 @@ export function addSantaDecor(truck, kind = 'truck') {
   santa.scale.setScalar(1.2);
   santa.userData.path = { z: 0.9, amp: 0.6, x: 0.3, y: 2.0 };
   truck.userData.santa = santa;
+  addFlakes(truck);
   truck.add(santa);
 }
 
