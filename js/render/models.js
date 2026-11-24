@@ -196,10 +196,12 @@ export function addDailyLabel(truck) {
   x.font = 'bold 40px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
   x.fillStyle = '#ffe066'; x.fillText('Daily Challenge', 160, 42);
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false }));
-  const k = 1 / (s.scale.x * truck.scale.x);
-  sp.scale.set(2.6 * k, 0.65 * k, 1);
-  sp.position.y = 2.2;
-  s.add(sp);
+  const k = 1 / truck.scale.x, p = s.userData.path;
+  sp.scale.set(4.4 * k, 1.1 * k, 1);
+  sp.userData.base = p.y + 2.8;
+  sp.position.set(0, sp.userData.base, p.z);
+  truck.userData.label = sp;
+  truck.add(sp);
 }
 
 function addFlakes(truck) {
@@ -216,6 +218,8 @@ function addFlakes(truck) {
 export function moveSanta(truck, t) {
   const s = truck.userData.santa;
   if (!s) return;
+  const lb = truck.userData.label;
+  if (lb) lb.position.y = lb.userData.base + Math.sin(t * 2.2) * 0.25;   // floats up and down over the vehicle
   const f = truck.userData.flakes;
   if (f) {   // snowflakes swirl down around him in waves
     const a = f.pts.geometry.attributes.position, sc = 1 / truck.scale.x;
