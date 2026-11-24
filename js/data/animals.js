@@ -55,7 +55,7 @@ export const UPGRADES = [
 
 // Desert map: unlocked in the shop once all 24 farm animals are discovered. Same pen layout and START_PENS.
 export const DESERT_COST = 100000;
-export const SAFARI_PEN_COSTS = [225000, 240000, 255000, 270000, 285000, 300000, 315000, 330000, 345000, 360000, 375000, 390000, 405000, 420000, 435000, 450000, 465000, 480000, 495000, 510000];
+export const SAFARI_PEN_COSTS = [675000, 720000, 765000, 810000, 855000, 900000, 945000, 990000, 1035000, 1080000, 1125000, 1170000, 1215000, 1260000, 1305000, 1350000, 1395000, 1440000, 1485000, 1530000];
 export const SAFARI_ANIMALS = [
   { id: 'meerkat', name: 'Meerkat', tier: 'Common', value: 55000, k: 'quad', w: 0.3, h: 0.35, l: 0.45, leg: 0.15, ear: 0.08, c: 0xc9a46a, sn: 0x5a4028 },
   { id: 'gecko', name: 'Gecko', tier: 'Common', value: 60000, k: 'quad', w: 0.3, h: 0.15, l: 0.7, leg: 0.1, c: 0x7fae4a, hc: 0x8fc05a, tc: 0x6a9a3a },
@@ -101,7 +101,7 @@ export const SAFARI_ANIMALS = [
 
 // Winter map: unlocked in the shop once all 24 safari animals are discovered. Same pen layout and START_PENS.
 export const WINTER_COST = 500000;
-export const WINTER_PEN_COSTS = [600000, 630000, 660000, 690000, 720000, 750000, 795000, 840000, 885000, 930000, 975000, 1020000, 1065000, 1125000, 1185000, 1245000, 1305000, 1365000, 1440000, 1500000];
+export const WINTER_PEN_COSTS = [1500000, 1575000, 1650000, 1725000, 1800000, 1875000, 1990000, 2100000, 2215000, 2325000, 2440000, 2550000, 2665000, 2815000, 2965000, 3115000, 3265000, 3415000, 3600000, 3750000];
 export const WINTER_ANIMALS = [
   { id: 'snowhare', name: 'Snow Hare', tier: 'Common', value: 175000, k: 'quad', w: 0.35, h: 0.3, l: 0.5, leg: 0.15, ear: 0.4, c: 0xf4f4f4, tc: 0xffffff, sn: 0xf2b6b6 },
   { id: 'penguin', name: 'Penguin', tier: 'Common', value: 180000, k: 'bird', s: 1.1, c: 0x222a35, b: 0xf39c12, tc: 0x222a35, legc: 0xf39c12 },
