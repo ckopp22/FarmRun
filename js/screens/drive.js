@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, speckleTexture } from '../render/renderer.js';
-import { makeTruck, makeSafariTruck, makeSnowmobile, makeSeatedFarmer } from '../render/models.js';
+import { addSantaDecor, twinkleLights, moveSanta, makeTruck, makeSafariTruck, makeSnowmobile, makeSeatedFarmer } from '../render/models.js';
 import { createTrees, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { sfx } from '../systems/audio.js';
 
@@ -20,6 +20,7 @@ function finish() {
   }, 260);
 }
 
+let santaTruck = false;
 export const driveScreen = {
   enter(ctx) {
     ctxRef = ctx;
@@ -37,6 +38,8 @@ export const driveScreen = {
     mapZoom = winter || desert ? 1.3 : 1;
     truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     if (winter) truck.add(makeSeatedFarmer());
+    santaTruck = !!ctx.santaRun;
+    if (santaTruck) addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');
     truck.rotation.y = Math.PI;
     scene.add(truck);
     const trees = [];
@@ -56,6 +59,7 @@ export const driveScreen = {
 
   update(dt) {
     t += dt;
+    if (santaTruck) { twinkleLights(t); moveSanta(truck, t); }
     const k = Math.min(1, t / DURATION);
     truck.position.z = -(k * k * 70 + k * 6);
     const zm = mapZoom;
