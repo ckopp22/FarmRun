@@ -132,7 +132,7 @@ export const menuScreen = {
       }
       let dx = o.x - p.x, dz = o.z - p.z;
       const d = Math.hypot(dx, dz) || 1e-6;
-      if (r.it && d < 0.9) { r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
+      if (r.it && d < 1.25) { r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
       if (!r.it) {   // run away, curving back toward the middle near the edges
         dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 3 + r.ph) * 0.4;
       }
@@ -141,7 +141,8 @@ export const menuScreen = {
       p.x += dx * sp * dt;
       p.z += dz * sp * dt;
       collide(p, p);
-      r.group.rotation.y = Math.atan2(dx, dz);
+      const dr = Math.atan2(Math.sin(Math.atan2(dx, dz) - r.group.rotation.y), Math.cos(Math.atan2(dx, dz) - r.group.rotation.y));
+      r.group.rotation.y += dr * Math.min(1, dt * 8);
       p.y = Math.abs(Math.sin(clock * 9 + r.ph)) * 0.12;
       animateAnimal(r.group, clock * 0.8 + r.ph, 1);
     }
