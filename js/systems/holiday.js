@@ -1,5 +1,5 @@
-// December-only holiday event.
-export const isHoliday = () => new Date().getMonth() === 11;
+// Holiday event (always on).
+export const isHoliday = () => true;
 
 const dayKey = () => { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
 export const PRESENT_GOAL = 5;
