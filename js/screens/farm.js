@@ -177,7 +177,7 @@ function onUp(ev) {
   ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(entries.flatMap((e) => [e.group, e.cash, e.sign, ...e.extras].filter((g) => g.visible)), true);
-  if (truckObj && ray.intersectObject(truckObj, true).length && !hits.length) { onRun(); return; }
+  if (truckObj && ray.intersectObject(truckObj, true).length && !hits.length) { onRun(true); return; }
   let e;
   if (hits.length) {
     let o = hits[0].object;
@@ -197,10 +197,10 @@ function onUp(ev) {
 
 const closeShop = () => { shopEl.style.display = 'none'; };
 const onShop = () => { tapSound(); renderShop(); shopEl.style.display = ''; };
-const onRun = () => { tapSound(); ctxRef.go('drive'); };
+const onRun = (santa) => { tapSound(); ctxRef.santaRun = santa === true; ctxRef.go('drive'); };
 document.getElementById('shop-btn').addEventListener('click', onShop);
 document.getElementById('shop-close').addEventListener('click', () => { tapSound(); closeShop(); });
-document.getElementById('run-btn').addEventListener('click', onRun);
+document.getElementById('run-btn').addEventListener('click', () => onRun());
 
 // Empty-pen marker: a dotted border with a faint picture of the animal that belongs there.
 let iconTargets = [];

@@ -106,18 +106,7 @@ const bulbMats = [0xff3030, 0x30e050, 0xffd830, 0x40a0ff].map((c) => ({ c, m: ne
 export function twinkleLights(t) {
   bulbMats.forEach((b, i) => b.m.color.setHex(b.c).multiplyScalar(0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 4 + i * 1.6))));
 }
-export function addSantaDecor(truck) {
-  const bulbGeo = new THREE.SphereGeometry(0.09, 6, 5);
-  let n = 0;
-  const bulb = (x, y, z) => {
-    const m = new THREE.Mesh(bulbGeo, bulbMats[n++ % 4].m);
-    m.position.set(x, y, z);
-    truck.add(m);
-  };
-  for (let i = 0; i <= 8; i++) { const z = -3 + i * 0.5; bulb(-0.96, 1.22, z * 0.9 - 0.2); bulb(0.96, 1.22, z * 0.9 - 0.2); }   // chassis edge
-  for (let i = 0; i <= 4; i++) { const x = -0.9 + i * 0.45; bulb(x, 2.03, 1.6); bulb(x, 2.03, 0.2); }                         // cab roof
-  for (let i = 1; i < 3; i++) { bulb(-0.9, 2.03, 1.6 - i * 0.47); bulb(0.9, 2.03, 1.6 - i * 0.47); }
-  for (let i = 0; i <= 4; i++) bulb(-0.85 + i * 0.425, 1.62, -2.2);                                                           // bed rim
+export function makeSanta() {
   const santa = new THREE.Group();
   box(santa, 0.18, 0.5, 0.2, 0x222222, -0.12, 0.25, 0);          // boots/legs
   box(santa, 0.18, 0.5, 0.2, 0x222222, 0.12, 0.25, 0);
@@ -134,6 +123,45 @@ export function addSantaDecor(truck) {
   box(santa, 0.38, 0.2, 0.36, 0xd62d20, 0, 1.42, 0);             // hat
   box(santa, 0.4, 0.07, 0.38, 0xffffff, 0, 1.33, 0);             // hat trim
   box(santa, 0.1, 0.1, 0.1, 0xffffff, 0, 1.58, -0.05);           // pom
+  return santa;
+}
+
+export function makePresent(size = 0.4) {
+  const g = new THREE.Group();
+  box(g, size, size, size, 0x2e9e4a, 0, size / 2, 0);
+  box(g, size * 1.04, size * 1.04, size * 0.18, 0xd62d20, 0, size / 2, 0);
+  box(g, size * 0.18, size * 1.04, size * 1.04, 0xd62d20, 0, size / 2, 0);
+  box(g, size * 0.35, size * 0.2, size * 0.2, 0xd62d20, 0, size * 1.1, 0);
+  return g;
+}
+
+export function makeReindeer() {
+  const g = new THREE.Group();
+  const brown = 0x8a5a33;
+  box(g, 0.6, 0.6, 1.3, brown, 0, 1.0, 0);
+  box(g, 0.4, 0.6, 0.4, brown, 0, 1.55, 0.7);          // neck
+  box(g, 0.4, 0.38, 0.5, brown, 0, 1.85, 0.95);        // head
+  box(g, 0.14, 0.14, 0.14, 0xff2020, 0, 1.8, 1.24);    // red nose
+  box(g, 0.05, 0.5, 0.05, 0xd8c8a0, -0.15, 2.2, 0.9).rotation.z = 0.4;   // antlers
+  box(g, 0.05, 0.5, 0.05, 0xd8c8a0, 0.15, 2.2, 0.9).rotation.z = -0.4;
+  for (const [x, z] of [[-0.2, 0.5], [0.2, 0.5], [-0.2, -0.5], [0.2, -0.5]]) box(g, 0.14, 0.7, 0.14, 0x5e3b20, x, 0.35, z);
+  box(g, 0.2, 0.2, 0.2, 0xffffff, 0, 1.15, -0.72);     // tail
+  return g;
+}
+
+export function addSantaDecor(truck) {
+  const bulbGeo = new THREE.SphereGeometry(0.09, 6, 5);
+  let n = 0;
+  const bulb = (x, y, z) => {
+    const m = new THREE.Mesh(bulbGeo, bulbMats[n++ % 4].m);
+    m.position.set(x, y, z);
+    truck.add(m);
+  };
+  for (let i = 0; i <= 8; i++) { const z = -3 + i * 0.5; bulb(-0.96, 1.22, z * 0.9 - 0.2); bulb(0.96, 1.22, z * 0.9 - 0.2); }   // chassis edge
+  for (let i = 0; i <= 4; i++) { const x = -0.9 + i * 0.45; bulb(x, 2.03, 1.6); bulb(x, 2.03, 0.2); }                         // cab roof
+  for (let i = 1; i < 3; i++) { bulb(-0.9, 2.03, 1.6 - i * 0.47); bulb(0.9, 2.03, 1.6 - i * 0.47); }
+  for (let i = 0; i <= 4; i++) bulb(-0.85 + i * 0.425, 1.62, -2.2);                                                           // bed rim
+  const santa = makeSanta();
   santa.position.set(0, 2.0, 0.9);
   santa.scale.setScalar(1.2);
   truck.add(santa);

@@ -34,6 +34,7 @@ function makeMark() {
 // Farther spawns are more dangerous: faster chase speed.
 export function createRivals(scene, grid, count, player, onAlert) {
   const list = [];
+  let hunt = false;   // Santa run: once set, every rival chases and never gives up
   let tgt = player;   // what rivals chase: the player, or the truck once the run ends
   for (let i = 0; i < count; i++) {
     const group = makeFarmer(0x3a3a3a, 0x222222);
@@ -111,7 +112,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
         const dx = tgt.x - r.x, dz = tgt.z - r.z;
         const d = Math.hypot(dx, dz);
         r.lost = grid.blocked(r.x, r.z, tgt.x, tgt.z) ? r.lost + dt : 0;
-        if (!follow && (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME)) {
+        if (!follow && !hunt && (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME)) {
           r.state = 'wander'; r.wait = 1; r.tx = r.x; r.tz = r.z;
         } else {
           turn(r, steer(r, Math.atan2(dx, dz)), dt);
@@ -141,5 +142,10 @@ export function createRivals(scene, grid, count, player, onAlert) {
     return caught;
   }
 
-  return { update, list };
+  function huntAll() {
+    hunt = true;
+    for (const r of list) { r.state = 'chase'; r.lost = 0; r.mark.visible = false; }
+  }
+
+  return { update, list, huntAll };
 }

@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt } from '../render/renderer.js';
 import { createChaseCamera, updateChaseCamera, snapCamera, CAMERA_YAW } from '../render/camera.js';
-import { animateFarmer, makeSeatedFarmer } from '../render/models.js';
+import { animateFarmer, makeSeatedFarmer, makeSanta, makeReindeer, makePresent } from '../render/models.js';
 import { quality } from '../render/quality.js';
 import { createGrid } from '../game/collision.js';
 import { buildForest, buildFence, PLAYER_LIMIT } from '../game/map.js';
@@ -17,6 +17,7 @@ import { sfx, setLoop, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { capacity as capacityOf, speedMult, penCount, safariPenCount, winterPenCount } from '../systems/economy.js';
+import { addPresent } from '../systems/holiday.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS } from '../data/animals.js';
 
 const ANIMAL_EXTRA = 24;   // random spawns on top of one of every unlocked animal
@@ -30,6 +31,7 @@ let input, grid, player, animals, followers, rivals, particles, footsteps, indic
 const greatJob = document.getElementById('great-job');
 let swipeCd = 0;
 let desert = false, winter = false, bodyHalf = 1.5;   // bodyHalf: half the truck's length along z
+let santa = null, carrying = false, santaRun = false;
 let haul, capacity, armed, busted, truck, leave, scene;
 const hud = document.getElementById('chickens');
 const bustedEl = document.getElementById('busted');
@@ -72,6 +74,7 @@ function stealFollowers(dt) {
 }
 
 function paintHud() {
+  if (santaRun) { hud.textContent = carrying ? 'Get the present to the truck!' : santa ? 'Find Santa!' : ''; return; }
   hud.innerHTML = `<img class="bag-icon" src="icons/backpack.svg" alt="Bag">&nbsp;<span class="bag-num">${haul.length}/${capacity}</span>`;
 }
 
@@ -85,9 +88,69 @@ function bankHaul() {
       if (!save.discovered[a.id]) { save.discovered[a.id] = true; found.push(a.id); }
     }
     save.runs++;
+    if (carrying) addPresent(save);
     saveActive();
   }
   ctxRef.newlyFound = found;
+}
+
+// Santa waits somewhere in the woods under a red beam. Touch him for a present; he hops on a reindeer and flies off.
+function spawnSanta() {
+  let x = 0, z = 0;
+  for (let i = 0; i < 40; i++) {
+    const a = Math.random() * 6.28, d = 28 + Math.random() * 27;
+    x = Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, Math.cos(a) * d));
+    z = Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, Math.sin(a) * d));
+    if (!grid.overlaps(x, z, 1.2)) break;
+  }
+  const group = makeSanta();
+  group.scale.setScalar(1.5);
+  group.position.set(x, 0, z);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.25, depthWrite: false }));
+  beam.position.set(x, 20, z);
+  scene.add(group, beam);
+  santa = { group, beam, x, z, phase: 'idle', t: 0, deer: null };
+}
+
+function updateSanta(dt) {
+  if (!santa) return;
+  const s = santa;
+  s.t += dt;
+  if (s.phase === 'idle') {
+    s.group.position.y = Math.abs(Math.sin(s.t * 3)) * 0.12;
+    s.group.rotation.y = Math.atan2(player.x - s.x, player.z - s.z);
+    if (!leave && Math.hypot(player.x - s.x, player.z - s.z) < 1.5) {
+      s.phase = 'leaving'; s.t = 0;
+      s.deer = makeReindeer();
+      s.deer.position.set(s.x + 1.4, 0, s.z);
+      s.deer.rotation.y = Math.PI / 2;
+      scene.add(s.deer);
+      scene.remove(s.beam);
+      carrying = true;
+      const present = makePresent(0.35);
+      present.position.set(0, 0.95, 0.4);
+      present.name = 'present';
+      player.group.add(present);
+      rivals.huntAll();
+      sfx('cash');
+      particles.burst(s.x, 1.5, s.z, 0xffe066, 14, 4);
+      paintHud();
+    }
+    return;
+  }
+  const t = s.t, dx = s.x + 1.4;
+  if (t < 1.0) { s.group.position.y = 0; return; }
+  if (t < 1.6) {   // hop onto the reindeer
+    const k = (t - 1.0) / 0.6;
+    s.group.position.set(s.x + (dx - s.x) * k, Math.sin(k * Math.PI) * 1.2 + 1.3 * k * 0.9, s.z);
+  } else {
+    if (s.group.parent !== s.deer) { s.deer.add(s.group); s.group.position.set(0, 1.3, -0.1); s.group.rotation.set(0, 0, 0); s.group.scale.setScalar(1); }
+    const f = t - 1.6;
+    s.deer.position.x += f * 2.5 * dt * 2;
+    s.deer.position.y += f * f * 1.5 * dt;
+    s.deer.position.z -= f * dt * 3;
+    if (f > 4) { scene.remove(s.deer); santa.phase = 'gone'; }
+  }
 }
 
 // Truck pulls out toward the camera (screen down), leaving tire marks, then we go to the farm.
@@ -233,12 +296,16 @@ export const woodsScreen = {
     player = createPlayer(scene, 3.5, 3);
     player.speedMult = speedMult(fx);
     const pool = winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS, pens = winter ? winterPenCount(fx) : desert ? safariPenCount(fx) : penCount(fx);
-    animals = createAnimals(scene, grid, ANIMAL_EXTRA + pens, player, pool.slice(0, pens));
+    santaRun = !!ctx.santaRun && !desert && !winter;
+    carrying = false;
+    santa = null;
+    animals = createAnimals(scene, grid, santaRun ? 0 : ANIMAL_EXTRA + pens, player, pool.slice(0, pens));
     followers = createFollowers(scene, player);
     rivals = createRivals(scene, grid, RIVAL_COUNT, player, () => sfx('alert'));
     particles = createParticles(scene);
     footsteps = createFootsteps(scene);
     indicators = createIndicators(scene, RIVAL_COUNT);
+    if (santaRun) spawnSanta();
     setMusic('woods');
     busted = false;
     bustedEl.style.display = 'none';
@@ -259,6 +326,7 @@ export const woodsScreen = {
     swipeCd -= dt;
     if (animals.blocked && swipeCd <= 0) { sfx('deny'); swipeCd = 0.7; flashFull(); }
     if (got) { haul.push(got); followers.add(got); paintHud(); sfx('pickup'); particles.burst(player.x, 0.8, player.z, 0xffe066, 8, 3); }
+    updateSanta(dt);
     particles.update(dt);
     followers.update(dt);
     updateChaseCamera(camera, player.x, player.z, dt);
@@ -278,7 +346,7 @@ export const woodsScreen = {
     setLoop('walk', false);
     hud.style.display = 'none';
     bustedEl.style.display = 'none';
-    truck = leave = marks = scene = null;
+    truck = leave = marks = scene = santa = null;
     input = grid = player = animals = followers = rivals = particles = footsteps = indicators = camera = null;
   },
 };
