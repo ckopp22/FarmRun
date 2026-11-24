@@ -149,7 +149,7 @@ export function makeReindeer() {
   return g;
 }
 
-export function addSantaDecor(truck) {
+export function addSantaDecor(truck, kind = 'truck') {
   const bulbGeo = new THREE.SphereGeometry(0.09, 6, 5);
   let n = 0;
   const bulb = (x, y, z) => {
@@ -157,11 +157,28 @@ export function addSantaDecor(truck) {
     m.position.set(x, y, z);
     truck.add(m);
   };
+  let santa;
+  const fit = (x, y, z) => { santa.position.set(x, y, z); santa.scale.setScalar(1.2 / truck.scale.x); };
+  if (kind !== 'truck') {
+    santa = makeSanta();
+    if (kind === 'safari') {
+      for (let i = 0; i <= 8; i++) { const z = -2.2 + i * 0.55; bulb(-1.02, 1.22, z); bulb(1.02, 1.22, z); }
+      for (let i = 0; i <= 4; i++) { const z = 0.5 - i * 0.55; bulb(-1.12, 2.85, z); bulb(1.12, 2.85, z); }
+      fit(0, 2.85, -0.5);
+    } else {
+      for (let i = 0; i <= 6; i++) { const z = 0.1 - i * 0.58; bulb(-1.15, 0.98, z); bulb(1.15, 0.98, z); }
+      for (let i = 0; i <= 4; i++) bulb(-1.1 + i * 0.55, 0.98, -3.5);
+      for (let i = 0; i <= 2; i++) bulb(-0.4 + i * 0.4, 1.3, 2.7);
+      fit(0, 0.46, -1.7);
+    }
+    truck.add(santa);
+    return;
+  }
   for (let i = 0; i <= 8; i++) { const z = -3 + i * 0.5; bulb(-0.96, 1.22, z * 0.9 - 0.2); bulb(0.96, 1.22, z * 0.9 - 0.2); }   // chassis edge
   for (let i = 0; i <= 4; i++) { const x = -0.9 + i * 0.45; bulb(x, 2.03, 1.6); bulb(x, 2.03, 0.2); }                         // cab roof
   for (let i = 1; i < 3; i++) { bulb(-0.9, 2.03, 1.6 - i * 0.47); bulb(0.9, 2.03, 1.6 - i * 0.47); }
   for (let i = 0; i <= 4; i++) bulb(-0.85 + i * 0.425, 1.62, -2.2);                                                           // bed rim
-  const santa = makeSanta();
+  santa = makeSanta();
   santa.position.set(0, 2.0, 0.9);
   santa.scale.setScalar(1.2);
   truck.add(santa);

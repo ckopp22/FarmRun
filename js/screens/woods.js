@@ -296,7 +296,7 @@ export const woodsScreen = {
     player = createPlayer(scene, 3.5, 3, save && save.shirt);
     player.speedMult = speedMult(fx);
     const pool = winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS, pens = winter ? winterPenCount(fx) : desert ? safariPenCount(fx) : penCount(fx);
-    santaRun = !!ctx.santaRun && !desert && !winter;
+    santaRun = !!ctx.santaRun;
     carrying = false;
     santa = null;
     animals = createAnimals(scene, grid, santaRun ? 0 : ANIMAL_EXTRA + pens, player, pool.slice(0, pens));

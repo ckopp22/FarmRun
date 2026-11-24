@@ -403,8 +403,8 @@ export const farmScreen = {
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });
     addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
     const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
-    const santaTruck = isHoliday() && !winter && !desert;
-    if (santaTruck) addSantaDecor(truck);
+    const santaTruck = isHoliday();
+    if (santaTruck) addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');
     truckObj = santaTruck ? truck : null;
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
