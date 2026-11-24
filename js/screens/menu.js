@@ -1,7 +1,7 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene } from '../render/renderer.js';
 import { isHoliday } from '../systems/holiday.js';
-import { addSantaDecor, twinkleLights, makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
+import { addSantaDecor, twinkleLights, moveSanta, makeBarn, makeTruck, makeAnimal, animateAnimal } from '../render/models.js';
 import { ANIMALS } from '../data/animals.js';
 import { createTrees, createFlowers } from '../render/instancing.js';
 import { startSlot, activeSave } from '../systems/save.js';
@@ -81,6 +81,7 @@ function pick(n) {
 const playBtn = document.getElementById('play-btn');
 playBtn.addEventListener('click', onPlay);
 
+let menuTruck = null;
 export const menuScreen = {
   enter(ctx) {
     ctxRef = ctx;
@@ -88,7 +89,7 @@ export const menuScreen = {
     const barn = makeBarn();
     scene.add(barn);
     const truck = makeTruck();
-    if (isHoliday()) addSantaDecor(truck);
+    if (isHoliday()) { addSantaDecor(truck); menuTruck = truck; }
     truck.position.set(TRUCK.x, 0, TRUCK.z);
     truck.rotation.y = TRUCK.rot;
     scene.add(truck);
@@ -123,7 +124,7 @@ export const menuScreen = {
 
   update(dt) {
     clock += dt;
-    if (isHoliday()) twinkleLights(clock);
+    if (isHoliday()) { twinkleLights(clock); if (menuTruck) moveSanta(menuTruck, clock); }
     // Cute tag: each pair chases; when the chaser catches up it hops, then the roles swap.
     for (const r of roamers) {
       const p = r.group.position, o = r.buddy.group.position;

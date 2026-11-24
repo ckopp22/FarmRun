@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, moveSanta, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, animalTotal, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
@@ -553,7 +553,7 @@ export const farmScreen = {
         g.rotation.y = Math.atan2(Math.cos(t), -Math.sin(t * 0.8) * 0.8) + Math.sin(time * 14 + i) * 0.5 * k;
       });
     }
-    if (truckObj) twinkleLights(time);
+    if (truckObj) { twinkleLights(time); moveSanta(truckObj, time); }
     confetti.update(dt, time, 0, panZ);
     particles.update(dt);
     const sway = Math.sin(time * 0.4) * 0.4;

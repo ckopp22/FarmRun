@@ -109,7 +109,45 @@ function spawnSanta() {
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.25, depthWrite: false }));
   beam.position.set(x, 20, z);
   scene.add(group, beam);
-  santa = { group, beam, x, z, phase: 'idle', t: 0, deer: null };
+  santa = { group, beam, x, z, tx: x, tz: z, wait: 0, heading: 0, phase: 'idle', t: 0, deer: null };
+}
+
+// Santa wanders the woods like an Epic animal: strolls to random spots, then sprints away when the player gets close.
+const SANTA_FLEE = 5.0, SANTA_RANGE = 11, SANTA_WALK = 2.2, SANTA_R = 0.5;
+const clampL = (v) => Math.max(-PLAYER_LIMIT, Math.min(PLAYER_LIMIT, v));
+function runSanta(dt) {
+  const s = santa;
+  const px = player.x - s.x, pz = player.z - s.z, pd = Math.hypot(px, pz) || 0.001;
+  let moving = false;
+  if (pd < SANTA_RANGE) {
+    let vx = -px / pd * SANTA_FLEE, vz = -pz / pd * SANTA_FLEE;
+    if (Math.abs(s.x) >= PLAYER_LIMIT && vx * s.x > 0) { vx = 0; vz = (vz < 0 || (vz === 0 && pz > 0) ? -1 : 1) * SANTA_FLEE; }
+    if (Math.abs(s.z) >= PLAYER_LIMIT && vz * s.z > 0) { vz = 0; vx = (px > 0 ? -1 : 1) * SANTA_FLEE; }
+    s.x = clampL(s.x + vx * dt); s.z = clampL(s.z + vz * dt);
+    s.heading = Math.atan2(vx, vz);
+    s.tx = s.x; s.tz = s.z; s.wait = 0.4;
+    moving = true;
+    grid.resolve(s, SANTA_R);
+  } else if (s.wait > 0) s.wait -= dt;
+  else {
+    const dx = s.tx - s.x, dz = s.tz - s.z, d = Math.hypot(dx, dz);
+    if (d < 0.2) {
+      s.wait = 0.5 + Math.random() * 1.5; s.tx = s.x; s.tz = s.z;
+      for (let i = 0; i < 6; i++) {
+        const a = Math.random() * 6.28, r = 3 + Math.random() * 7, tx = clampL(s.x + Math.cos(a) * r), tz = clampL(s.z + Math.sin(a) * r);
+        if (grid.overlaps(tx, tz, SANTA_R + 0.3) || grid.blocked(s.x, s.z, tx, tz)) continue;
+        s.tx = tx; s.tz = tz; break;
+      }
+    } else {
+      s.x += dx / d * SANTA_WALK * dt; s.z += dz / d * SANTA_WALK * dt;
+      s.heading = Math.atan2(dx, dz);
+      moving = true;
+      if (grid.resolve(s, SANTA_R)) { s.wait = 0.3; s.tx = s.x; s.tz = s.z; }
+    }
+  }
+  s.group.position.set(s.x, moving ? Math.abs(Math.sin(s.t * 14)) * 0.12 : 0, s.z);
+  s.group.rotation.y = moving ? s.heading : Math.atan2(player.x - s.x, player.z - s.z);
+  s.beam.position.set(s.x, 20, s.z);
 }
 
 function updateSanta(dt) {
@@ -117,9 +155,8 @@ function updateSanta(dt) {
   const s = santa;
   s.t += dt;
   if (s.phase === 'idle') {
-    s.group.position.y = Math.abs(Math.sin(s.t * 3)) * 0.12;
-    s.group.rotation.y = Math.atan2(player.x - s.x, player.z - s.z);
-    if (!leave && Math.hypot(player.x - s.x, player.z - s.z) < 1.5) {
+    runSanta(dt);
+    if (!leave && Math.hypot(player.x - s.x, player.z - s.z) < 0.95) {
       s.phase = 'leaving'; s.t = 0;
       s.deer = makeReindeer();
       s.deer.position.set(s.x + 1.4, 0, s.z);

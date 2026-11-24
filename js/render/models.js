@@ -108,21 +108,21 @@ export function twinkleLights(t) {
 }
 export function makeSanta() {
   const santa = new THREE.Group();
-  box(santa, 0.18, 0.5, 0.2, 0x222222, -0.12, 0.25, 0);          // boots/legs
-  box(santa, 0.18, 0.5, 0.2, 0x222222, 0.12, 0.25, 0);
-  box(santa, 0.5, 0.55, 0.34, 0xd62d20, 0, 0.75, 0);             // coat
-  box(santa, 0.52, 0.08, 0.36, 0x111111, 0, 0.68, 0);            // belt
-  box(santa, 0.1, 0.1, 0.02, 0xf1c40f, 0, 0.68, 0.19);           // buckle
-  box(santa, 0.52, 0.06, 0.36, 0xffffff, 0, 0.47, 0);            // coat trim
-  box(santa, 0.14, 0.45, 0.16, 0xd62d20, -0.34, 0.8, 0).rotation.z = -0.5;   // waving arms
-  box(santa, 0.14, 0.45, 0.16, 0xd62d20, 0.34, 0.85, 0).rotation.z = 0.5;
-  box(santa, 0.16, 0.16, 0.16, 0xffffff, -0.44, 1.02, 0);
-  box(santa, 0.16, 0.16, 0.16, 0xffffff, 0.44, 1.07, 0);
-  box(santa, 0.34, 0.3, 0.32, 0xf2c9a0, 0, 1.2, 0);              // head
-  box(santa, 0.38, 0.22, 0.12, 0xffffff, 0, 1.12, 0.14);         // beard
-  box(santa, 0.38, 0.2, 0.36, 0xd62d20, 0, 1.42, 0);             // hat
-  box(santa, 0.4, 0.07, 0.38, 0xffffff, 0, 1.33, 0);             // hat trim
-  box(santa, 0.1, 0.1, 0.1, 0xffffff, 0, 1.58, -0.05);           // pom
+  box(santa, 0.24, 0.5, 0.26, 0x222222, -0.2, 0.25, 0);          // boots/legs
+  box(santa, 0.24, 0.5, 0.26, 0x222222, 0.2, 0.25, 0);
+  box(santa, 0.8, 0.62, 0.58, 0xd62d20, 0, 0.78, 0);             // round coat
+  box(santa, 0.84, 0.09, 0.62, 0x111111, 0, 0.7, 0);             // belt
+  box(santa, 0.12, 0.12, 0.02, 0xf1c40f, 0, 0.7, 0.32);          // buckle
+  box(santa, 0.84, 0.06, 0.62, 0xffffff, 0, 0.47, 0);            // coat trim
+  box(santa, 0.18, 0.45, 0.2, 0xd62d20, -0.5, 0.8, 0).rotation.z = -0.5;   // waving arms
+  box(santa, 0.18, 0.45, 0.2, 0xd62d20, 0.5, 0.85, 0).rotation.z = 0.5;
+  box(santa, 0.18, 0.18, 0.18, 0xffffff, -0.62, 1.02, 0);
+  box(santa, 0.18, 0.18, 0.18, 0xffffff, 0.62, 1.07, 0);
+  box(santa, 0.4, 0.3, 0.36, 0xf2c9a0, 0, 1.25, 0);              // head
+  box(santa, 0.46, 0.26, 0.14, 0xffffff, 0, 1.15, 0.17);         // beard
+  box(santa, 0.42, 0.2, 0.4, 0xd62d20, 0, 1.47, 0);              // hat
+  box(santa, 0.44, 0.07, 0.42, 0xffffff, 0, 1.38, 0);            // hat trim
+  box(santa, 0.1, 0.1, 0.1, 0xffffff, 0, 1.63, -0.05);           // pom
   return santa;
 }
 
@@ -149,6 +149,15 @@ export function makeReindeer() {
   return g;
 }
 
+// Santa strolls back and forth (and side to side) across the vehicle's roof or sled, bobbing as he walks.
+export function moveSanta(truck, t) {
+  const s = truck.userData.santa;
+  if (!s) return;
+  const p = s.userData.path, a = t * 0.7;
+  s.position.set(Math.sin(a * 0.6) * p.x, p.y + Math.abs(Math.sin(t * 5)) * 0.06, p.z + Math.sin(a) * p.amp);
+  s.rotation.y = Math.atan2(Math.cos(a * 0.6) * 0.6 * p.x, Math.cos(a) * p.amp) * 1;
+}
+
 export function addSantaDecor(truck, kind = 'truck') {
   const bulbGeo = new THREE.SphereGeometry(0.09, 6, 5);
   let n = 0;
@@ -171,6 +180,8 @@ export function addSantaDecor(truck, kind = 'truck') {
       for (let i = 0; i <= 2; i++) bulb(-0.4 + i * 0.4, 1.3, 2.7);
       fit(0, 0.46, -1.7);
     }
+    santa.userData.path = kind === 'safari' ? { z: -0.55, amp: 1.0, x: 0.5, y: 2.85 } : { z: -1.9, amp: 1.3, x: 0.6, y: 0.46 };
+    truck.userData.santa = santa;
     truck.add(santa);
     return;
   }
@@ -181,6 +192,8 @@ export function addSantaDecor(truck, kind = 'truck') {
   santa = makeSanta();
   santa.position.set(0, 2.0, 0.9);
   santa.scale.setScalar(1.2);
+  santa.userData.path = { z: 0.9, amp: 0.6, x: 0.3, y: 2.0 };
+  truck.userData.santa = santa;
   truck.add(santa);
 }
 
