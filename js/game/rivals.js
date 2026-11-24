@@ -117,6 +117,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
         } else {
           turn(r, steer(r, Math.atan2(dx, dz)), dt);
           speed = r.chaseSpeed * pack;
+          if (hunt) speed = Math.min(speed, 6 * (player.speedMult || 1));   // Santa run: never faster than the farmer
           if (d < CATCH && !follow) caught = true;
         }
       }
