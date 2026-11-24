@@ -146,9 +146,13 @@ export function makePresent(size = 0.4) {
   box(g, size, size, size, 0xd62d20, 0, size / 2, 0);
   box(g, size * 1.04, size * 1.04, size * 0.18, 0xf1c40f, 0, size / 2, 0);
   box(g, size * 0.18, size * 1.04, size * 1.04, 0xf1c40f, 0, size / 2, 0);
-  const bw = size * 0.2, by = size + size * 0.06;   // green bow
-  box(g, bw, size * 0.11, size * 0.1, 0x2ecc40, -size * 0.11, by, 0).rotation.z = 0.5;
-  box(g, bw, size * 0.11, size * 0.1, 0x2ecc40, size * 0.11, by, 0).rotation.z = -0.5;
+  const by = size + size * 0.1, loopGeo = new THREE.TorusGeometry(size * 0.1, size * 0.035, 5, 10);   // green bow: two loops and a knot
+  for (const sx of [-1, 1]) {
+    const loop = new THREE.Mesh(loopGeo, mat(0x2ecc40));
+    loop.position.set(sx * size * 0.12, by, 0);
+    loop.rotation.z = -sx * 0.45;
+    g.add(loop);
+  }
   box(g, size * 0.1, size * 0.1, size * 0.1, 0x1e8e2e, 0, by - size * 0.03, 0);
   return g;
 }

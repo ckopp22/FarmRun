@@ -491,23 +491,25 @@ button { touch-action: manipulation; }
   display: flex;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.3);
 }
 #presents i {
   width: 24px; height: 24px; border-radius: 4px;
   background: linear-gradient(90deg, transparent 40%, #f1c40f 40% 60%, transparent 60%), linear-gradient(0deg, transparent 40%, #f1c40f 40% 60%, transparent 60%), #d62d20;
   position: relative;
-  filter: grayscale(1); opacity: 0.35;
+  filter: grayscale(1) drop-shadow(0 2px 2px rgba(0,0,0,0.45)); opacity: 0.5;
 }
-#presents i::before, #presents i::after { content: ''; position: absolute; top: -4px; width: 8px; height: 6px; border-radius: 50%; background: #2ecc40; }
-#presents i::before { left: 1px; transform: rotate(-25deg); }
-#presents i::after { right: 1px; transform: rotate(25deg); }
-#presents i.got { filter: none; opacity: 1; }
-#presents.ready { animation: shop-glow 1.2s ease-in-out infinite; cursor: pointer; }
+#presents i::before {   /* bow: two ring loops and a knot */
+  content: ''; position: absolute; left: 50%; top: -9px; width: 20px; height: 11px; transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 50% 60%, #1e8e2e 0 2.5px, transparent 3px),
+    radial-gradient(circle at 25% 55%, transparent 0 1.5px, #2ecc40 2px 4px, transparent 4.5px),
+    radial-gradient(circle at 75% 55%, transparent 0 1.5px, #2ecc40 2px 4px, transparent 4.5px);
+}
+#presents i.got { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45)); opacity: 1; }
+#presents.ready { cursor: pointer; }
 #presents.ready i { animation: present-pop 0.9s ease-in-out infinite; }
 #presents.ready i:nth-child(2n) { animation-delay: 0.3s; }
-@keyframes present-pop { 50% { transform: translateY(-4px) scale(1.15); filter: brightness(1.4); } }
+@keyframes present-pop { 50% { transform: translateY(-4px) scale(1.15); filter: brightness(1.4) drop-shadow(0 0 6px #ffe066); } }
 #unwrap { justify-content: center; gap: 22px; background: rgba(0, 0, 0, 0.55); z-index: 40; }
 #unwrap-box { position: relative; width: 150px; height: 150px; cursor: pointer; animation: present-pop 1.1s ease-in-out infinite; }
 #unwrap-box .base, #unwrap-box .lid {
