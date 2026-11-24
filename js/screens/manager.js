@@ -22,6 +22,7 @@ export function createScreenManager(renderer, ctx) {
       const hidden = [];
       active.scene.traverse((o) => { if (!o.visible) { o.visible = true; hidden.push(o); } });
       renderer.compile(active.scene, active.camera);
+      renderer.render(active.scene, active.camera);   // warm-up frame: uploads buffers/textures/shadow map now, not mid-run
       for (const o of hidden) o.visible = false;
       document.dispatchEvent(new CustomEvent('screenchange', { detail: name }));
     },
