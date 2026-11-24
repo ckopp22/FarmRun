@@ -39,7 +39,11 @@ export const driveScreen = {
     truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     if (winter) truck.add(makeSeatedFarmer());
     santaTruck = !!ctx.santaRun;
-    if (santaTruck) addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');
+    if (santaTruck) {   // lights only: Santa is out in the woods
+      addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');
+      truck.remove(truck.userData.santa, truck.userData.flakes.pts);
+      truck.userData.santa = truck.userData.flakes = null;
+    }
     truck.rotation.y = Math.PI;
     scene.add(truck);
     const trees = [];
