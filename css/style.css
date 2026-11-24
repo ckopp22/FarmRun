@@ -182,11 +182,12 @@ button { touch-action: manipulation; }
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
 }
 
-.title-wrap { position: relative; display: grid; place-items: center; width: min(420px, 98vw); }
+.title-wrap { margin-top: 34px; position: relative; display: grid; place-items: center; width: min(420px, 98vw); }
 .title-wrap > * { grid-area: 1 / 1; }
-.cloud { width: 100%; height: 170px; filter: drop-shadow(0 0 6px rgba(255, 150, 30, 0.95)) drop-shadow(0 0 18px rgba(255, 138, 31, 0.8)); }
+/* wooden title board */
+.cloud { width: 100%; height: 130px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.45)); }
 #menu .title { position: relative; font-size: min(40px, 9.6vw); font-weight: 800; letter-spacing: 0; white-space: nowrap; color: #ff8a1f; text-shadow: none; margin-top: 44px; }
-#menu .title-img { position: relative; width: 84%; margin-top: 40px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+#menu .title-img { position: relative; width: 90%; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
 #menu { justify-content: space-between; padding-top: calc(env(safe-area-inset-top) + 20px); }
 
 .title {

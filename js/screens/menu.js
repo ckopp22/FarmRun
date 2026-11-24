@@ -47,14 +47,23 @@ function collide(p, self) {
   return hit;
 }
 
-function pickTarget(r) {
-  const probe = { x: 0, z: 0 };
-  for (let i = 0; i < 30; i++) {
-    probe.x = (Math.random() - 0.5) * 18; probe.z = (Math.random() - 0.5) * 16;
-    const x = probe.x, z = probe.z;
-    if (!collide(probe, null) && probe.x === x && probe.z === z) { r.tx = x; r.tz = z; return; }
-  }
-  r.tx = r.group.position.x; r.tz = r.group.position.z;
+// Bend the desired direction (dx, dz) around nearby obstacles: push away and slide along them.
+const LOOK = 2;
+function steer(p, dx, dz) {
+  let m = Math.hypot(dx, dz) || 1e-6;
+  let sx = dx / m, sz = dz / m;
+  const avoid = (ax, az, d, range) => {
+    if (d >= range) return;
+    const w = (range - d) / range, nx = ax / (d || 1e-6), nz = az / (d || 1e-6);
+    const side = nx * -sz + nz * sx >= 0 ? 1 : -1;   // slide whichever way is already closer to our heading
+    sx += (nx + -nz * side * 0.9) * w * 2.2;
+    sz += (nz + nx * side * 0.9) * w * 2.2;
+  };
+  for (const c of CIRCLES) avoid(p.x - c.x, p.z - c.z, Math.hypot(p.x - c.x, p.z - c.z), c.r + AR + LOOK);
+  const qx = Math.max(-BARN.hx, Math.min(BARN.hx, p.x)), qz = Math.max(-BARN.hz, Math.min(BARN.hz, p.z));
+  avoid(p.x - qx, p.z - qz, Math.hypot(p.x - qx, p.z - qz), AR + LOOK);
+  m = Math.hypot(sx, sz) || 1e-6;
+  return [sx / m, sz / m];
 }
 
 const show = (el, on) => { el.style.display = on ? '' : 'none'; };
@@ -100,7 +109,8 @@ export const menuScreen = {
       scene.add(group);
       return r;
     });
-    for (const r of roamers) { collide(r.group.position, r.group.position); pickTarget(r); }
+    for (const r of roamers) { collide(r.group.position, r.group.position); r.pause = 0; }
+    for (let i = 0; i < roamers.length; i += 2) { roamers[i].buddy = roamers[i + 1]; roamers[i + 1].buddy = roamers[i]; roamers[i].it = true; roamers[i + 1].it = false; }
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 150);
     angle = 0.6;
     setMusic('farm');
@@ -111,17 +121,29 @@ export const menuScreen = {
 
   update(dt) {
     clock += dt;
+    // Cute tag: each pair chases; when the chaser catches up it hops, then the roles swap.
     for (const r of roamers) {
-      const p = r.group.position;
-      if (r.wait > 0) { r.wait -= dt; p.y = 0; animateAnimal(r.group, 0, 0); continue; }
-      const dx = r.tx - p.x, dz = r.tz - p.z, d = Math.hypot(dx, dz);
-      if (d < 0.2) { r.wait = 1 + Math.random() * 3; pickTarget(r); continue; }
-      p.x += (dx / d) * r.speed * dt;
-      p.z += (dz / d) * r.speed * dt;
+      const p = r.group.position, o = r.buddy.group.position;
+      if (r.pause > 0) {
+        r.pause -= dt;
+        p.y = Math.abs(Math.sin(r.pause * 12)) * 0.25;   // happy hop
+        animateAnimal(r.group, 0, 0);
+        continue;
+      }
+      let dx = o.x - p.x, dz = o.z - p.z;
+      const d = Math.hypot(dx, dz) || 1e-6;
+      if (r.it && d < 0.9) { r.it = false; r.buddy.it = true; r.pause = 0.8; r.buddy.pause = 0.25; continue; }
+      if (!r.it) {   // run away, curving back toward the middle near the edges
+        dx = -dx / d + (-p.x * 0.05); dz = -dz / d + (-p.z * 0.05) + Math.sin(clock * 3 + r.ph) * 0.4;
+      }
+      const sp = r.it ? 1.5 : 1.7;
+      [dx, dz] = steer(p, dx, dz);
+      p.x += dx * sp * dt;
+      p.z += dz * sp * dt;
       collide(p, p);
       r.group.rotation.y = Math.atan2(dx, dz);
-      p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.08;
-      animateAnimal(r.group, clock * 0.5 + r.ph, 1);   // slower stride for a walk
+      p.y = Math.abs(Math.sin(clock * 9 + r.ph)) * 0.12;
+      animateAnimal(r.group, clock * 0.8 + r.ph, 1);
     }
     angle += dt * 0.12;
     const z = window.innerHeight > window.innerWidth ? 1.6 : 1.25;
