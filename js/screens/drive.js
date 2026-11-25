@@ -2,6 +2,8 @@ import * as THREE from '../../lib/three.module.min.js';
 import { createScene, speckleTexture } from '../render/renderer.js';
 import { addSantaDecor, twinkleLights, moveSanta, makeTruck, makeSafariTruck, makeSnowmobile, makeSeatedFarmer } from '../render/models.js';
 import { createTrees, createDesertProps, createWinterProps } from '../render/instancing.js';
+import { farmerArgs } from '../systems/holiday.js';
+import { activeSave } from '../systems/save.js';
 import { sfx, setMusic } from '../systems/audio.js';
 
 const DURATION = 2.6;
@@ -37,7 +39,7 @@ export const driveScreen = {
     scene.add(road);
     mapZoom = winter || desert ? 1.3 : 1;
     truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
-    if (winter) truck.add(makeSeatedFarmer());
+    if (winter) truck.add(makeSeatedFarmer(...farmerArgs(activeSave())));
     santaTruck = !!ctx.santaRun;
     if (santaTruck) {   // lights only: Santa is out in the woods
       addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck');

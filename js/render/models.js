@@ -30,7 +30,7 @@ export function makeBlobShadow(radius) {
 }
 
 // Models face +z.
-export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a) {
+export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a, look = null) {
   const g = new THREE.Group();
   // Limbs hang from pivot groups at hip/shoulder so animateFarmer can swing them.
   const limb = (w, h, d, color, x, y) => {
@@ -46,15 +46,50 @@ export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a) {
   ];
   box(g, 0.8, 0.8, 0.45, shirt, 0, 1.1, 0);       // body
   box(g, 0.5, 0.5, 0.5, 0xf1c9a0, 0, 1.75, 0);       // head
-  box(g, 1.0, 0.07, 1.0, hat, 0, 2.02, 0);      // hat brim
-  box(g, 0.55, 0.28, 0.55, hat, 0, 2.17, 0);    // hat crown
+  if (look && look.hawaiian) {   // flower print on the front and back
+    const dots = [0xff6fa5, 0xffe066, 0xffffff, 0xff9a3c];
+    [[-0.25, 1.4], [0.05, 1.45], [0.28, 1.3], [-0.1, 1.15], [0.22, 1.02], [-0.28, 0.98], [0.0, 0.85]].forEach(([x, y], i) => {
+      box(g, 0.13, 0.13, 0.03, dots[i % 4], x, y, 0.235);
+      box(g, 0.13, 0.13, 0.03, dots[(i + 2) % 4], -x, y, -0.235);
+    });
+  }
+  const style = (look && look.hat) || 'straw';
+  const cap = typeof shirt === 'number' ? shirt : 0xc0392b;
+  if (style === 'straw') {
+    box(g, 1.0, 0.07, 1.0, hat, 0, 2.02, 0);      // hat brim
+    box(g, 0.55, 0.28, 0.55, hat, 0, 2.17, 0);    // hat crown
+  } else if (style === 'cap') {                   // baseball cap in the shirt's color
+    box(g, 0.56, 0.2, 0.56, cap, 0, 2.08, 0);
+    box(g, 0.5, 0.05, 0.32, cap, 0, 2.0, 0.4);
+    box(g, 0.08, 0.06, 0.08, 0xffffff, 0, 2.2, 0);
+  } else if (style === 'santa') {
+    box(g, 0.6, 0.12, 0.6, 0xffffff, 0, 2.03, 0);
+    box(g, 0.54, 0.22, 0.54, 0xd62d20, 0, 2.18, 0);
+    box(g, 0.4, 0.2, 0.4, 0xd62d20, 0, 2.38, -0.08);
+    box(g, 0.24, 0.18, 0.24, 0xd62d20, 0, 2.52, -0.2);
+    box(g, 0.14, 0.14, 0.14, 0xffffff, 0, 2.6, -0.3);
+  } else if (style === 'blonde') {                // long blonde hair
+    const blond = 0xf5d76e;
+    box(g, 0.56, 0.14, 0.56, blond, 0, 2.05, 0);
+    box(g, 0.56, 0.95, 0.12, blond, 0, 1.58, -0.29);
+    box(g, 0.08, 0.6, 0.44, blond, -0.29, 1.72, -0.04);
+    box(g, 0.08, 0.6, 0.44, blond, 0.29, 1.72, -0.04);
+    box(g, 0.5, 0.1, 0.06, blond, 0, 1.97, 0.27);
+  } else if (style === 'flower') {                // flower crown
+    box(g, 0.56, 0.06, 0.56, 0x3c9d4a, 0, 2.03, 0);
+    const cols = [0xff6fa5, 0xffffff, 0xffe066, 0xff9a3c];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * 6.2832;
+      box(g, 0.13, 0.13, 0.13, cols[i % 4], Math.sin(a) * 0.3, 2.08, Math.cos(a) * 0.3);
+    }
+  }
   g.add(makeBlobShadow(0.7));
   return g;
 }
 
 // Farmer sitting on the snowmobile seat (add to the makeSnowmobile group), legs and arms forward.
-export function makeSeatedFarmer() {
-  const g = makeFarmer();
+export function makeSeatedFarmer(...args) {
+  const g = makeFarmer(...args);
   g.children.forEach((o) => { if (o.userData.shadow) o.visible = false; });
   const [lL, lR, aL, aR] = g.userData.limbs;
   lL.rotation.x = lR.rotation.x = -1.3;

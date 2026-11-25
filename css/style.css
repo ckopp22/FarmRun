@@ -538,6 +538,9 @@ button { touch-action: manipulation; }
 
 #shirt-panel { justify-content: center; gap: 14px; background: rgba(0, 0, 0, 0.55); z-index: 40; }
 #shirt-list { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 340px; }
+#shirt-list .sp-label { width: 100%; text-align: center; font-weight: 800; font-size: 18px; }
+#shirt-list u { text-decoration: none; padding: 10px 14px; border-radius: 18px; background: rgba(255,255,255,0.18); border: 3px solid transparent; font-weight: 700; cursor: pointer; }
+#shirt-list u.sel { border-color: #fff; }
 #shirt-list b { width: 54px; height: 54px; border-radius: 50%; border: 4px solid transparent; cursor: pointer; }
 #shirt-list b.sel { border-color: #fff; }
 #shirt-hint { font-size: 14px; opacity: 0.8; }

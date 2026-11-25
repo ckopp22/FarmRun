@@ -5,8 +5,8 @@ const SPEED = 6;
 const TURN = 14;
 const RADIUS = 0.45;
 
-export function createPlayer(scene, x, z, shirt) {
-  const group = makeFarmer(shirt);
+export function createPlayer(scene, x, z, ...look) {
+  const group = makeFarmer(...look);
   group.position.set(x, 0, z);
   scene.add(group);
   return { group, x, z, heading: Math.PI, radius: RADIUS, run: 0, runT: 0 };

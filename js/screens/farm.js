@@ -7,7 +7,7 @@ import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, b
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
-import { DEFAULT_SHIRT, claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
+import { HATS, farmerArgs, DEFAULT_SHIRT, claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 42 * Math.PI / 180, DIST = 24;
@@ -31,18 +31,24 @@ function paintPresents() {
 }
 const shirtEl = document.getElementById('shirt-panel'), shirtList = document.getElementById('shirt-list');
 const hex = (c) => '#' + c.toString(16).padStart(6, '0');
+const HAWAII_BG = 'radial-gradient(circle at 30% 30%, #ff6fa5 0 3px, transparent 4px), radial-gradient(circle at 70% 60%, #ffe066 0 3px, transparent 4px), radial-gradient(circle at 35% 75%, #fff 0 2px, transparent 3px), #1fa8b8';
 function openShirts() {
   const save = activeSave();
   tapSound();
-  const cur = save.shirt || DEFAULT_SHIRT;
-  shirtList.innerHTML = [DEFAULT_SHIRT, ...(save.shirts || [])].map((c) => `<b data-c="${c}" class="${c === cur ? 'sel' : ''}" style="background:${hex(c)}"></b>`).join('');
+  const cur = save.shirt || DEFAULT_SHIRT, hat = save.hat || 'straw';
+  shirtList.innerHTML =
+    '<div class="sp-label">Shirt</div>' +
+    [DEFAULT_SHIRT, ...(save.shirts || [])].map((c) => `<b data-k="shirt" data-c="${c}" class="${c === cur ? 'sel' : ''}" style="background:${c === 'hawaiian' ? HAWAII_BG : hex(c)}"></b>`).join('') +
+    '<div class="sp-label">Hat</div>' +
+    [['straw', 'Straw Hat'], ...(save.hats || []).map((h) => [h, HATS[h]])].map(([h, n]) => `<u data-k="hat" data-c="${h}" class="${h === hat ? 'sel' : ''}">${n}</u>`).join('');
   shirtEl.style.display = '';
 }
 shirtList.addEventListener('click', (ev) => {
-  const c = ev.target.dataset && ev.target.dataset.c;
-  if (!c) return;
+  const k = ev.target.dataset && ev.target.dataset.k, c = ev.target.dataset && ev.target.dataset.c;
+  if (!k) return;
   const save = activeSave();
-  save.shirt = +c === DEFAULT_SHIRT ? undefined : +c;
+  if (k === 'shirt') save.shirt = c === 'hawaiian' ? 'hawaiian' : +c === DEFAULT_SHIRT ? undefined : +c;
+  else save.hat = c === 'straw' ? undefined : c;
   saveActive();
   shirtEl.style.display = 'none';
   ctxRef.go('farm');
@@ -398,7 +404,7 @@ export const farmScreen = {
     const barn = winter ? makeIgloo() : desert ? makeAdobe() : makeBarn();
     barn.position.set(0, 0, -1);
     scene.add(barn);
-    farmer = makeFarmer(save.shirt);
+    farmer = makeFarmer(...farmerArgs(save));
     farmer.position.set(0, 0, 4.5);
     scene.add(farmer);
     addDirt(scene, -7 - 0.949 * 22, 1 - 0.315 * 22, { w: 4.5, len: 50, yaw: 1.25 });

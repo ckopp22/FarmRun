@@ -17,7 +17,7 @@ import { sfx, setLoop, setMusic } from '../systems/audio.js';
 import { createFollowers } from '../game/followers.js';
 import { activeSave, saveActive } from '../systems/save.js';
 import { capacity as capacityOf, speedMult, penCount, safariPenCount, winterPenCount } from '../systems/economy.js';
-import { addPresent } from '../systems/holiday.js';
+import { addPresent, farmerArgs } from '../systems/holiday.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS } from '../data/animals.js';
 
 const ANIMAL_EXTRA = 24;   // random spawns on top of one of every unlocked animal
@@ -221,7 +221,7 @@ let marks, markCount, markX, markZ;
 
 function startDriving() {
   leave.boarding = false;
-  if (winter) truck.add(makeSeatedFarmer());
+  if (winter) truck.add(makeSeatedFarmer(...farmerArgs(activeSave())));
   leave.heading = 0;
   sfx('drive');
   markCount = 0;
@@ -351,7 +351,7 @@ export const woodsScreen = {
       flowers.push({ x, z, s: 0.8 + Math.random() * 0.7, c: Math.floor(Math.random() * 5) });
     }
     if (!desert && !winter) createFlowers(scene, flowers);
-    player = createPlayer(scene, 3.5, 3, save && save.shirt);
+    player = createPlayer(scene, 3.5, 3, ...farmerArgs(save));
     player.speedMult = speedMult(fx);
     const pool = winter ? WINTER_ANIMALS : desert ? SAFARI_ANIMALS : ANIMALS, pens = winter ? winterPenCount(fx) : desert ? safariPenCount(fx) : penCount(fx);
     santaRun = !!ctx.santaRun;
