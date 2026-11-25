@@ -185,22 +185,25 @@ export function makeReindeer() {
 
 // An opened present (lid and bow knocked off to the side) riding in the vehicle's bed: today's prize is already claimed.
 export function addOpenPresent(truck, kind = 'truck') {
-  const g = new THREE.Group(), s = 0.8;
-  box(g, s, s * 0.55, s, 0xd62d20, 0, s * 0.275, 0);                 // open box
-  box(g, s * 0.22, s * 0.55, s * 1.04, 0xf1c40f, 0, s * 0.275, 0);    // ribbon on the sides
-  box(g, s * 1.04, s * 0.55, s * 0.22, 0xf1c40f, 0, s * 0.275, 0);
-  box(g, s * 0.8, s * 0.04, s * 0.8, 0x7a1d14, 0, s * 0.5, 0);       // dark inside
-  const lid = new THREE.Group();
-  box(lid, s * 1.08, s * 0.16, s * 1.08, 0xd62d20, 0, 0, 0);
-  box(lid, s * 0.22, s * 0.18, s * 1.1, 0xf1c40f, 0, 0, 0);
+  const g = new THREE.Group(), s = 1.1, h = s * 0.62, t = 0.09;   // size, wall height, wall thickness
+  box(g, s, t, s, 0x7a1d14, 0, t / 2, 0);                          // dark floor, visible through the opening
+  box(g, s, h, t, 0xd62d20, 0, h / 2, s / 2 - t / 2);              // four walls leave the top open
+  box(g, s, h, t, 0xd62d20, 0, h / 2, -s / 2 + t / 2);
+  box(g, t, h, s - 2 * t, 0xd62d20, s / 2 - t / 2, h / 2, 0);
+  box(g, t, h, s - 2 * t, 0xd62d20, -s / 2 + t / 2, h / 2, 0);
+  box(g, s * 0.2, h + 0.01, t + 0.03, 0xf1c40f, 0, h / 2, s / 2 - t / 2);   // ribbon, slightly proud of the walls
+  box(g, t + 0.03, h + 0.01, s * 0.2, 0xf1c40f, s / 2 - t / 2, h / 2, 0);
+  box(g, s * 1.06, 0.05, t + 0.03, 0xf1c40f, 0, h, s / 2 - t / 2);          // rim trim
+  const lid = new THREE.Group();   // lid with the bow, leaning against the back
+  box(lid, s * 1.08, 0.14, s * 1.08, 0xd62d20, 0, 0, 0);
+  box(lid, s * 0.2, 0.16, s * 1.1, 0xf1c40f, 0, 0, 0);
   const loopGeo = new THREE.TorusGeometry(s * 0.1, s * 0.035, 5, 10);
-  for (const sx of [-1, 1]) { const l = new THREE.Mesh(loopGeo, mat(0x2ecc40)); l.position.set(sx * s * 0.12, s * 0.16, 0); l.rotation.z = -sx * 0.45; lid.add(l); }
-  lid.position.set(s * 0.75, s * 0.28, s * 0.1);
-  lid.rotation.set(0.2, 0.4, -0.55);
+  for (const sx of [-1, 1]) { const l = new THREE.Mesh(loopGeo, mat(0x2ecc40)); l.position.set(sx * s * 0.12, 0.2, 0); l.rotation.z = -sx * 0.45; lid.add(l); }
+  lid.position.set(0, h * 0.55, -s / 2 - 0.12);
+  lid.rotation.x = -1.15;
   g.add(lid);
-  const at = kind === 'safari' ? [0, 1.45, -1.0] : kind === 'snow' ? [0, 0.46, -1.7] : [0, 1.5, -1.3];
+  const at = kind === 'safari' ? [0, 1.5, -0.6] : kind === 'snow' ? [0, 0.46, -1.7] : [0, 1.6, -1.1];
   g.position.set(...at);
-  g.rotation.y = 0.4;
   truck.add(g);
 }
 
