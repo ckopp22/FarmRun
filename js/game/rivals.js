@@ -35,6 +35,7 @@ function makeMark() {
 export function createRivals(scene, grid, count, player, onAlert) {
   const list = [];
   let hunt = false;   // Santa run: once set, every rival chases and never gives up
+  let pvx = 0, pvz = 0, lastX = null, lastZ = 0;   // smoothed player velocity, so hunters can cut them off
   let tgt = player;   // what rivals chase: the player, or the truck once the run ends
   for (let i = 0; i < count; i++) {
     const group = makeFarmer(0x3a3a3a, 0x222222);
@@ -45,7 +46,8 @@ export function createRivals(scene, grid, count, player, onAlert) {
     const dist = MIN_FROM_TRUCK + Math.sqrt(Math.random()) * (PLAYER_LIMIT - MIN_FROM_TRUCK - 2);
     const r = { group, mark, state: 'wander', x: Math.cos(ang) * dist, z: Math.sin(ang) * dist,
       heading: Math.random() * 6.28, tx: 0, tz: 0, wait: Math.random() * 2, alert: 0, lost: 0, side: 1, run: 0, runT: 0,
-      chaseSpeed: 4 + dist / PLAYER_LIMIT * 1.2, radius: RADIUS };
+      chaseSpeed: 4 + dist / PLAYER_LIMIT * 1.2, radius: RADIUS,
+      fan: (i / count) * 6.28 + Math.random() * 0.5, fanR: 0.6 + Math.random() * 0.8 };   // fan: where in the mob this rival heads for
     grid.resolve(r, RADIUS);
     r.tx = r.x; r.tz = r.z;
     list.push(r);
@@ -80,6 +82,10 @@ export function createRivals(scene, grid, count, player, onAlert) {
   // `follow`: the run is over and `target` is the truck; chasers keep pursuing it, nobody else reacts, no catches.
   function update(dt, target = player, follow = false) {
     tgt = target;
+    if (hunt && dt > 0) {
+      if (lastX !== null) { const k = Math.min(1, 8 * dt); pvx += ((tgt.x - lastX) / dt - pvx) * k; pvz += ((tgt.z - lastZ) / dt - pvz) * k; }
+      lastX = tgt.x; lastZ = tgt.z;
+    }
     let caught = false;
     let chasers = 0;
     for (const r of list) if (r.state === 'chase') chasers++;
@@ -115,7 +121,13 @@ export function createRivals(scene, grid, count, player, onAlert) {
         if (!follow && !hunt && (d > GIVE_UP_DIST || r.lost > GIVE_UP_TIME)) {
           r.state = 'wander'; r.wait = 1; r.tx = r.x; r.tz = r.z;
         } else {
-          turn(r, steer(r, Math.atan2(dx, dz)), dt);
+          let ax = dx, az = dz;
+          if (hunt && !follow) {   // mob: aim ahead of where the player is going, each rival toward its own spot around them
+            const lead = Math.min(d / 6, 1.6), spread = Math.min(4.5, d * 0.4) * r.fanR * Math.min(1, Math.max(0, (d - 2) / 4));
+            ax = dx + pvx * lead + Math.cos(r.fan) * spread;
+            az = dz + pvz * lead + Math.sin(r.fan) * spread;
+          }
+          turn(r, steer(r, Math.atan2(ax, az)), dt);
           speed = r.chaseSpeed * pack;
           if (hunt) speed = Math.min(speed, 6 * (player.speedMult || 1));   // Santa run: never faster than the farmer
           if (d < CATCH && !follow) caught = true;
@@ -128,7 +140,7 @@ export function createRivals(scene, grid, count, player, onAlert) {
         if (grid.resolve(r, RADIUS) && r.state === 'wander') r.wait = 0.3;
         for (const o of list) {
           if (o === r) continue;
-          const ox = r.x - o.x, oz = r.z - o.z, min = RADIUS * 2, d2 = ox * ox + oz * oz;
+          const ox = r.x - o.x, oz = r.z - o.z, min = RADIUS * (hunt ? 3 : 2), d2 = ox * ox + oz * oz;
           if (d2 < min * min) { const d = Math.sqrt(d2) || 0.0001, k = (min - d) / d * 0.5; r.x += ox * k; r.z += oz * k; }
         }
         r.x = clampLimit(r.x); r.z = clampLimit(r.z);
