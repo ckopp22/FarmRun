@@ -141,18 +141,26 @@ export const menuScreen = {
       if (r.sk > 1.5) { r.lx = p.x; r.lz = p.z; r.sk = 0; }
       if (d < 0.5 || stuck || r.tx === undefined) {   // arrived (or stuck): rest, then pick a new spot
         r.wait = 1 + Math.random() * 2.5;
-        const a = Math.random() * 6.28, rad = 3 + Math.random() * 9;
-        r.tx = Math.max(-14, Math.min(14, p.x + Math.cos(a) * rad));
-        r.tz = Math.max(-14, Math.min(14, p.z + Math.sin(a) * rad));
+        r.blk = 0;
+        for (let n = 0; n < 12; n++) {   // only pick spots clear of trees, truck and barn
+          const a = Math.random() * 6.28, rad = 3 + Math.random() * 9;
+          const tx = Math.max(-14, Math.min(14, p.x + Math.cos(a) * rad)), tz = Math.max(-14, Math.min(14, p.z + Math.sin(a) * rad));
+          r.tx = tx; r.tz = tz;
+          if (!CIRCLES.some((c) => Math.hypot(tx - c.x, tz - c.z) < c.r + AR + 0.8) && !(Math.abs(tx) < BARN.hx + AR + 0.8 && Math.abs(tz) < BARN.hz + AR + 0.8)) break;
+        }
         continue;
       }
       [dx, dz] = steer(p, dx, dz);
       const want = Math.atan2(dx, dz);
       if (r.h === undefined) r.h = want;
       r.h += Math.atan2(Math.sin(want - r.h), Math.cos(want - r.h)) * Math.min(1, dt * 4);
+      const bx = p.x, bz = p.z;
       p.x += Math.sin(r.h) * 0.9 * dt;
       p.z += Math.cos(r.h) * 0.9 * dt;
       collide(p, p);
+      // Pushed back by something: give up on this target quickly instead of vibrating against it.
+      r.blk = Math.hypot(p.x - bx, p.z - bz) < 0.9 * dt * 0.3 ? (r.blk || 0) + dt : Math.max(0, (r.blk || 0) - dt);
+      if (r.blk > 0.35) { r.tx = p.x; r.tz = p.z; r.wait = 0.3; }
       r.group.rotation.y = r.h;
       p.y = Math.abs(Math.sin(clock * 6 + r.ph)) * 0.08;
       animateAnimal(r.group, clock * 0.5 + r.ph, 1);
