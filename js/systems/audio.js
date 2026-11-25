@@ -24,7 +24,7 @@ const buffers = {};
 const loops = {};
 const player = new Audio();
 let fadeTimer = 0;
-let startTimer = 0;
+let startTimer = 0, startPending = false;
 const warmed = [];
 let trackIdx = 0;
 player.addEventListener('ended', () => {
@@ -113,10 +113,14 @@ function startTrack() {
   const track = TRACKS[musicName];
   player.pause();
   clearTimeout(startTimer);
+  startPending = false;
   if (!settings.music || !track || !actx) return;
   // Defer so the mp3 load/decode doesn't land in the frames that build the scene.
+  startPending = true;
   startTimer = setTimeout(() => {
+    startPending = false;
     if (TRACKS[musicName] !== track) return;
+    if (suspended || document.hidden) { resume = { idx: 0, time: 0, wasPlaying: true }; return; }   // start when the app comes back
     trackIdx = 0;
     player.src = track.files[0];
     player.volume = 0;
@@ -164,11 +168,15 @@ export function toggle(kind) {
 }
 
 // Backgrounded or locked: stop the music and drop the media source so iOS removes the lock-screen player.
-let resume = null;
+let resume = null, suspended = false;
 function suspendAudio() {
-  if (!actx) return;
-  actx.suspend();
+  suspended = true;
+  clearTimeout(startTimer);   // a pending music start must not fire while backgrounded
+  if (startPending && !resume) resume = { idx: 0, time: 0, wasPlaying: true };
+  startPending = false;
+  if (actx) actx.suspend();
   clearInterval(fadeTimer);
+  if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch (e) { /* ignore */ } }
   if (!resume && player.getAttribute('src')) {
     resume = { idx: trackIdx, time: player.currentTime, wasPlaying: !player.paused };
     player.pause();
@@ -177,6 +185,7 @@ function suspendAudio() {
   }
 }
 function resumeAudio() {
+  suspended = false;
   if (!actx) return;
   actx.resume();
   const track = TRACKS[musicName], r = resume;
@@ -190,5 +199,7 @@ function resumeAudio() {
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) suspendAudio(); else resumeAudio(); });
 window.addEventListener('pagehide', suspendAudio);
+window.addEventListener('blur', suspendAudio);   // app switcher / inactive but window still alive
+window.addEventListener('focus', () => { if (!document.hidden) resumeAudio(); });
 window.addEventListener('pageshow', () => { if (!document.hidden) resumeAudio(); });
 
