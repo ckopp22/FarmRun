@@ -23,7 +23,7 @@ const PAGES = {
         <li><b>Upgrade:</b> spend your money in the 🛒 Shop on bigger bags, faster shoes, and new animal pens.</li>
         <li><b>Rarity:</b> uncommon animals walk away from you; rare, epic, and legendary animals run, and the rarer they are, the faster they go.</li>
       </ul>
-      <p><b>Beat the game:</b> become a millionaire by earning $1,000,000!</p>`,
+      <p><b>Beat the game:</b> unlock every animal on all three farms!</p>`,
   },
   legal: {
     title: 'Legal',

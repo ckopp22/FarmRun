@@ -86,7 +86,6 @@ unwrapEl.addEventListener('click', () => {
 const popEl = document.getElementById('animal-pop');
 const shopEl = document.getElementById('shop-panel');
 const winEl = document.getElementById('win');
-const WIN_MONEY = 1000000;
 
 function fmtTime(sec) {
   const m = Math.floor(sec / 60);
@@ -314,13 +313,12 @@ function makeGhost(renderer, a) {
 const ALL_ANIMALS = [...ANIMALS, ...SAFARI_ANIMALS, ...WINTER_ANIMALS];
 function checkWin() {
   const beat = !save.beat && ALL_ANIMALS.every((a) => save.discovered[a.id]);
-  const rich = !save.won && save.money >= WIN_MONEY;
-  if (beat || rich) {
+  if (beat) {
     save.won = true;
-    if (beat) save.beat = true;
+    save.beat = true;
     saveActive();
-    document.getElementById('win-title').textContent = beat ? 'You Beat the Game!' : "You're A Millionaire";
-    document.getElementById('win-msg').textContent = beat ? 'You unlocked all 72 animals!' : 'You earned $1,000,000!';
+    document.getElementById('win-title').textContent = 'You Beat the Game!';
+    document.getElementById('win-msg').textContent = 'You unlocked all 72 animals!';
     const found = Object.keys(save.discovered).length;
     document.getElementById('win-stats').innerHTML =
       `<div class="res-row"><span>Play time</span><span>${fmtTime(save.playTime)}</span></div>` +
