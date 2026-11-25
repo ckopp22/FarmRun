@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.min.js';
 import { createScene, addDirt, addDirtRing } from '../render/renderer.js';
-import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, moveSanta, addDailyLabel, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
+import { animateFarmer, makeBarn, makeAdobe, makeIgloo, makeFarmer, makeTruck, addSantaDecor, twinkleLights, moveSanta, addDailyLabel, addOpenPresent, makeSafariTruck, makeSnowmobile, makeAnimal, silhouette, makeFence } from '../render/models.js';
 import { createTrees, createFlowers, createDesertProps, createWinterProps } from '../render/instancing.js';
 import { ANIMALS, SAFARI_ANIMALS, WINTER_ANIMALS, UPGRADES, DESERT_COST, WINTER_COST } from '../data/animals.js';
 import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, buyDesert, animalTotal, winterAvailable, buyWinter, safariPenCount, nextSafariPenCost, buySafariPen, winterPenCount, nextWinterPenCost, buyWinterPen } from '../systems/economy.js';
@@ -22,7 +22,7 @@ const presentsEl = document.getElementById('presents');
 const unwrapEl = document.getElementById('unwrap'), unwrapBox = document.getElementById('unwrap-box'), unwrapText = document.getElementById('unwrap-text');
 function paintPresents() {
   const save = activeSave(), on = isHoliday() && save;
-  presentsEl.style.display = on ? '' : 'none';
+  presentsEl.style.display = on && !claimedToday(save) ? '' : 'none';   // after claiming, the opened present rides on the vehicle instead
   if (!on) return;
   const n = presentsToday(save);
   presentsEl.querySelectorAll('i').forEach((el, i) => el.classList.toggle('got', i < n));
@@ -48,7 +48,7 @@ shirtList.addEventListener('click', (ev) => {
   ctxRef.go('farm');
 });
 document.getElementById('shirt-close').addEventListener('click', () => { tapSound(); shirtEl.style.display = 'none'; });
-let unwrapped = false, recheck = 0;
+let unwrapped = false, recheck = 0, truckClaimed = false;
 presentsEl.addEventListener('click', () => {
   if (!presentsEl.classList.contains('ready')) return;
   tapSound();
@@ -405,7 +405,8 @@ export const farmScreen = {
     addDirt(scene, -7, 1, { radius: 3.5, y: 0.04 });   // above the road so the overlap doesn't z-fight
     const truck = winter ? makeSnowmobile() : desert ? makeSafariTruck() : makeTruck();
     const santaTruck = isHoliday();
-    if (santaTruck) { addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck'); if (!claimedToday(save)) addDailyLabel(truck); }
+    truckClaimed = claimedToday(save);
+    if (santaTruck) { addSantaDecor(truck, winter ? 'snow' : desert ? 'safari' : 'truck'); if (claimedToday(save)) addOpenPresent(truck, winter ? 'snow' : desert ? 'safari' : 'truck'); else addDailyLabel(truck); }
     truckObj = santaTruck ? truck : null;
     truck.position.set(-7, 0, 1);
     truck.rotation.y = 1.25;
@@ -500,7 +501,7 @@ export const farmScreen = {
 
   update(dt) {
     time += dt;
-    if ((recheck -= dt) < 0) { recheck = 20; paintPresents(); }   // picks up the midnight reset while the app stays open
+    if ((recheck -= dt) < 0) { recheck = 20; if (claimedToday(activeSave()) !== truckClaimed) { ctxRef.go('farm'); return; } paintPresents(); }   // picks up the midnight reset while the app stays open
     if (swipe) {
       swipe.t += dt;
       farmer.position.x += swipe.dir * RUN_SPEED * dt;
