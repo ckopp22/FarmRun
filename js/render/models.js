@@ -75,6 +75,46 @@ export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a, look = null) {
     box(g, 0.08, 0.6, 0.44, blond, -0.29, 1.72, -0.04);
     box(g, 0.08, 0.6, 0.44, blond, 0.29, 1.72, -0.04);
     box(g, 0.5, 0.1, 0.06, blond, 0, 1.97, 0.27);
+  } else if (style === 'cowboy') {
+    box(g, 1.1, 0.06, 0.9, 0x8b5a2b, 0, 2.03, 0);
+    box(g, 0.5, 0.3, 0.5, 0x8b5a2b, 0, 2.2, 0);
+    box(g, 0.52, 0.07, 0.52, 0x4a2e12, 0, 2.08, 0);
+  } else if (style === 'tophat') {
+    box(g, 0.8, 0.06, 0.8, 0x1a1a1a, 0, 2.03, 0);
+    box(g, 0.5, 0.55, 0.5, 0x1a1a1a, 0, 2.32, 0);
+    box(g, 0.52, 0.1, 0.52, 0xc0392b, 0, 2.12, 0);
+  } else if (style === 'crown') {
+    box(g, 0.58, 0.14, 0.58, 0xf1c40f, 0, 2.07, 0);
+    for (const [x, z] of [[-0.24, -0.24], [0.24, -0.24], [-0.24, 0.24], [0.24, 0.24], [0, 0.26]]) box(g, 0.1, 0.2, 0.1, 0xf1c40f, x, 2.24, z);
+    box(g, 0.1, 0.1, 0.04, 0xd62d20, 0, 2.08, 0.3);
+  } else if (style === 'beanie') {
+    box(g, 0.6, 0.12, 0.6, 0xffffff, 0, 2.03, 0);
+    box(g, 0.56, 0.22, 0.56, 0x3498db, 0, 2.2, 0);
+    box(g, 0.16, 0.16, 0.16, 0xffffff, 0, 2.38, 0);
+  } else if (style === 'antlers') {
+    box(g, 0.56, 0.06, 0.56, 0x5e3b20, 0, 2.03, 0);
+    for (const sx of [-1, 1]) {
+      box(g, 0.07, 0.45, 0.07, 0x8a5a33, sx * 0.2, 2.28, 0).rotation.z = -sx * 0.3;
+      box(g, 0.2, 0.07, 0.07, 0x8a5a33, sx * 0.3, 2.3, 0);
+      box(g, 0.2, 0.07, 0.07, 0x8a5a33, sx * 0.34, 2.45, 0);
+    }
+  } else if (style === 'bunny') {
+    box(g, 0.56, 0.06, 0.56, 0xffffff, 0, 2.03, 0);
+    for (const sx of [-1, 1]) {
+      box(g, 0.14, 0.62, 0.1, 0xffffff, sx * 0.15, 2.4, 0).rotation.z = -sx * 0.12;
+      box(g, 0.07, 0.42, 0.02, 0xffb6c1, sx * 0.15, 2.4, 0.06).rotation.z = -sx * 0.12;
+    }
+  } else if (style === 'party') {
+    box(g, 0.42, 0.14, 0.42, 0xff6fa5, 0, 2.07, 0);
+    box(g, 0.32, 0.14, 0.32, 0x3498db, 0, 2.21, 0);
+    box(g, 0.22, 0.14, 0.22, 0xff6fa5, 0, 2.35, 0);
+    box(g, 0.12, 0.12, 0.12, 0xffe066, 0, 2.48, 0);
+  } else if (style === 'propeller') {
+    box(g, 0.58, 0.2, 0.58, 0xe74c3c, 0, 2.08, 0);
+    box(g, 0.28, 0.2, 0.58, 0xf1c40f, 0, 2.09, 0);
+    box(g, 0.04, 0.12, 0.04, 0x333333, 0, 2.24, 0);
+    box(g, 0.55, 0.03, 0.1, 0x3498db, 0, 2.31, 0);
+    box(g, 0.1, 0.03, 0.55, 0x3498db, 0, 2.31, 0);
   } else if (style === 'flower') {                // flower crown
     box(g, 0.56, 0.06, 0.56, 0x3c9d4a, 0, 2.03, 0);
     const cols = [0xff6fa5, 0xffffff, 0xffe066, 0xff9a3c];
@@ -82,6 +122,18 @@ export function makeFarmer(shirt = 0xc0392b, hat = 0xe8c15a, look = null) {
       const a = (i / 8) * 6.2832;
       box(g, 0.13, 0.13, 0.13, cols[i % 4], Math.sin(a) * 0.3, 2.08, Math.cos(a) * 0.3);
     }
+  }
+  const face = look && look.face;
+  if (face === 'shades') {
+    for (const sx of [-1, 1]) box(g, 0.2, 0.12, 0.04, 0x111111, sx * 0.13, 1.8, 0.26);
+    box(g, 0.08, 0.04, 0.04, 0x111111, 0, 1.82, 0.26);
+    for (const sx of [-1, 1]) box(g, 0.03, 0.04, 0.5, 0x111111, sx * 0.265, 1.82, 0);
+  } else if (face === 'glasses') {
+    for (const sx of [-1, 1]) { box(g, 0.22, 0.22, 0.03, 0xf1c40f, sx * 0.13, 1.8, 0.255); box(g, 0.15, 0.15, 0.03, 0xbfe9ff, sx * 0.13, 1.8, 0.275); }
+    box(g, 0.06, 0.03, 0.03, 0xf1c40f, 0, 1.83, 0.26);
+  } else if (face === 'stache') {
+    box(g, 0.3, 0.07, 0.04, 0x3a2412, 0, 1.66, 0.26);
+    for (const sx of [-1, 1]) box(g, 0.07, 0.07, 0.04, 0x3a2412, sx * 0.17, 1.69, 0.26);
   }
   g.add(makeBlobShadow(0.7));
   return g;

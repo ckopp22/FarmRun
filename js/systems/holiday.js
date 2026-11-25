@@ -14,23 +14,27 @@ export const claimedToday = (save) => !!(save && save.xmas && save.xmas.claimed 
 export const DEFAULT_SHIRT = 0xc0392b;
 export const HAWAII = 0x1fa8b8;
 export const SHIRTS = [0x2e86de, 0x27ae60, 0x8e44ad, 0xf39c12, 0xe84393, 0x16a085, 0x2c3e50, 'hawaiian'];
-export const HATS = { none: 'No Hat', cap: 'Baseball Cap', santa: 'Santa Hat', blonde: 'Long Blonde Hair', flower: 'Flower Crown' };
+export const HATS = { none: 'No Hat', cap: 'Baseball Cap', santa: 'Santa Hat', blonde: 'Long Blonde Hair', flower: 'Flower Crown',
+  cowboy: 'Cowboy Hat', tophat: 'Top Hat', crown: 'Gold Crown', beanie: 'Winter Beanie', antlers: 'Reindeer Antlers', bunny: 'Bunny Ears', party: 'Party Hat', propeller: 'Propeller Cap' };
+export const FACES = { shades: 'Sunglasses', glasses: 'Round Glasses', stache: 'Mustache' };
 // Arguments for makeFarmer(): shirt color, (unused hat color), look { hat, hawaiian }.
 export function farmerArgs(save) {
   const sh = save && save.shirt;
-  return [typeof sh === 'number' ? sh : sh === 'hawaiian' ? HAWAII : undefined, undefined, { hat: save && save.hat, hawaiian: sh === 'hawaiian' }];
+  return [typeof sh === 'number' ? sh : sh === 'hawaiian' ? HAWAII : undefined, undefined, { hat: save && save.hat, face: save && save.face, hawaiian: sh === 'hawaiian' }];
 }
 // Pick today's prize and apply (and equip) it. Returns { text, kind, color }.
-export function claimPrize(save, canPen) {
+export function claimPrize(save) {
   const leftShirts = SHIRTS.filter((c) => !(save.shirts || []).includes(c));
   const leftHats = Object.keys(HATS).filter((h) => !(save.hats || []).includes(h));
-  const opts = [['money', 0.3], canPen && ['pen', 0.2], leftShirts.length && ['shirt', 0.25], leftHats.length && ['hat', 0.25]].filter(Boolean);
+  const leftFaces = Object.keys(FACES).filter((f) => !(save.faces || []).includes(f));
+  const opts = [['money', 0.35], leftShirts.length && ['shirt', 0.2], leftHats.length && ['hat', 0.3], leftFaces.length && ['face', 0.15]].filter(Boolean);
   let r = Math.random() * opts.reduce((a, o) => a + o[1], 0), kind = 'money';
   for (const [k, w] of opts) { r -= w; if (r <= 0) { kind = k; break; } }
   let prize;
-  if (kind === 'pen') {
-    save.pens = (save.pens || 0) + 1;
-    prize = { kind, text: 'A new animal pen!' };
+  if (kind === 'face') {
+    save.face = leftFaces[Math.floor(Math.random() * leftFaces.length)];
+    save.faces = [...(save.faces || []), save.face];
+    prize = { kind, text: FACES[save.face] + '!' };
   } else if (kind === 'shirt') {
     save.shirt = leftShirts[Math.floor(Math.random() * leftShirts.length)];
     save.shirts = [...(save.shirts || []), save.shirt];

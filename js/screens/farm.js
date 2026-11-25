@@ -7,7 +7,7 @@ import { level, nextCost, buy, penCount, nextPenCost, buyPen, desertAvailable, b
 import { activeSave, saveActive } from '../systems/save.js';
 import { createConfetti } from '../game/confetti.js';
 import { createParticles } from '../render/particles.js';
-import { HATS, farmerArgs, DEFAULT_SHIRT, claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
+import { HATS, FACES, farmerArgs, DEFAULT_SHIRT, claimedToday, claimPrize, presentsToday, PRESENT_GOAL, isHoliday } from '../systems/holiday.js';
 import { tapSound, sfx, setMusic } from '../systems/audio.js';
 
 const PITCH = 42 * Math.PI / 180, DIST = 24;
@@ -35,12 +35,14 @@ const HAWAII_BG = 'radial-gradient(circle at 30% 30%, #ff6fa5 0 3px, transparent
 function openShirts() {
   const save = activeSave();
   tapSound();
-  const cur = save.shirt || DEFAULT_SHIRT, hat = save.hat || 'straw';
+  const cur = save.shirt || DEFAULT_SHIRT, hat = save.hat || 'straw', face = save.face || 'none';
   shirtList.innerHTML =
     '<div class="sp-label">Shirt</div>' +
     [DEFAULT_SHIRT, ...(save.shirts || [])].map((c) => `<b data-k="shirt" data-c="${c}" class="${c === cur ? 'sel' : ''}" style="background:${c === 'hawaiian' ? HAWAII_BG : hex(c)}"></b>`).join('') +
     '<div class="sp-label">Hat</div>' +
-    [['straw', 'Straw Hat'], ...(save.hats || []).map((h) => [h, HATS[h]])].map(([h, n]) => `<u data-k="hat" data-c="${h}" class="${h === hat ? 'sel' : ''}">${n}</u>`).join('');
+    [['straw', 'Straw Hat'], ...(save.hats || []).map((h) => [h, HATS[h]])].map(([h, n]) => `<u data-k="hat" data-c="${h}" class="${h === hat ? 'sel' : ''}">${n}</u>`).join('') +
+    '<div class="sp-label">Face</div>' +
+    [['none', 'None'], ...(save.faces || []).map((f) => [f, FACES[f]])].map(([f, n]) => `<u data-k="face" data-c="${f}" class="${f === face ? 'sel' : ''}">${n}</u>`).join('');
   shirtEl.style.display = '';
 }
 shirtList.addEventListener('click', (ev) => {
@@ -48,7 +50,8 @@ shirtList.addEventListener('click', (ev) => {
   if (!k) return;
   const save = activeSave();
   if (k === 'shirt') save.shirt = c === 'hawaiian' ? 'hawaiian' : +c === DEFAULT_SHIRT ? undefined : +c;
-  else save.hat = c === 'straw' ? undefined : c;
+  else if (k === 'hat') save.hat = c === 'straw' ? undefined : c;
+  else save.face = c === 'none' ? undefined : c;
   saveActive();
   shirtEl.style.display = 'none';
   ctxRef.go('farm');
@@ -67,7 +70,7 @@ unwrapEl.addEventListener('click', () => {
   const save = activeSave();
   if (!unwrapped) {
     unwrapped = true;
-    const prize = claimPrize(save, penCount(save) < ANIMALS.length);
+    const prize = claimPrize(save);
     saveActive();
     unwrapBox.classList.add('open');
     unwrapText.innerHTML = `You got<br>${prize.text}`;
